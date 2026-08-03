@@ -1,4 +1,4 @@
-# TestHub - AI 驱动的测试管理平台
+# AITestPlat - AI 驱动的测试管理平台
 
 <div align="center">
 
@@ -13,7 +13,7 @@
 
 ## 项目简介
 
-TestHub 是一个 AI 驱动的测试管理平台，集成了测试用例管理、API 测试、Web UI 自动化、Android APP 自动化、数据工厂、缺陷管理、需求分析等模块，覆盖测试全生命周期。
+AITestPlat 是一个 AI 驱动的测试管理平台，集成了测试用例管理、API 测试、Web UI 自动化、Android APP 自动化、数据工厂、缺陷管理、需求分析等模块，覆盖测试全生命周期。
 
 ## 核心功能
 
@@ -107,7 +107,7 @@ TestHub 是一个 AI 驱动的测试管理平台，集成了测试用例管理�
 ## 项目结构
 
 ```
-testhub_platform/
+aitestplat/
 ├── apps/                           # Django 应用模块
 │   ├── users/                      # 用户管理
 │   ├── projects/                   # 项目管理
@@ -168,7 +168,7 @@ cp .env.example .env
 # 编辑 .env 配置数据库连接等信息
 
 # 4. 初始化数据库
-mysql -u root -p -e "CREATE DATABASE testhub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -p -e "CREATE DATABASE aitestplat CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser

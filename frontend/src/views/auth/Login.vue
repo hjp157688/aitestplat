@@ -13,7 +13,7 @@
                 <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <h1 class="brand-title">TestHub</h1>
+            <h1 class="brand-title">AITestPlat</h1>
           </div>
           <p class="brand-subtitle">AI-Powered Testing Platform</p>
         </div>
@@ -321,7 +321,7 @@ const features = computed(() => [
     icon: Document,
     title: t('auth.aiCaseGeneration'),
     description: t('auth.aiCaseGenerationDesc'),
-    color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    color: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
   },
   {
     icon: MagicStick,
@@ -462,7 +462,7 @@ onUnmounted(() => {
 /* 左侧展示区域 */
 .showcase-section {
   flex: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   position: relative;
   display: flex;
   align-items: center;
@@ -750,7 +750,7 @@ onUnmounted(() => {
 
       &.active {
         background: white;
-        color: #667eea;
+        color: #1a1a2e;
         font-weight: 600;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       }
@@ -780,7 +780,7 @@ onUnmounted(() => {
       }
 
       &.is-focus {
-        box-shadow: 0 0 0 1px #667eea inset;
+        box-shadow: 0 0 0 1px #1a1a2e inset;
       }
     }
 
@@ -793,13 +793,13 @@ onUnmounted(() => {
       height: 48px;
       font-size: 16px;
       font-weight: 600;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       border: none;
       transition: all 0.3s ease;
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 10px 20px rgba(26, 26, 46, 0.3);
       }
 
       &:active {
@@ -819,12 +819,12 @@ onUnmounted(() => {
       transition: all 0.3s ease;
 
       span {
-        color: #667eea;
+        color: #1a1a2e;
         font-weight: 600;
       }
 
       &:hover {
-        color: #667eea;
+        color: #1a1a2e;
       }
     }
   }

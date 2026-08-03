@@ -1,7 +1,7 @@
 {
-  "name": "testhub-frontend",
+  "name": "aitestplat-frontend",
   "version": "1.0.1",
-  "description": "TestHub前端应用",
+  "description": "AITestPlat前端应用",
   "license": "GPL-3.0",
   "scripts": {
     "dev": "vite",
