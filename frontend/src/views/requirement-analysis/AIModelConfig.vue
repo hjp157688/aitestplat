@@ -1,0 +1,1481 @@
+<template>
+  <div class="ai-model-config">
+    <div class="page-header">
+      <h1>{{ $t('configuration.aiModel.title') }}</h1>
+      <p>{{ $t('configuration.aiModel.description') }}</p>
+    </div>
+
+    <div class="main-content">
+      <!-- 配置列表 -->
+      <div class="configs-section">
+        <div class="section-header">
+          <h2>{{ $t('configuration.aiModel.configList') }}</h2>
+          <button
+            class="add-config-btn"
+            @click.stop="openAddModal"
+            type="button">
+            {{ $t('configuration.aiModel.addConfig') }}
+          </button>
+        </div>
+
+        <div class="configs-grid">
+          <template v-for="config in configs" :key="config?.id || 'unknown'">
+            <div v-if="config && config.id" class="config-card">
+              <div class="config-header">
+                <div class="config-title">
+                  <h3>{{ config.name || $t('configuration.common.unnamed') }}</h3>
+                  <div class="config-badges">
+                    <span class="model-badge" :class="config.model_type">
+                      {{ $t('configuration.aiModel.modelTypes.' + config.model_type) }}
+                    </span>
+                    <span class="role-badge" :class="config.role">
+                      {{ $t('configuration.aiModel.roles.' + config.role) }}
+                    </span>
+                    <span class="status-badge" :class="{ active: config.is_active }">
+                      {{ config.is_active ? $t('configuration.common.enabled') : $t('configuration.common.disabled') }}
+                    </span>
+                  </div>
+                </div>
+                <div class="config-actions">
+                  <el-switch
+                    v-model="config.is_active"
+                    @change="toggleActive(config)"
+                    :active-text="$t('configuration.common.enabled')"
+                    :inactive-text="$t('configuration.common.disabled')"
+                    :loading="config.toggling"
+                  />
+                  <button
+                    class="test-btn"
+                    @click="testConnection(config)"
+                    :disabled="isTestingConnection">
+                    {{ $t('configuration.aiModel.testConnection') }}
+                  </button>
+                  <button class="edit-btn" @click="editConfig(config)">{{ $t('configuration.common.edit') }}</button>
+                  <button class="delete-btn" @click="deleteConfig(config.id)">{{ $t('configuration.common.delete') }}</button>
+                </div>
+              </div>
+
+              <div class="config-details">
+              <div class="detail-item">
+                <label>{{ $t('configuration.aiModel.baseUrl') }}:</label>
+                <span>{{ config.base_url }}</span>
+              </div>
+              <div class="detail-item">
+                <label>{{ $t('configuration.aiModel.modelName') }}:</label>
+                <span>{{ config.model_name }}</span>
+              </div>
+              <div class="detail-item">
+                <label>{{ $t('configuration.aiModel.maxTokens') }}:</label>
+                <span>{{ config.max_tokens }}</span>
+              </div>
+              <div class="detail-item">
+                <label>{{ $t('configuration.aiModel.temperature') }}:</label>
+                <span>{{ config.temperature }}</span>
+              </div>
+              <div class="detail-item">
+                <label>{{ $t('configuration.aiModel.topP') }}:</label>
+                <span>{{ config.top_p }}</span>
+              </div>
+              <div class="detail-item">
+                <label>{{ $t('configuration.common.createdAt') }}:</label>
+                <span>{{ formatDateTime(config.created_at) }}</span>
+              </div>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <div v-if="configs.length === 0" class="empty-state">
+          <div class="empty-icon"></div>
+          <h3>{{ $t('configuration.aiModel.emptyTitle') }}</h3>
+          <p>{{ $t('configuration.aiModel.emptyDescription') }}</p>
+          <button
+            class="add-first-config-btn"
+            @click.stop="openAddModal"
+            type="button">
+            {{ $t('configuration.aiModel.addFirstConfig') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 添加/编辑配置弹窗 -->
+    <div
+      v-show="shouldShowModal"
+      :class="['config-modal', { hidden: !shouldShowModal }]"
+      @keydown.esc="closeModals">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>{{ isEditing ? $t('configuration.aiModel.editConfig') : $t('configuration.aiModel.addConfigTitle') }}</h3>
+          <button class="close-btn" @click.stop="closeModals" type="button">x</button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="saveConfig">
+            <div class="form-group">
+              <label>{{ $t('configuration.aiModel.configName') }} <span class="required">*</span></label>
+              <input
+                v-model="configForm.name"
+                type="text"
+                class="form-input"
+                :placeholder="$t('configuration.aiModel.configNamePlaceholder')"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label>{{ $t('configuration.aiModel.modelType') }} <span class="required">*</span></label>
+              <select
+                v-model="configForm.model_type"
+                class="form-select"
+                required
+                @change="onModelTypeChange(configForm.model_type)">
+                <option value="">{{ $t('configuration.aiModel.selectModelType') }}</option>
+                <option value="deepseek">{{ $t('configuration.aiModel.modelTypes.deepseek') }}</option>
+                <option value="qwen">{{ $t('configuration.aiModel.modelTypes.qwen') }}</option>
+                <option value="siliconflow">{{ $t('configuration.aiModel.modelTypes.siliconflow') }}</option>
+                <option value="zhipu">{{ $t('configuration.aiModel.modelTypes.zhipu') }}</option>
+                <option value="xiaomi">{{ $t('configuration.aiModel.modelTypes.xiaomi') }}</option>
+                <option value="xiaomi_coding_plan">{{ $t('configuration.aiModel.modelTypes.xiaomi_coding_plan') }}</option>
+                <option value="other">{{ $t('configuration.aiModel.modelTypes.other') }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>{{ $t('configuration.aiModel.role') }} <span class="required">*</span></label>
+              <select
+                v-model="configForm.role"
+                class="form-select"
+                required
+                @change="console.log('Role changed to:', configForm.role)">
+                <option value="">{{ $t('configuration.aiModel.selectRole') }}</option>
+                <option value="writer">{{ $t('configuration.aiModel.roles.writer') }}</option>
+                <option value="reviewer">{{ $t('configuration.aiModel.roles.reviewer') }}</option>
+                <option value="api_testcase_generator">{{ $t('configuration.aiModel.roles.apiTestCaseGenerator') }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>{{ $t('configuration.aiModel.apiKey') }} <span class="required">*</span></label>
+              <input
+                v-model="configForm.api_key"
+                type="password"
+                class="form-input"
+                :placeholder="isEditing ? $t('configuration.aiModel.apiKeyPlaceholderEdit') : $t('configuration.aiModel.apiKeyPlaceholder')"
+                :required="!isEditing">
+              <small v-if="isEditing && configForm.api_key && configForm.api_key.includes('*')" class="form-hint">
+                {{ $t('configuration.aiModel.apiKeyMaskHint') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>{{ $t('configuration.aiModel.baseUrl') }} <span class="required">*</span></label>
+              <input
+                v-model="configForm.base_url"
+                type="url"
+                class="form-input"
+                :placeholder="$t('configuration.aiModel.baseUrlPlaceholder')"
+                required>
+              <small class="form-hint">
+                {{ $t('configuration.aiModel.baseUrlHint') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>{{ $t('configuration.aiModel.modelName') }} <span class="required">*</span></label>
+              <div class="model-name-row">
+                <input
+                  v-model="configForm.model_name"
+                  type="text"
+                  class="form-input"
+                  :placeholder="$t('configuration.aiModel.modelNamePlaceholder')"
+                  required>
+                <button
+                  type="button"
+                  class="fetch-models-btn"
+                  @click="fetchAvailableModelsInModal"
+                  :disabled="isFetchingModels">
+                  <span v-if="isFetchingModels">{{ $t('configuration.aiModel.fetchingModels') }}</span>
+                  <span v-else>{{ $t('configuration.aiModel.fetchModels') }}</span>
+                </button>
+              </div>
+              <small class="form-hint">
+                {{ $t('configuration.aiModel.modelNameHint') }}
+              </small>
+              <div v-if="availableModels.length > 0" class="model-list-selector">
+                <div class="model-list-header">
+                  <label>{{ $t('configuration.aiModel.availableModels') }}</label>
+                  <button
+                    type="button"
+                    class="toggle-model-list-btn"
+                    @click="showAvailableModelsPanel = !showAvailableModelsPanel">
+                    {{ showAvailableModelsPanel ? $t('configuration.aiModel.hideModelList') : $t('configuration.aiModel.showModelList') }}
+                  </button>
+                </div>
+                <small class="form-hint">
+                  {{ $t('configuration.aiModel.availableModelsHint', { count: filteredAvailableModels.length, total: availableModels.length }) }}
+                </small>
+                <div v-show="showAvailableModelsPanel" class="model-list-panel">
+                  <button
+                    v-for="model in filteredAvailableModels"
+                    :key="model"
+                    type="button"
+                    class="model-list-item"
+                    :class="{ active: configForm.model_name === model }"
+                    @click="selectModelFromList(model)">
+                    {{ model }}
+                  </button>
+                  <div v-if="filteredAvailableModels.length === 0" class="model-list-empty">
+                    {{ $t('configuration.aiModel.noFilteredModels') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>{{ $t('configuration.aiModel.maxTokens') }}</label>
+                <input
+                  v-model.number="configForm.max_tokens"
+                  type="number"
+                  min="100"
+                  max="32000"
+                  class="form-input"
+                  placeholder="4096">
+              </div>
+
+              <div class="form-group">
+                <label>{{ $t('configuration.aiModel.temperature') }}</label>
+                <input
+                  v-model.number="configForm.temperature"
+                  type="number"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  class="form-input"
+                  placeholder="0.7">
+              </div>
+
+              <div class="form-group">
+                <label>{{ $t('configuration.aiModel.topP') }}</label>
+                <input
+                  v-model.number="configForm.top_p"
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  class="form-input"
+                  placeholder="0.9">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input
+                  v-model="configForm.is_active"
+                  type="checkbox">
+                <span class="checkmark"></span>
+                {{ $t('configuration.aiModel.enableConfig') }}
+              </label>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="cancel-btn" @click="closeModals">{{ $t('configuration.common.cancel') }}</button>
+              <button
+                type="button"
+                class="test-btn-form"
+                @click="testConnectionInModal"
+                :disabled="isTestingInModal">
+                <span v-if="isTestingInModal">{{ $t('configuration.aiModel.testing') }}</span>
+                <span v-else>{{ $t('configuration.aiModel.testConnection') }}</span>
+              </button>
+              <button
+                type="submit"
+                class="confirm-btn"
+                :disabled="isSaving">
+                <span v-if="isSaving">{{ $t('configuration.aiModel.saving') }}</span>
+                <span v-else>{{ $t('configuration.aiModel.saveConfig') }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 连接测试结果弹窗 -->
+    <div v-if="showTestResult" class="test-result-modal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>{{ $t('configuration.aiModel.testResult') }}</h3>
+          <button class="close-btn" @click="closeTestResult">x</button>
+        </div>
+        <div class="modal-body">
+          <div class="test-result" :class="{ success: testResult.success, error: !testResult.success }">
+            <div class="result-icon">
+              <el-icon v-if="testResult.success" class="result-icon" :size="48"><CircleCheck /></el-icon>
+              <el-icon v-else class="result-icon" :size="48"><CircleClose /></el-icon>
+            </div>
+            <div class="result-content">
+              <h4>{{ testResult.success ? $t('configuration.aiModel.connectionSuccess') : $t('configuration.aiModel.connectionFailed') }}</h4>
+              <p>{{ testResult.message }}</p>
+              <div v-if="testResult.response" class="api-response">
+                <label>{{ $t('configuration.aiModel.aiResponse') }}:</label>
+                <p>{{ testResult.response }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import api from '@/utils/api'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { CircleCheck, CircleClose } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
+
+export default {
+  name: 'AIModelConfig',
+  setup() {
+    const { t } = useI18n()
+    return { t }
+  },
+  data() {
+    return {
+      configs: [], // 确保初始化为空数组
+      showAddModal: false,
+      showEditModal: false,
+      showTestResult: false,
+      isEditing: false,
+      isSaving: false,
+      isTestingInModal: false,
+      isFetchingModels: false,
+      isTestingConnection: false,
+      testingConfigId: null,
+      editingConfigId: null,
+      availableModels: [],
+      showAvailableModelsPanel: false,
+      configForm: {
+        name: '',
+        model_type: '',
+        role: '',
+        api_key: '',
+        base_url: '',
+        model_name: '',
+        max_tokens: 4096,
+        temperature: 0.7,
+        top_p: 0.9,
+        is_active: true
+      },
+      // 模型类型与API Base URL的映射关系
+      modelBaseUrlMap: {
+        deepseek: 'https://api.deepseek.com',
+        qwen: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+        siliconflow: 'https://api.siliconflow.cn/v1',
+        zhipu: 'https://open.bigmodel.cn/api/paas/v4',
+        xiaomi: 'https://api.xiaomimimo.com/v1',
+        xiaomi_coding_plan: 'https://token-plan-cn.xiaomimimo.com/v1',
+        other: ''
+      },
+      testResult: {
+        success: false,
+        message: '',
+        response: ''
+      }
+    }
+  },
+
+  computed: {
+    shouldShowModal() {
+      const show = this.showAddModal || this.showEditModal
+      console.log('Computed shouldShowModal:', show, {
+        showAddModal: this.showAddModal,
+        showEditModal: this.showEditModal
+      })
+      return show
+    },
+    filteredAvailableModels() {
+      const keyword = (this.configForm.model_name || '').trim().toLowerCase()
+      if (!keyword) {
+        return this.availableModels
+      }
+      return this.availableModels.filter(model => model.toLowerCase().includes(keyword))
+    }
+  },
+
+  watch: {
+    configForm: {
+      handler(newVal, oldVal) {
+        console.log('ConfigForm changed:', JSON.stringify(newVal))
+      },
+      deep: true
+    },
+    shouldShowModal(newVal, oldVal) {
+      console.log('Modal visibility changed:', newVal, 'was:', oldVal)
+    }
+  },
+
+  mounted() {
+    console.log('AIModelConfig component mounted')
+    console.log('Initial showAddModal state:', this.showAddModal)
+    console.log('Initial showEditModal state:', this.showEditModal)
+    console.log('Initial configForm:', JSON.stringify(this.configForm))
+    
+    // 确保组件初始状态正确
+    this.initializeComponent()
+    
+    this.loadConfigs()
+  },
+
+  methods: {
+    // 当模型类型改变时自动填充API Base URL
+    onModelTypeChange(modelType) {
+      console.log('Model type changed to:', modelType)
+      this.availableModels = []
+      this.showAvailableModelsPanel = false
+
+      // 根据选择的模型类型自动填充base_url
+      if (Object.prototype.hasOwnProperty.call(this.modelBaseUrlMap, modelType)) {
+        this.configForm.base_url = this.modelBaseUrlMap[modelType]
+        console.log('Auto-filled base_url:', this.configForm.base_url)
+      }
+    },
+
+    initializeComponent() {
+      // 强制重置所有状态
+      this.showAddModal = false
+      this.showEditModal = false
+      this.showTestResult = false
+      this.isEditing = false
+      this.isSaving = false
+      this.isTestingInModal = false
+      this.isFetchingModels = false
+      this.isTestingConnection = false
+      this.testingConfigId = null
+      this.editingConfigId = null
+      this.availableModels = []
+      this.showAvailableModelsPanel = false
+      
+      console.log('Component initialized with states:', {
+        showAddModal: this.showAddModal,
+        showEditModal: this.showEditModal,
+        isEditing: this.isEditing
+      })
+    },
+    async loadConfigs() {
+      try {
+        console.log('Loading configs...')
+        const response = await api.get('/requirement-analysis/ai-models/')
+        console.log('API response:', response.data)
+        
+        // 处理分页API响应格式 {count: 1, next: null, previous: null, results: [...]}
+        if (response.data && response.data.results && Array.isArray(response.data.results)) {
+          this.configs = response.data.results
+            .filter(config => config && config.id)
+            .map(config => ({ ...config, toggling: false }))
+          console.log('Loaded configs from results:', this.configs)
+        } else if (response.data && Array.isArray(response.data)) {
+          // 直接数组格式的fallback
+          this.configs = response.data
+            .filter(config => config && config.id)
+            .map(config => ({ ...config, toggling: false }))
+          console.log('Loaded configs from direct array:', this.configs)
+        } else {
+          console.warn('Unexpected API response format:', response.data)
+          this.configs = []
+        }
+        
+        console.log('Final configs count:', this.configs.length)
+      } catch (error) {
+        console.error('Failed to load configs:', error)
+        this.configs = [] // 确保configs始终是数组
+
+        if (error.response?.status === 401) {
+          ElMessage.error(this.t('configuration.aiModel.messages.pleaseLogin'))
+        } else {
+          ElMessage.error(this.t('configuration.aiModel.messages.loadFailedDetail', { error: error.response?.data?.error || error.message }))
+        }
+      }
+    },
+
+    openAddModal() {
+      console.log('Opening add modal - button clicked')
+      try {
+        this.resetForm()
+        this.isEditing = false
+        this.showAddModal = true
+        console.log('Modal state set to true:', this.showAddModal)
+        console.log('Initial form after reset:', JSON.stringify(this.configForm))
+        
+        // 强制Vue重新渲染
+        this.$nextTick(() => {
+          console.log('Modal should be visible now:', this.showAddModal)
+          console.log('Form in nextTick:', JSON.stringify(this.configForm))
+        })
+      } catch (error) {
+        console.error('Error in openAddModal:', error)
+      }
+    },
+
+    resetForm() {
+      // 使用Object.assign确保响应式
+      Object.assign(this.configForm, {
+        name: '',
+        model_type: '',
+        role: '',
+        api_key: '',
+        base_url: '',
+        model_name: '',
+        max_tokens: 4096,
+        temperature: 0.7,
+        top_p: 0.9,
+        is_active: true
+      })
+      this.availableModels = []
+      this.showAvailableModelsPanel = false
+      console.log('Form reset:', JSON.stringify(this.configForm))
+    },
+
+    editConfig(config) {
+      this.isEditing = true
+      this.editingConfigId = config.id
+      this.configForm = {
+        name: config.name,
+        model_type: config.model_type,
+        role: config.role,
+        api_key: config.api_key_masked || '', // 显示掩码版本的API Key
+        base_url: config.base_url,
+        model_name: config.model_name,
+        max_tokens: config.max_tokens,
+        temperature: config.temperature,
+        top_p: config.top_p,
+        is_active: config.is_active
+      }
+      this.availableModels = []
+      this.showAvailableModelsPanel = false
+      this.showEditModal = true
+    },
+
+    selectModelFromList(modelName) {
+      this.configForm.model_name = modelName
+    },
+
+    async fetchAvailableModelsInModal() {
+      if (!this.configForm.model_type) {
+        ElMessage.warning(this.t('configuration.aiModel.messages.selectProviderFirst'))
+        return
+      }
+
+      if (!this.configForm.api_key) {
+        ElMessage.warning(this.t('configuration.aiModel.messages.enterApiKey'))
+        return
+      }
+
+      if (!this.configForm.base_url) {
+        ElMessage.warning(this.t('configuration.aiModel.messages.enterBaseUrl'))
+        return
+      }
+
+      this.isFetchingModels = true
+
+      try {
+        let response
+
+        if (this.isEditing && this.configForm.api_key.includes('*') && this.editingConfigId) {
+          response = await api.get(
+            `/requirement-analysis/ai-models/${this.editingConfigId}/available_models/`,
+            { timeout: 90000 }
+          )
+        } else {
+          response = await api.post(
+            '/requirement-analysis/ai-models/available_models/',
+            {
+              name: this.configForm.name,
+              model_type: this.configForm.model_type,
+              role: this.configForm.role || 'writer',
+              api_key: this.configForm.api_key,
+              base_url: this.configForm.base_url,
+              model_name: this.configForm.model_name || 'temp-model',
+              max_tokens: this.configForm.max_tokens,
+              temperature: this.configForm.temperature,
+              top_p: this.configForm.top_p
+            },
+            { timeout: 90000 }
+          )
+        }
+
+        this.availableModels = Array.isArray(response.data?.models) ? response.data.models : []
+
+        if (this.availableModels.length === 0) {
+          this.showAvailableModelsPanel = false
+          ElMessage.warning(this.t('configuration.aiModel.messages.noModelsFound'))
+          return
+        }
+
+        this.showAvailableModelsPanel = true
+        ElMessage.success(this.t('configuration.aiModel.messages.fetchModelsSuccess', { count: this.availableModels.length }))
+      } catch (error) {
+        console.error('Failed to fetch available models:', error)
+        this.availableModels = []
+        this.showAvailableModelsPanel = false
+        ElMessage.error(
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          this.t('configuration.aiModel.messages.fetchModelsFailed', { error: error.message })
+        )
+      } finally {
+        this.isFetchingModels = false
+      }
+    },
+
+    async saveConfig() {
+      console.log('Saving config with data:', this.configForm)
+      
+      // 详细检查每个字段
+      console.log('Field values:')
+      console.log('- name:', this.configForm.name, 'length:', this.configForm.name?.length)
+      console.log('- model_type:', this.configForm.model_type, 'length:', this.configForm.model_type?.length)
+      console.log('- role:', this.configForm.role, 'length:', this.configForm.role?.length)
+      console.log('- api_key:', this.configForm.api_key, 'length:', this.configForm.api_key?.length)
+      console.log('- base_url:', this.configForm.base_url, 'length:', this.configForm.base_url?.length)
+      console.log('- model_name:', this.configForm.model_name, 'length:', this.configForm.model_name?.length)
+      
+      // 验证必填字段
+      const requiredFields = [
+        { name: 'name', value: this.configForm.name },
+        { name: 'model_type', value: this.configForm.model_type },
+        { name: 'role', value: this.configForm.role },
+        { name: 'api_key', value: this.configForm.api_key },
+        { name: 'base_url', value: this.configForm.base_url },
+        { name: 'model_name', value: this.configForm.model_name }
+      ]
+      
+      const emptyFields = requiredFields.filter(field => !field.value || field.value.trim() === '')
+      
+      if (emptyFields.length > 0) {
+        console.log('Empty fields:', emptyFields)
+        ElMessage.error(this.t('configuration.aiModel.messages.fillRequired', { fields: emptyFields.map(f => f.name).join(', ') }))
+        return
+      }
+      
+      // 检查唯一约束冲突（仅在创建新配置且is_active为true时）
+      if (!this.isEditing && this.configForm.is_active) {
+        const existingConfig = this.configs.find(config => 
+          config.model_type === this.configForm.model_type && 
+          config.role === this.configForm.role && 
+          config.is_active === true
+        )
+        
+        if (existingConfig) {
+          ElMessage.error(this.t('configuration.aiModel.messages.duplicateConfig', { name: existingConfig.name }))
+          return
+        }
+      }
+      
+      this.isSaving = true
+      
+      try {
+        if (this.isEditing) {
+          // 编辑时，如果API Key是掩码格式或为空，则不更新它
+          const updateData = { ...this.configForm }
+          if (!updateData.api_key || updateData.api_key.includes('*')) {
+            delete updateData.api_key
+          }
+          
+          console.log('Updating with data:', updateData)
+          await api.patch(`/requirement-analysis/ai-models/${this.editingConfigId}/`, updateData)
+          ElMessage.success(this.t('configuration.aiModel.messages.updateSuccess'))
+        } else {
+          console.log('Creating with data:', this.configForm)
+          await api.post('/requirement-analysis/ai-models/', this.configForm)
+          ElMessage.success(this.t('configuration.aiModel.messages.saveSuccess'))
+        }
+        
+        this.closeModals()
+        
+        // 等待模态框关闭后再刷新数据
+        await this.$nextTick()
+        await this.loadConfigs()
+        
+        // 强制重新渲染确保列表更新
+        this.$forceUpdate()
+        
+        console.log('Config saved and list refreshed, total configs:', this.configs.length)
+      } catch (error) {
+        console.error('Failed to save config:', error)
+        console.error('Error response:', error.response?.data)
+
+        if (error.response?.data) {
+          const errors = error.response.data
+          let errorMessage = this.t('configuration.aiModel.messages.saveFailed') + ': '
+
+          // 处理唯一约束错误
+          if (errors.non_field_errors) {
+            const uniqueConstraintError = errors.non_field_errors.find(err =>
+              err.includes('唯一集合') || err.includes('unique')
+            )
+            if (uniqueConstraintError) {
+              errorMessage = this.t('configuration.aiModel.messages.conflictError')
+            } else {
+              errorMessage += errors.non_field_errors.join(', ')
+            }
+          } else {
+            // 处理字段特定错误
+            Object.keys(errors).forEach(field => {
+              if (Array.isArray(errors[field])) {
+                errorMessage += `${field}: ${errors[field].join(', ')}; `
+              } else {
+                errorMessage += `${field}: ${errors[field]}; `
+              }
+            })
+          }
+
+          ElMessage.error(errorMessage)
+        } else {
+          ElMessage.error(this.t('configuration.aiModel.messages.saveFailedDetail', { error: error.message }))
+        }
+      } finally {
+        this.isSaving = false
+      }
+    },
+
+    async deleteConfig(configId) {
+      try {
+        await ElMessageBox.confirm(
+          this.t('configuration.aiModel.messages.deleteConfirm'),
+          this.t('configuration.aiModel.messages.deleteTitle'),
+          {
+            confirmButtonText: this.t('configuration.common.confirm'),
+            cancelButtonText: this.t('configuration.common.cancel'),
+            type: 'warning'
+          }
+        )
+      } catch {
+        return
+      }
+
+      try {
+        await api.delete(`/requirement-analysis/ai-models/${configId}/`)
+        ElMessage.success(this.t('configuration.aiModel.messages.deleteSuccess'))
+        this.loadConfigs()
+      } catch (error) {
+        console.error('Failed to delete config:', error)
+        ElMessage.error(this.t('configuration.aiModel.messages.deleteFailedDetail', { error: error.response?.data?.error || error.message }))
+      }
+    },
+
+    async toggleActive(config) {
+      if (config.is_active) {
+        const activeConfigs = this.configs.filter(c => c.id !== config.id && c.role === config.role && c.is_active)
+        if (activeConfigs.length > 0) {
+          const activeConfigNames = activeConfigs.map(c => c.name).join(', ')
+          try {
+            await ElMessageBox.confirm(
+              this.t('configuration.aiModel.messages.toggleConfirm', { name: config.name, configs: activeConfigNames }),
+              this.t('configuration.common.confirm'),
+              {
+                confirmButtonText: this.t('configuration.common.confirm'),
+                cancelButtonText: this.t('configuration.common.cancel'),
+                type: 'warning'
+              }
+            )
+          } catch {
+            config.is_active = false
+            return
+          }
+        }
+      }
+
+      config.toggling = true
+
+      try {
+        await api.patch(`/requirement-analysis/ai-models/${config.id}/`, {
+          is_active: config.is_active
+        })
+
+        ElMessage.success(
+          this.t('configuration.aiModel.messages.toggleSuccess', {
+            status: config.is_active ? this.t('configuration.common.enabled') : this.t('configuration.common.disabled')
+          })
+        )
+        await this.loadConfigs()
+      } catch (error) {
+        console.error('Failed to toggle active status:', error)
+        ElMessage.error(
+          `${this.t('configuration.aiModel.messages.toggleFailed')}: ${error.response?.data?.error || error.message}`
+        )
+        config.is_active = !config.is_active
+      } finally {
+        config.toggling = false
+      }
+    },
+
+    async testConnection(config) {
+      this.isTestingConnection = true
+      this.testingConfigId = config.id
+
+      try {
+        const response = await api.post(`/requirement-analysis/ai-models/${config.id}/test_connection/`)
+        this.testResult = response.data
+        this.showTestResult = true
+      } catch (error) {
+        console.error('Failed to test connection:', error)
+        this.testResult = {
+          success: false,
+          message: error.response?.data?.message || error.message,
+          response: ''
+        }
+        this.showTestResult = true
+      } finally {
+        this.isTestingConnection = false
+        this.testingConfigId = null
+      }
+    },
+
+    async testConnectionInModal() {
+      if (!this.configForm.api_key) {
+        ElMessage.warning(this.t('configuration.aiModel.messages.enterApiKey'))
+        return
+      }
+
+      if (!this.configForm.model_type || !this.configForm.model_name) {
+        ElMessage.warning(this.t('configuration.aiModel.messages.selectProviderModel'))
+        return
+      }
+
+      if (!this.configForm.base_url) {
+        ElMessage.warning(this.t('configuration.aiModel.messages.fillRequired', { fields: 'base_url' }))
+        return
+      }
+
+      this.isTestingInModal = true
+
+      try {
+        let response
+
+        // 编辑态且沿用原有 API Key 时，直接测试已保存配置
+        if (this.isEditing && this.configForm.api_key.includes('*') && this.editingConfigId) {
+          response = await api.post(
+            `/requirement-analysis/ai-models/${this.editingConfigId}/test_connection/`,
+            {},
+            { timeout: 90000 }
+          )
+        } else {
+          response = await api.post(
+            '/requirement-analysis/ai-models/test_connection/',
+            {
+              name: this.configForm.name,
+              model_type: this.configForm.model_type,
+              role: this.configForm.role || 'writer',
+              api_key: this.configForm.api_key,
+              base_url: this.configForm.base_url,
+              model_name: this.configForm.model_name,
+              max_tokens: this.configForm.max_tokens,
+              temperature: this.configForm.temperature,
+              top_p: this.configForm.top_p
+            },
+            { timeout: 90000 }
+          )
+        }
+
+        this.testResult = {
+          success: response.data?.success ?? true,
+          message: response.data?.message || this.t('configuration.aiModel.connectionSuccessMsg'),
+          response: response.data?.response || ''
+        }
+        this.showTestResult = true
+      } catch (error) {
+        console.error('Failed to test connection in modal:', error)
+        this.testResult = {
+          success: false,
+          message: error.response?.data?.message || error.response?.data?.error || error.message,
+          response: ''
+        }
+        this.showTestResult = true
+      } finally {
+        this.isTestingInModal = false
+      }
+    },
+
+    closeModals() {
+      console.log('Closing modals - current states:', {
+        showAddModal: this.showAddModal,
+        showEditModal: this.showEditModal,
+        isEditing: this.isEditing
+      })
+      
+      this.showAddModal = false
+      this.showEditModal = false
+      this.isEditing = false
+      this.editingConfigId = null
+      this.resetForm()
+      
+      // 强制Vue重新渲染
+      this.$nextTick(() => {
+        console.log('After nextTick - states:', {
+          showAddModal: this.showAddModal,
+          showEditModal: this.showEditModal,
+          shouldShow: this.shouldShowModal
+        })
+        
+        // 强制更新组件
+        this.$forceUpdate()
+      })
+      
+      console.log('After closing - states:', {
+        showAddModal: this.showAddModal,
+        showEditModal: this.showEditModal,
+        isEditing: this.isEditing
+      })
+    },
+
+    closeTestResult() {
+      this.showTestResult = false
+    },
+
+    formatDateTime(dateString) {
+      if (!dateString) return ''
+      const date = new Date(dateString)
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+  }
+}
+</script>
+
+<style scoped>
+.ai-model-config {
+  padding: 28px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 36px;
+  padding-top: 8px;
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.page-header p {
+  color: #64748B;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.section-header h2 {
+  color: #0F172A;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.add-config-btn {
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  pointer-events: auto;
+  z-index: 1;
+  position: relative;
+}
+
+.add-config-btn:hover {
+  background: #1D4ED8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.configs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 20px;
+}
+
+.config-card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 24px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.config-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.config-title h3 {
+  color: #0F172A;
+  margin: 0 0 10px 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.config-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.model-badge, .role-badge, .status-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.model-badge.deepseek { background: #EFF6FF; color: #2563EB; }
+.model-badge.qwen { background: #F5F3FF; color: #7C3AED; }
+.model-badge.siliconflow { background: #ECFEFF; color: #0891B2; }
+.model-badge.other { background: #F1F5F9; color: #64748B; }
+.model-badge.xiaomi { background: #FFFBEB; color: #D97706; }
+.model-badge.xiaomi_coding_plan { background: #FFF7ED; color: #EA580C; }
+
+.role-badge.writer { background: #F0FDF4; color: #059669; }
+.role-badge.reviewer { background: #FFFBEB; color: #D97706; }
+.role-badge.api_testcase_generator { background: #EFF6FF; color: #2563EB; }
+
+.status-badge { background: #FEF2F2; color: #DC2626; }
+.status-badge.active { background: #F0FDF4; color: #059669; }
+
+.config-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.test-btn, .edit-btn, .delete-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.test-btn { background: #2563EB; color: #FFFFFF; }
+.test-btn:hover:not(:disabled) { background: #1D4ED8; }
+.test-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+.edit-btn { background: #F59E0B; color: #FFFFFF; }
+.edit-btn:hover { background: #D97706; }
+
+.delete-btn { background: #DC2626; color: #FFFFFF; }
+.delete-btn:hover { background: #B91C1C; }
+
+.config-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item label {
+  font-size: 0.8rem;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.detail-item span {
+  color: #0F172A;
+  font-size: 0.88rem;
+  word-break: break-all;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #64748B;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  color: #0F172A;
+  margin-bottom: 10px;
+}
+
+.add-first-config-btn {
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 20px;
+  transition: all 0.2s;
+  pointer-events: auto;
+  z-index: 1;
+  position: relative;
+}
+
+.add-first-config-btn:hover {
+  background: #1D4ED8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.close-btn {
+  background: none !important;
+  border: none !important;
+  font-size: 1.3rem !important;
+  cursor: pointer !important;
+  color: #94A3B8 !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  z-index: 10001 !important;
+  position: relative !important;
+  pointer-events: auto !important;
+  transition: all 0.15s;
+}
+
+.close-btn:hover {
+  color: #0F172A !important;
+  background: #F1F5F9 !important;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #334155;
+  font-size: 0.85rem;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #0F172A;
+  background: #FFFFFF;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.model-name-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.fetch-models-btn {
+  flex-shrink: 0;
+  background: #7C3AED;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.fetch-models-btn:hover:not(:disabled) { background: #6D28D9; }
+.fetch-models-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+.model-list-selector { margin-top: 10px; }
+
+.model-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.toggle-model-list-btn {
+  background: transparent;
+  border: none;
+  color: #2563EB;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.toggle-model-list-btn:hover { color: #1D4ED8; }
+
+.model-list-panel {
+  margin-top: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  background: #FFFFFF;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.model-list-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #334155;
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  word-break: break-all;
+  font-size: 0.85rem;
+}
+
+.model-list-item:hover {
+  border-color: #2563EB;
+  background: #F8FAFC;
+}
+
+.model-list-item.active {
+  border-color: #2563EB;
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.model-list-empty {
+  color: #94A3B8;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+}
+
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  accent-color: #2563EB;
+}
+
+.required { color: #DC2626; }
+
+.form-hint {
+  display: block;
+  margin-top: 5px;
+  color: #94A3B8;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.cancel-btn {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1.5px solid #E2E8F0;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+}
+
+.cancel-btn:hover { background: #E2E8F0; }
+
+.test-btn-form {
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+}
+
+.test-btn-form:hover:not(:disabled) { background: #1D4ED8; }
+.test-btn-form:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+.confirm-btn {
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+}
+
+.confirm-btn:hover:not(:disabled) { background: #1D4ED8; }
+.confirm-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+.test-result {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.result-icon { font-size: 3rem; flex-shrink: 0; }
+
+.result-content h4 {
+  margin: 0 0 10px 0;
+  color: #0F172A;
+}
+
+.test-result.success .result-content h4 { color: #059669; }
+.test-result.error .result-content h4 { color: #DC2626; }
+
+.api-response {
+  margin-top: 15px;
+  padding: 15px;
+  background: #F8FAFC;
+  border-radius: 8px;
+  border-left: 3px solid #2563EB;
+}
+
+.api-response label {
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+.api-response p {
+  margin: 0;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .configs-grid { grid-template-columns: 1fr; }
+  .config-header { flex-direction: column; gap: 15px; align-items: flex-start; }
+  .config-details { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .model-name-row { flex-direction: column; align-items: stretch; }
+}
+</style>
+
+<style>
+.config-modal, .test-result-modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(4px);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 9999 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.config-modal.hidden, .test-result-modal.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.config-modal .modal-content, .test-result-modal .modal-content {
+  background: #FFFFFF !important;
+  border-radius: 14px !important;
+  padding: 0 !important;
+  max-width: 600px !important;
+  width: 90% !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  position: relative !important;
+  z-index: 10000 !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.12) !important;
+}
+</style>
