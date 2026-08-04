@@ -98,6 +98,24 @@
               </el-table-column>
               <el-table-column prop="path" :label="$t('apiTesting.importOpenApi.path')" min-width="180" />
               <el-table-column prop="summary" :label="$t('apiTesting.importOpenApi.summary')" min-width="150" show-overflow-tooltip />
+              <el-table-column :label="$t('apiTesting.importOpenApi.info')" min-width="120">
+                <template #default="{ row }">
+                  <div class="endpoint-info">
+                    <span v-if="row.parameters && row.parameters.filter(p => p.in === 'query').length > 0" class="info-tag">
+                      Query
+                    </span>
+                    <span v-if="row.parameters && row.parameters.filter(p => p.in === 'path').length > 0" class="info-tag">
+                      Path
+                    </span>
+                    <span v-if="row.request_body" class="info-tag body-tag">
+                      Body: {{ row.request_body.content_type?.includes('json') ? 'JSON' : row.request_body.content_type }}
+                    </span>
+                    <span v-if="row._auth_headers && row._auth_headers.length > 0" class="info-tag auth-tag">
+                      Auth: {{ row._auth_headers[0].description }}
+                    </span>
+                  </div>
+                </template>
+              </el-table-column>
             </el-table>
           </div>
         </div>
@@ -121,6 +139,24 @@
             </el-table-column>
             <el-table-column prop="path" :label="$t('apiTesting.importOpenApi.path')" min-width="200" />
             <el-table-column prop="summary" :label="$t('apiTesting.importOpenApi.summary')" min-width="200" show-overflow-tooltip />
+            <el-table-column :label="$t('apiTesting.importOpenApi.info')" min-width="120">
+              <template #default="{ row }">
+                <div class="endpoint-info">
+                  <span v-if="row.parameters && row.parameters.filter(p => p.in === 'query').length > 0" class="info-tag">
+                    Query
+                  </span>
+                  <span v-if="row.parameters && row.parameters.filter(p => p.in === 'path').length > 0" class="info-tag">
+                    Path
+                  </span>
+                  <span v-if="row.request_body" class="info-tag body-tag">
+                    Body: {{ row.request_body.content_type?.includes('json') ? 'JSON' : row.request_body.content_type }}
+                  </span>
+                  <span v-if="row._auth_headers && row._auth_headers.length > 0" class="info-tag auth-tag">
+                    Auth: {{ row._auth_headers[0].description }}
+                  </span>
+                </div>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
       </div>
@@ -434,4 +470,12 @@ watch(tagFilter, () => {
   color: var(--el-text-color-secondary);
   font-size: 12px;
 }
+
+.endpoint-info { display: flex; flex-wrap: wrap; gap: 4px; }
+.info-tag {
+  font-size: 11px; padding: 1px 6px; border-radius: 3px;
+  background: var(--el-fill-color-light); color: var(--el-text-color-secondary);
+}
+.body-tag { background: #ecf5ff; color: #409eff; }
+.auth-tag { background: #fef0f0; color: #f56c6c; }
 </style>

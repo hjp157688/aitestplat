@@ -291,7 +291,16 @@ export default {
     },
     // 其他
     newRequest: '新建请求',
-    assertion: '断言'
+    assertion: '断言',
+    // Auth & Schema
+    authType: '认证类型',
+    authSource: '来源: OpenAPI securitySchemes',
+    authHint: '认证配置由 OpenAPI 文档的安全方案自动生成，变量值请根据实际环境替换',
+    requestSchema: '请求体 Schema',
+    responseSchema: '响应 Schema',
+    noSchema: '无 Schema 信息',
+    switchToRaw: '切换到 Raw',
+    switchToTable: '切换到表格'
   },
 
   // 自动化测试
@@ -925,7 +934,8 @@ export default {
     importing: '导入中...',
     importSuccess: '导入成功',
     importFailed: '导入失败',
-    byTag: '按 Tag 自动创建子目录'
+    byTag: '按 Tag 自动创建子目录',
+    info: '信息'
   },
 
   // 生成测试用例

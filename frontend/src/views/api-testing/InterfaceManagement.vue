@@ -53,7 +53,7 @@
             @node-drop="handleDrop"
           >
             <template #default="{ node, data }">
-              <div class="tree-node" :class="{ 'testcase-node': data.type === 'testcase' }">
+              <div class="tree-node" :class="{ 'testcase-node': data.type === 'testcase', 'deprecated-node': data.deprecated }">
                 <el-icon v-if="data.type === 'collection'">
                   <Folder />
                 </el-icon>
@@ -266,6 +266,16 @@
                   <el-radio value="binary">binary</el-radio>
                 </el-radio-group>
 
+                <el-button
+                  size="small"
+                  type="info"
+                  text
+                  @click="toggleBodyMode"
+                  style="margin-left: 8px"
+                >
+                  {{ bodyType === 'raw' ? '切换到表格' : '切换到 Raw' }}
+                </el-button>
+
                 <div v-if="bodyType === 'form-data'" class="body-content">
                   <KeyValueEditor
                     v-model="formData"
@@ -319,6 +329,62 @@
                     :placeholder="$t('apiTesting.interface.inputRequestBody')"
                     class="raw-body"
                   />
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <!-- Auth Tab -->
+            <el-tab-pane label="Auth" name="auth" v-if="selectedRequest && selectedRequest.auth_spec && Object.keys(selectedRequest.auth_spec).length > 0">
+              <div class="auth-display">
+                <div class="auth-info">
+                  <span class="auth-label">{{ $t('apiTesting.interface.authType') }}:</span>
+                  <el-tag type="primary">{{ selectedRequest.auth_spec.type || '-' }}</el-tag>
+                </div>
+                <div class="auth-header-row">
+                  <span class="auth-label">{{ selectedRequest.auth_spec.header_name }}</span>
+                  <el-input
+                    :model-value="selectedRequest.auth_spec.header_value"
+                    readonly
+                    class="auth-value-input"
+                  />
+                  <el-tooltip :content="$t('apiTesting.interface.authSource')" placement="top">
+                    <el-icon class="auth-source-icon"><InfoFilled /></el-icon>
+                  </el-tooltip>
+                </div>
+                <div class="auth-hint">
+                  {{ $t('apiTesting.interface.authHint') }}
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <!-- Schema Tab -->
+            <el-tab-pane label="Schema" name="schema" v-if="selectedRequest && (selectedRequest.request_schema || selectedRequest.response_schemas)">
+              <div class="schema-viewer">
+                <div v-if="selectedRequest.request_schema && Object.keys(selectedRequest.request_schema).length > 0" class="schema-section">
+                  <h4>{{ $t('apiTesting.interface.requestSchema') }}</h4>
+                  <div class="schema-tree">
+                    <SchemaNode
+                      :schema="selectedRequest.request_schema"
+                      :name="selectedRequest.request_schema.title || 'root'"
+                      :required-fields="selectedRequest.request_schema.required || []"
+                    />
+                  </div>
+                </div>
+
+                <div v-if="selectedRequest.response_schemas && Object.keys(selectedRequest.response_schemas).length > 0" class="schema-section">
+                  <h4>{{ $t('apiTesting.interface.responseSchema') }}</h4>
+                  <div v-for="(schema, statusCode) in selectedRequest.response_schemas" :key="statusCode" class="schema-status-group">
+                    <h5>Status: {{ statusCode }}</h5>
+                    <SchemaNode
+                      :schema="schema"
+                      :name="schema.title || 'response'"
+                      :required-fields="schema.required || []"
+                    />
+                  </div>
+                </div>
+
+                <div v-if="(!selectedRequest.request_schema || Object.keys(selectedRequest.request_schema).length === 0) && (!selectedRequest.response_schemas || Object.keys(selectedRequest.response_schemas).length === 0)" class="empty-tip">
+                  {{ $t('apiTesting.interface.noSchema') }}
                 </div>
               </div>
             </el-tab-pane>
@@ -996,9 +1062,10 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Folder, Document, MagicStick, Search, Close, CopyDocument, Delete, Memo } from '@element-plus/icons-vue'
+import { Plus, Folder, Document, MagicStick, Search, Close, CopyDocument, Delete, Memo, InfoFilled } from '@element-plus/icons-vue'
 import api from '@/utils/api'
 import KeyValueEditor from './components/KeyValueEditor.vue'
+import SchemaNode from './components/SchemaNode.vue'
 import DataFactorySelector from '@/components/DataFactorySelector.vue'
 import { RequestModelParser } from '@/utils/requestModel'
 import ImportOpenApiDialog from './components/ImportOpenApiDialog.vue'
@@ -1105,15 +1172,57 @@ const setBodyFromJson = (data) => {
     if (value === null || value === undefined) {
       items.push({ key, value: '', enabled: true, description: '', type: 'text' })
     } else if (typeof value === 'object') {
-      items.push({ key, value: JSON.stringify(value), enabled: true, description: '', type: 'text' })
+      // 嵌套对象/数组：显示为 JSON 字符串
+      items.push({
+        key,
+        value: JSON.stringify(value),
+        enabled: true,
+        description: 'object/array',
+        type: 'text'
+      })
     } else {
-      items.push({ key, value: String(value), enabled: true, description: '', type: 'text' })
+      items.push({
+        key,
+        value: String(value),
+        enabled: true,
+        description: '',
+        type: 'text'
+      })
     }
   })
 
   bodyType.value = 'form-data'
   formData.value = items
   _originalJsonBody.value = data
+}
+
+const toggleBodyMode = () => {
+  if (bodyType.value === 'raw') {
+    // raw → table: parse rawBody back to form-data
+    try {
+      const parsed = JSON.parse(rawBody.value)
+      setBodyFromJson(parsed)
+    } catch (e) {
+      ElMessage.warning('无法解析为 JSON，请检查格式')
+    }
+  } else {
+    // table → raw: rebuild raw JSON from formData
+    const jsonData = {}
+    const items = formData.value || []
+    items.forEach(item => {
+      if (item.key) {
+        const val = item.value || ''
+        try {
+          jsonData[item.key] = JSON.parse(val)
+        } catch {
+          jsonData[item.key] = val
+        }
+      }
+    })
+    bodyType.value = 'raw'
+    rawType.value = 'json'
+    rawBody.value = JSON.stringify(jsonData, null, 2)
+  }
 }
 
 const availableMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS', 'CONNECT', 'TRACE']
@@ -1403,15 +1512,8 @@ const onNodeClick = async (data) => {
               rawBody.value = data
             }
           } else if (data && typeof data === 'object' && !Array.isArray(data)) {
-            // 检查是否为扁平JSON（无嵌套对象/数组）
-            const hasNested = Object.values(data).some(v => typeof v === 'object' && v !== null)
-            if (hasNested || Object.keys(data).length === 0) {
-              bodyType.value = 'raw'
-              rawType.value = 'json'
-              rawBody.value = JSON.stringify(data, null, 2)
-            } else {
-              setBodyFromJson(data)
-            }
+            // 默认进入表格模式，无论是否有嵌套
+            setBodyFromJson(data)
           } else {
             bodyType.value = 'raw'
             rawType.value = 'json'
@@ -1957,11 +2059,17 @@ const saveRequest = async () => {
         }
       } else if (bodyType.value === 'form-data') {
         if (_originalJsonBody.value) {
+          // Was originally JSON → save as JSON
           const jsonData = {}
           const items = formData.value || []
           items.forEach(item => {
             if (item.key) {
-              jsonData[item.key] = item.value
+              const val = item.value || ''
+              try {
+                jsonData[item.key] = JSON.parse(val)
+              } catch {
+                jsonData[item.key] = val
+              }
             }
           })
           bodyData = {
@@ -4612,6 +4720,29 @@ const useLocalVariableCategories = () => {
 .method-select :deep(.el-select .el-select__placeholder) {
   background-color: transparent !important;
   color: white !important;
+}
+
+/* Auth tab styles */
+.auth-display { padding: 16px; }
+.auth-info { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.auth-header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.auth-label { font-weight: 500; min-width: 120px; }
+.auth-value-input { flex: 1; max-width: 400px; }
+.auth-source-icon { color: #909399; cursor: help; }
+.auth-hint { color: #909399; font-size: 12px; margin-top: 8px; }
+
+/* Schema tab styles */
+.schema-viewer { padding: 16px; }
+.schema-section { margin-bottom: 16px; }
+.schema-section h4 { margin: 0 0 8px; font-size: 14px; }
+.schema-status-group h5 { margin: 8px 0 4px; font-size: 13px; color: #409eff; }
+.schema-tree { margin-top: 8px; }
+.empty-tip { color: #909399; font-size: 13px; padding: 16px 0; }
+
+/* Deprecated tree node styles */
+.deprecated-node .node-label {
+  color: #c0c4cc;
+  text-decoration: line-through;
 }
 
 </style>

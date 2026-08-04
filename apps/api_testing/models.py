@@ -94,6 +94,10 @@ class ApiRequest(models.Model):
     pre_request_script = models.TextField(blank=True, verbose_name='请求前脚本')
     post_request_script = models.TextField(blank=True, verbose_name='请求后脚本')
     assertions = models.JSONField(default=list, verbose_name='断言规则')
+    auth_spec = models.JSONField(default=dict, verbose_name='认证配置')
+    request_schema = models.JSONField(default=dict, verbose_name='请求体Schema')
+    response_schemas = models.JSONField(default=dict, verbose_name='响应Schema')
+    deprecated = models.BooleanField(default=False, verbose_name='是否已废弃')
     order = models.IntegerField(default=0, verbose_name='排序')
     parent_request = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
                                        related_name='test_cases', verbose_name='父级请求')

@@ -115,6 +115,7 @@ class ApiRequestSerializer(serializers.ModelSerializer):
             'headers', 'params', 'body', 'auth', 'pre_request_script',
             'post_request_script', 'assertions', 'collection', 'order',
             'parent_request_id', 'parent_request_name', 'test_cases_count',
+            'auth_spec', 'request_schema', 'response_schemas', 'deprecated',
             'created_by', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']

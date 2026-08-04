@@ -19,6 +19,8 @@ bubus==1.5.6
 cachetools==6.2.4
 cdp-use==1.4.4
 celery==5.3.4
+# 知识库向量检索
+chromadb==1.5.9
 openpyxl==3.1.5
 certifi==2025.7.14
 cffi==1.17.1
@@ -71,6 +73,8 @@ jsonpointer==3.0.0
 jsonschema==4.25.0
 jsonschema-specifications==2025.4.1
 kombu==5.5.4
+# chromadb 依赖; 固定到 36.0.0 以兼容 browser-use 的 aiohttp==3.12.15 (>=36.0.1 要求 aiohttp>=3.13.5)
+kubernetes==36.0.0
 langchain-core==1.2.6
 langchain-openai==1.1.6
 langsmith==0.6.0
@@ -92,7 +96,8 @@ pluggy==1.6.0
 ply==3.11
 portalocker==2.10.1
 posthog==7.4.2
-prance==23.6.21.0
+prance==26.7.19.0
+openapi-spec-validator==0.7.1
 prompt_toolkit==3.0.51
 propcache==0.4.1
 proto-plus==1.27.0
@@ -129,7 +134,7 @@ redis==5.0.1
 referencing==0.36.2
 regex==2025.11.3
 reportlab==4.2.0
-requests==2.32.4
+requests==2.32.5
 requests-oauthlib==2.0.0
 requests-toolbelt==1.0.0
 rich==14.2.0

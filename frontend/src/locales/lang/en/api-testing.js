@@ -278,7 +278,16 @@ export default {
     },
     // Others
     newRequest: 'New Request',
-    assertion: 'Assertion'
+    assertion: 'Assertion',
+    // Auth & Schema
+    authType: 'Auth Type',
+    authSource: 'Source: OpenAPI securitySchemes',
+    authHint: 'Auth config auto-generated from OpenAPI security schemes. Replace variable values for your environment.',
+    requestSchema: 'Request Schema',
+    responseSchema: 'Response Schema',
+    noSchema: 'No Schema Available',
+    switchToRaw: 'Switch to Raw',
+    switchToTable: 'Switch to Table'
   },
 
   // Automation Testing
@@ -915,7 +924,8 @@ export default {
     importing: 'Importing...',
     importSuccess: 'Import successful',
     importFailed: 'Import failed',
-    byTag: 'Create sub-folders by tag'
+    byTag: 'Create sub-folders by tag',
+    info: 'Info'
   },
 
   // Generate Test Cases

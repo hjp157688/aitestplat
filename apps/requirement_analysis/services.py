@@ -71,18 +71,44 @@ class DocumentProcessor:
             logger.error(f"文本文件读取失败: {e}")
             return f"文本文件读取失败: {str(e)}"
     
+    @staticmethod
+    def extract_text_from_xlsx(file_path: str) -> str:
+        """从Excel文件提取文本"""
+        try:
+            from openpyxl import load_workbook
+            wb = load_workbook(file_path, read_only=True, data_only=True)
+            text_parts = []
+            for sheet in wb.worksheets:
+                text_parts.append(f"【Sheet: {sheet.title}】")
+                for row in sheet.iter_rows(values_only=True):
+                    cells = [str(cell).strip() for cell in row if cell is not None and str(cell).strip()]
+                    if cells:
+                        text_parts.append("\t".join(cells))
+            wb.close()
+            return "\n".join(text_parts).strip()
+        except Exception as e:
+            logger.error(f"Excel文件文本提取失败: {e}")
+            return f"Excel文件文本提取失败: {str(e)}"
+
     @classmethod
-    def extract_text(cls, document: RequirementDocument) -> str:
-        """根据文档类型提取文本"""
+    def extract_text(cls, document) -> str:
+        """根据文档类型提取文本
+
+        兼容两种模型：
+        - RequirementDocument：使用 document_type 字段（pdf/docx/txt/md）
+        - KnowledgeDocument：使用 file_type 字段（pdf/docx/md/xlsx/txt）
+        """
         file_path = document.file.path
-        
-        if document.document_type == 'pdf':
+
+        doc_type = getattr(document, 'file_type', '') or getattr(document, 'document_type', '') or ''
+
+        if doc_type == 'pdf':
             return cls.extract_text_from_pdf(file_path)
-        elif document.document_type == 'docx':
+        elif doc_type == 'docx':
             return cls.extract_text_from_docx(file_path)
-        elif document.document_type == 'txt':
-            return cls.extract_text_from_txt(file_path)
-        elif document.document_type == 'md':
+        elif doc_type == 'xlsx':
+            return cls.extract_text_from_xlsx(file_path)
+        elif doc_type in ('txt', 'md'):
             return cls.extract_text_from_txt(file_path)
         else:
             return "不支持的文档类型"

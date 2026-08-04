@@ -342,93 +342,11 @@ class OpenAPIParser:
 
     @staticmethod
     def endpoint_to_request_data(endpoint: dict, base_url: str = '') -> dict:
-        """将单个端点转换为 ApiRequest 创建所需的数据"""
-        name = endpoint.get('name', '')
-        method = endpoint.get('method', 'GET')
-        path = endpoint.get('path', '')
-        base = base_url.rstrip('/') if base_url else ''
-        # 使用 {{baseUrl}} 变量而非硬编码
-        url = f"{{{{baseUrl}}}}{path}" if base else path
-
-        # 构建 headers
-        headers = []
-        request_body = endpoint.get('request_body')
-        if request_body:
-            content_type = request_body.get('content_type', 'application/json')
-            headers.append({'key': 'Content-Type', 'value': content_type, 'enabled': True, 'description': ''})
-        headers.append({'key': 'Accept', 'value': 'application/json', 'enabled': True, 'description': ''})
-
-        # 构建 params（query 参数填表格）
-        params = []
-        path_params = {}
-        for param in endpoint.get('parameters', []):
-            param_in = param.get('in', 'query')
-            if param_in == 'query':
-                example_val = ''
-                if param.get('example'):
-                    example_val = str(param['example'])
-                elif param.get('type') == 'integer':
-                    example_val = '0'
-                elif param.get('type') == 'boolean':
-                    example_val = 'false'
-                params.append({
-                    'key': param['name'],
-                    'value': example_val,
-                    'enabled': param.get('required', False),
-                    'description': param.get('description', ''),
-                })
-            elif param_in == 'path':
-                path_params[param['name']] = str(param.get('example', '1')) if param.get('example') else '1'
-            elif param_in == 'header':
-                headers.append({
-                    'key': param['name'],
-                    'value': str(param.get('example', '')) if param.get('example') else '',
-                    'enabled': param.get('required', False),
-                    'description': param.get('description', ''),
-                })
-
-        # 替换 URL 中的 path 参数
-        for key, value in path_params.items():
-            url = url.replace('{' + key + '}', value)
-
-        # 构建 body
-        body = {'type': 'none', 'data': {}}
-        if request_body:
-            content_type = request_body.get('content_type', 'application/json')
-            if 'json' in content_type:
-                body = {
-                    'type': 'json',
-                    'data': request_body.get('example') or {},
-                }
-            elif 'form-urlencoded' in content_type:
-                body = {
-                    'type': 'x-www-form-urlencoded',
-                    'data': request_body.get('example') or {},
-                }
-            elif 'form-data' in content_type:
-                body = {
-                    'type': 'form-data',
-                    'data': request_body.get('example') or {},
-                }
-
-        # 构建描述
-        description_parts = []
-        if endpoint.get('summary'):
-            description_parts.append(endpoint['summary'])
-        if endpoint.get('description'):
-            description_parts.append(endpoint['description'])
-        description = '\n'.join(description_parts)
-
-        return {
-            'name': name,
-            'method': method,
-            'url': url,
-            'headers': headers,
-            'params': params,
-            'body': body,
-            'description': description,
-            'assertions': [],
-        }
+        """将单个端点转换为 ApiRequest 创建所需的数据（使用 RequestConverter）"""
+        from .openapi import RequestConverter
+        converter = RequestConverter()
+        auth_headers = endpoint.get('_auth_headers', [])
+        return converter.convert(endpoint, auth_headers, base_url)
 
     @staticmethod
     def import_to_collection(endpoints: list[dict], collection_id: int, user,
@@ -459,6 +377,10 @@ class OpenAPIParser:
                             collection=sub, name=rd['name'], method=rd['method'],
                             url=rd['url'], headers=rd['headers'], params=rd['params'],
                             body=rd['body'], description=rd['description'],
+                            auth_spec=rd.get('auth_spec', {}),
+                            request_schema=rd.get('request_schema', {}),
+                            response_schemas=rd.get('response_schemas', {}),
+                            deprecated=rd.get('deprecated', False),
                             request_type=sub.project.project_type if sub.project else 'HTTP',
                             order=i, created_by=user,
                         )
@@ -470,6 +392,10 @@ class OpenAPIParser:
                         collection=parent_collection, name=rd['name'], method=rd['method'],
                         url=rd['url'], headers=rd['headers'], params=rd['params'],
                         body=rd['body'], description=rd['description'],
+                        auth_spec=rd.get('auth_spec', {}),
+                        request_schema=rd.get('request_schema', {}),
+                        response_schemas=rd.get('response_schemas', {}),
+                        deprecated=rd.get('deprecated', False),
                         request_type=parent_collection.project.project_type if parent_collection.project else 'HTTP',
                         order=i, created_by=user,
                     )
@@ -482,30 +408,44 @@ class OpenAPIParser:
             logger.info(f"Sample request: method={first['method']}, url={first['url']}, "
                         f"headers_count={len(first['headers'])}, params_count={len(first['params'])}, "
                         f"body_type={first['body']['type']}, body_data_keys={list(first['body']['data'].keys()) if isinstance(first['body']['data'], dict) else 'not_dict'}")
+        return created_count
 
     @staticmethod
     def parse(file_path: str) -> dict:
-        """解析文件，返回 spec 信息 + 端点列表 + 按 tag 分组"""
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
+        """使用 prance + 四阶段管道解析 OpenAPI 文件"""
+        from .openapi import SpecLoader, SecurityExtractor, EndpointExtractor
 
-        spec = OpenAPIParser.parse_content(content)
-        spec_version = OpenAPIParser.detect_spec_version(spec)
-        endpoints = OpenAPIParser.extract_endpoints(spec)
+        # 阶段 1: 加载并 dereference
+        loader = SpecLoader()
+        spec = loader.load(file_path)
+
+        # 阶段 2: 提取安全认证
+        sec_extractor = SecurityExtractor()
+        auth_info = sec_extractor.extract(spec)
+
+        # 阶段 3: 提取端点
+        ep_extractor = EndpointExtractor()
+        endpoints = ep_extractor.extract(spec)
+
+        # 阶段 4: 转换 (在 import_to_collection 中按需调用 RequestConverter)
 
         # 提取 base URL
-        base_url = ''
         servers = spec.get('servers', [])
-        if servers and isinstance(servers, list) and len(servers) > 0:
-            base_url = servers[0].get('url', '')
+        base_url = servers[0].get('url', '') if servers else ''
 
-        # 兼容 Swagger 2.0: host + basePath + schemes
+        # 兼容 Swagger 2.0
         if not base_url and 'host' in spec:
-            scheme = 'https'
-            if spec.get('schemes') and isinstance(spec['schemes'], list):
-                scheme = spec['schemes'][0]
+            scheme = spec.get('schemes', ['https'])[0]
             base_path = spec.get('basePath', '')
             base_url = f"{scheme}://{spec['host']}{base_path}"
+
+        spec_version = OpenAPIParser.detect_spec_version(spec)
+        info = spec.get('info', {})
+
+        # 为每个端点挂载 auth headers
+        for ep in endpoints:
+            op_id = ep.get('operation_id', '')
+            ep['_auth_headers'] = auth_info['by_operation_id'].get(op_id) or auth_info['global']
 
         # 统计信息
         endpoints_with_body = [e for e in endpoints if e.get('request_body')]
@@ -526,9 +466,7 @@ class OpenAPIParser:
             else:
                 for tag in tags:
                     all_tags.add(tag)
-                    if tag not in tag_endpoints:
-                        tag_endpoints[tag] = []
-                    tag_endpoints[tag].append(ep)
+                    tag_endpoints.setdefault(tag, []).append(ep)
 
         groups = []
         for tag in sorted(all_tags):
@@ -537,7 +475,6 @@ class OpenAPIParser:
         if untagged:
             groups.append({'tag': 'default', 'endpoints': untagged})
 
-        info = spec.get('info', {})
         return {
             'spec_version': spec_version,
             'title': info.get('title', 'Untitled API'),
