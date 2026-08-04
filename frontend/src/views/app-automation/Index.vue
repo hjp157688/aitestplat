@@ -66,7 +66,7 @@ import { DataAnalysis, Cellphone, Picture, Document, Aim } from '@element-plus/i
   
   h1 {
     font-size: 32px;
-    color: #303133;
+    color: var(--aitest-text-1);
     margin-bottom: 10px;
   }
   
@@ -113,7 +113,7 @@ import { DataAnalysis, Cellphone, Picture, Document, Aim } from '@element-plus/i
     .feature-title {
       font-size: 18px;
       font-weight: bold;
-      color: #303133;
+      color: var(--aitest-text-1);
       margin-bottom: 10px;
     }
     

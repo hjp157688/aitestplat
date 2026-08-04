@@ -510,13 +510,13 @@ onMounted(async () => {
 
 .header h3 {
   margin: 0;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .local-env-header {
   margin-bottom: 15px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .scope-help {
@@ -524,15 +524,15 @@ onMounted(async () => {
 }
 
 .variables-editor {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
   border-radius: 4px;
   background: white;
 }
 
 .variables-header {
   display: flex;
-  background: #f5f7fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--aitest-canvas);
+  border-bottom: 1px solid var(--aitest-border);
   padding: 8px;
   font-weight: 500;
   font-size: 12px;
@@ -546,7 +546,7 @@ onMounted(async () => {
 
 .variable-row {
   display: flex;
-  border-bottom: 1px solid #f5f7fa;
+  border-bottom: 1px solid var(--aitest-border);
   padding: 8px;
   min-height: 40px;
   align-items: center;
@@ -571,7 +571,7 @@ onMounted(async () => {
 
 .variables-footer {
   padding: 8px;
-  border-top: 1px solid #f5f7fa;
+  border-top: 1px solid var(--aitest-border);
   background: #fafbfc;
 }
 

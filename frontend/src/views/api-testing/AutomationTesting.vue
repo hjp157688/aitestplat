@@ -114,9 +114,9 @@
               <el-table-column prop="request.name" :label="$t('apiTesting.automation.requestName')" min-width="200" />
               <el-table-column prop="request.method" :label="$t('apiTesting.automation.method')" width="80">
                 <template #default="scope">
-                  <el-tag :type="getMethodType(scope.row.request.method)" size="small">
+                  <span :class="'method-badge ' + (scope.row.request.method || 'get').toLowerCase()">
                     {{ scope.row.request.method }}
-                  </el-tag>
+                  </span>
                 </template>
               </el-table-column>
               <el-table-column prop="request.url" label="URL" min-width="300" show-overflow-tooltip />
@@ -167,12 +167,12 @@
               <el-table-column prop="total_requests" :label="$t('apiTesting.automation.totalRequests')" width="100" />
               <el-table-column prop="passed_requests" :label="$t('apiTesting.automation.passedCount')" width="100">
                 <template #default="scope">
-                  <span style="color: #67c23a">{{ scope.row.passed_requests }}</span>
+                  <span style="color: var(--aitest-success)">{{ scope.row.passed_requests }}</span>
                 </template>
               </el-table-column>
               <el-table-column prop="failed_requests" :label="$t('apiTesting.automation.failedCount')" width="100">
                 <template #default="scope">
-                  <span style="color: #f56c6c">{{ scope.row.failed_requests }}</span>
+                  <span style="color: var(--aitest-danger)">{{ scope.row.failed_requests }}</span>
                 </template>
               </el-table-column>
               <el-table-column :label="$t('apiTesting.automation.averageTime')" width="120">
@@ -275,7 +275,7 @@
             :check-on-click-node="false"
             @check="onRequestCheck"
           >
-            <template #default="{ node, data }">
+            <template #default="{ data }">
               <div class="request-tree-node">
                 <el-icon v-if="data.type === 'collection'">
                   <Folder />
@@ -284,7 +284,7 @@
                   <Document />
                 </el-icon>
                 <span>{{ data.name }}</span>
-                <span v-if="data.type === 'request'" class="method-tag" :class="data.method?.toLowerCase()">
+                <span v-if="data.type === 'request'" class="method-badge" :class="(data.method || 'get').toLowerCase()">
                   {{ data.method }}
                 </span>
               </div>
@@ -332,9 +332,9 @@
             <el-table-column prop="name" :label="$t('apiTesting.automation.requestName')" min-width="200" />
             <el-table-column prop="method" :label="$t('apiTesting.automation.method')" width="80">
               <template #default="scope">
-                <el-tag :type="getMethodType(scope.row.method)" size="small">
+                <span :class="'method-badge ' + (scope.row.method || 'get').toLowerCase()">
                   {{ scope.row.method }}
-                </el-tag>
+                </span>
               </template>
             </el-table-column>
             <el-table-column prop="status" :label="$t('apiTesting.automation.result')" width="100">
@@ -908,7 +908,7 @@ onMounted(() => {
 
 .header h3 {
   margin: 0;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .content-layout {
@@ -926,16 +926,16 @@ onMounted(() => {
 }
 
 .project-selector {
-  background: white;
+  background: var(--aitest-surface);
   padding: 15px;
   border-radius: 6px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
 }
 
 .suite-list {
-  background: white;
+  background: var(--aitest-surface);
   border-radius: 6px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
   overflow: hidden;
 }
 
@@ -944,8 +944,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--aitest-canvas);
+  border-bottom: 1px solid var(--aitest-border);
   font-weight: 500;
 }
 
@@ -954,18 +954,18 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 15px;
-  border-bottom: 1px solid #f5f7fa;
+  border-bottom: 1px solid var(--aitest-border);
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 .suite-item:hover {
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
 }
 
 .suite-item.active {
-  background: #e1f3d8;
-  border-color: #67c23a;
+  background: var(--aitest-success-bg);
+  border-color: var(--aitest-success);
 }
 
 .suite-info {
@@ -979,14 +979,14 @@ onMounted(() => {
 
 .suite-meta {
   font-size: 12px;
-  color: #909399;
+  color: var(--aitest-text-3);
 }
 
 .main-content {
   flex: 1;
-  background: white;
+  background: var(--aitest-surface);
   border-radius: 6px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1018,7 +1018,7 @@ onMounted(() => {
 
 .suite-title h4 {
   margin: 0;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .suite-actions {
@@ -1027,7 +1027,7 @@ onMounted(() => {
 }
 
 .suite-description {
-  color: #606266;
+  color: var(--aitest-text-2);
   margin-bottom: 10px;
 }
 
@@ -1039,7 +1039,7 @@ onMounted(() => {
 
 .meta-text {
   font-size: 12px;
-  color: #909399;
+  color: var(--aitest-text-3);
 }
 
 .requests-section,
@@ -1056,7 +1056,7 @@ onMounted(() => {
 
 .section-header h5 {
   margin: 0;
-  color: #303133;
+  color: var(--aitest-text-1);
   font-size: 16px;
 }
 
@@ -1072,21 +1072,6 @@ onMounted(() => {
   flex: 1;
 }
 
-.method-tag {
-  font-size: 10px;
-  padding: 1px 4px;
-  border-radius: 2px;
-  color: white;
-  font-weight: bold;
-  margin-left: auto;
-}
-
-.method-tag.get { background: #67c23a; }
-.method-tag.post { background: #409eff; }
-.method-tag.put { background: #e6a23c; }
-.method-tag.delete { background: #f56c6c; }
-.method-tag.patch { background: #909399; }
-
 .execution-detail {
   max-height: 70vh;
   overflow-y: auto;
@@ -1095,12 +1080,12 @@ onMounted(() => {
 .execution-summary {
   margin-bottom: 30px;
   padding: 20px;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   border-radius: 6px;
 }
 
 .execution-results h4 {
   margin: 0 0 15px 0;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 </style>

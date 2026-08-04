@@ -724,9 +724,9 @@ onMounted(() => {
 
 .current-image-section {
   padding: 15px;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   border-radius: 4px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
 }
 
 .image-preview-box {

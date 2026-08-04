@@ -1007,7 +1007,7 @@ onMounted(() => {
 .page-header {
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .page-header h1 {
@@ -1019,7 +1019,7 @@ onMounted(() => {
 }
 
 .page-header p {
-  color: #64748B;
+  color: var(--aitest-text-2);
   margin: 0;
   font-size: 0.9rem;
 }
@@ -1063,7 +1063,7 @@ onMounted(() => {
   justify-content: center;
   gap: 8px;
   margin-top: 16px;
-  color: #64748B;
+  color: var(--aitest-text-2);
 }
 
 .ai-import-footer {
@@ -1110,7 +1110,7 @@ onMounted(() => {
   line-height: 1.8;
   max-height: 300px;
   overflow: auto;
-  border: 1px solid #E2E8F0;
-  color: #334155;
+  border: 1px solid var(--aitest-border);
+  color: var(--aitest-text-2);
 }
 </style>

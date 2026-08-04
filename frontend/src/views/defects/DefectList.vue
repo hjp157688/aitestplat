@@ -394,7 +394,7 @@ onMounted(() => {
   margin-bottom: 12px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
 }
 
 .batch-select {

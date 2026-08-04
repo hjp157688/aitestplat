@@ -201,7 +201,7 @@ onMounted(() => {
 .section-title h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .browser-cards {
@@ -253,7 +253,7 @@ onMounted(() => {
 
 .browser-info h3 {
   margin: 0 0 10px;
-  color: #303133;
+  color: var(--aitest-text-1);
   font-size: 1.1rem;
 }
 

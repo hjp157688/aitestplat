@@ -1,0 +1,43 @@
+// AITestPlat 设计令牌 —— 「靛蓝精密石板」
+// 唯一事实源；global.scss 通过 @use 引入。
+:root {
+  /* ===== 颜色 ===== */
+  --aitest-canvas: #F8FAFC;            // 页面背景
+  --aitest-surface: #FFFFFF;           // 卡片/面板
+  --aitest-surface-subtle: #F1F5F9;    // 表头/悬停禁用底
+  --aitest-border: #E2E8F0;            // 发丝线
+  --aitest-border-strong: #CBD5E1;     // 分隔/强调边
+
+  --aitest-primary: #4F46E5;           // 主色（靛蓝）
+  --aitest-primary-hover: #4338CA;
+  --aitest-primary-active: #3730A3;
+  --aitest-primary-subtle: #EEF2FF;    // 选中底/图标圆底
+
+  --aitest-accent: #0EA5E9;            // 信息链接/强调
+
+  --aitest-text-1: #0F172A;            // 主文字
+  --aitest-text-2: #475569;            // 次级文字
+  --aitest-text-3: #94A3B8;            // 弱化/占位
+
+  --aitest-success: #10B981;  --aitest-success-bg: #ECFDF5;
+  --aitest-warning: #F59E0B;  --aitest-warning-bg: #FFFBEB;
+  --aitest-danger: #EF4444;   --aitest-danger-bg: #FEF2F2;
+  --aitest-info: #3B82F6;     --aitest-info-bg: #EFF6FF;
+  --aitest-neutral: #94A3B8;  --aitest-neutral-bg: #F1F5F9;
+
+  /* ===== 阴影 ===== */
+  --aitest-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --aitest-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --aitest-shadow-md: 0 6px 16px rgba(15, 23, 42, 0.08);
+  --aitest-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+
+  /* ===== 圆角 ===== */
+  --aitest-radius-sm: 4px;
+  --aitest-radius: 6px;
+  --aitest-radius-lg: 8px;
+  --aitest-radius-full: 999px;
+
+  /* ===== 字体 ===== */
+  --aitest-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --aitest-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}

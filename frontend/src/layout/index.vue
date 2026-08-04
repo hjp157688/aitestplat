@@ -9,9 +9,6 @@
         <el-menu
           :default-active="$route.path"
           router
-          background-color="#001529"
-          text-color="#fff"
-          active-text-color="#1890ff"
         >
           <!-- AI用例生成模块菜单 -->
           <template v-if="currentModule === 'ai-generation'">
@@ -28,7 +25,7 @@
               <span>{{ $t('menu.projectManagement') }}</span>
             </el-menu-item>
             <el-menu-item index="/ai-generation/requirements">
-              <el-icon><List /></el-icon>
+              <el-icon><Tickets /></el-icon>
               <span>{{ $t('menu.requirementManagement') }}</span>
             </el-menu-item>
             <el-menu-item index="/ai-generation/business-knowledge">
@@ -40,7 +37,7 @@
               <span>{{ $t('menu.testCases') }}</span>
             </el-menu-item>
             <el-menu-item index="/ai-generation/versions">
-              <el-icon><Flag /></el-icon>
+              <el-icon><Operation /></el-icon>
               <span>{{ $t('menu.versionManagement') }}</span>
             </el-menu-item>
             <el-sub-menu index="reviews">
@@ -354,9 +351,9 @@ import { useAppStore } from '@/stores/app'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import {
-  Monitor, Folder, Document, Flag, Check, Collection, VideoPlay,
+  Monitor, Folder, Document, Check, Collection, VideoPlay,
   DataAnalysis, ChatDotRound, DocumentCopy, Link, MagicStick,
-  Odometer, Timer, Setting, AlarmClock, Bell, Aim, Edit, Cpu, ArrowDown, Cellphone, Connection, FolderOpened, Tickets, Plus, List
+  Odometer, Timer, Setting, AlarmClock, Bell, Aim, Edit, Cpu, ArrowDown, Cellphone, Connection, FolderOpened, Tickets, Plus, Operation
 } from '@element-plus/icons-vue'
 import logoSvg from '@/assets/images/logo.svg'
 
@@ -512,43 +509,53 @@ const handleCommand = (command) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #001529;
-  color: white;
-  border-bottom: 1px solid #1f1f1f;
+  background-color: var(--aitest-surface);
+  border-bottom: 1px solid var(--aitest-border);
   flex-shrink: 0;
 
-		.logo-img {
-			width: 100%;
-			height: 100%;
-			object-fit: fill;
-		}
-	}
+  .logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
 
 .el-aside {
-  background-color: #001529;
+  background-color: var(--aitest-surface);
+  border-right: 1px solid var(--aitest-border);
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   transition: width 0.3s ease;
   width: 240px !important;
-
-  .el-menu {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    border-right: none;
-    
-    &::-webkit-scrollbar {
-      width: 0;
-    }
-  }
 }
 
-.el-menu {
-  :deep(.el-sub-menu__title),
-  :deep(.el-menu-item) {
-    font-size: 14px;
+/* 浅色菜单 */
+:deep(.el-menu) {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: none;
+  --el-menu-bg-color: transparent;
+  --el-menu-text-color: var(--aitest-text-2);
+  --el-menu-hover-bg-color: var(--aitest-surface-subtle);
+  --el-menu-active-color: var(--aitest-primary);
+
+  &::-webkit-scrollbar { width: 0; }
+
+  .el-sub-menu__title,
+  .el-menu-item { font-size: 14px; }
+
+  .el-menu-item.is-active {
+    background: var(--aitest-primary-subtle);
+    color: var(--aitest-primary);
+    font-weight: 600;
+    border-left: 3px solid var(--aitest-primary);
+  }
+
+  .el-menu-item:not(.is-active):hover {
+    background: var(--aitest-surface-subtle);
   }
 }
 
@@ -574,8 +581,8 @@ const handleCommand = (command) => {
 }
 
 .el-header {
-  background-color: white;
-  border-bottom: 1px solid #e8e8e8;
+  background-color: var(--aitest-surface);
+  border-bottom: 1px solid var(--aitest-border);
   padding: 0;
   flex-shrink: 0;
   height: 60px !important;
@@ -605,7 +612,7 @@ const handleCommand = (command) => {
 
     .username {
       margin: 0 8px;
-      color: #303133;
+      color: var(--aitest-text-1);
       font-size: 14px;
     }
   }
@@ -622,7 +629,7 @@ const handleCommand = (command) => {
       display: flex;
       align-items: center;
       cursor: pointer;
-      color: #303133;
+      color: var(--aitest-text-1);
       font-size: 14px;
       outline: none;
 
@@ -641,7 +648,7 @@ const handleCommand = (command) => {
       }
 
       &:hover {
-        color: #1890ff;
+        color: var(--aitest-primary);
       }
     }
   }
@@ -660,13 +667,13 @@ const handleCommand = (command) => {
 
       .username {
         margin: 0 8px;
-        color: #303133;
+        color: var(--aitest-text-1);
       }
     }
   }
 
 .el-main {
-  background-color: #f5f5f5;
+  background-color: var(--aitest-canvas);
   padding: 20px;
   flex: 1;
   overflow-y: auto;

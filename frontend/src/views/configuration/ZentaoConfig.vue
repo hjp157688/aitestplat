@@ -389,7 +389,7 @@ onMounted(() => {
 }
 
 .page-header p {
-  color: #64748b;
+  color: var(--aitest-text-2);
   margin: 0;
 }
 
@@ -407,7 +407,7 @@ onMounted(() => {
   background: white;
   border-radius: 12px;
   padding: 20px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--aitest-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s;
 }
@@ -427,7 +427,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .card-title {
@@ -462,7 +462,7 @@ onMounted(() => {
 }
 
 .info-value {
-  color: #334155;
+  color: var(--aitest-text-2);
   word-break: break-all;
 }
 

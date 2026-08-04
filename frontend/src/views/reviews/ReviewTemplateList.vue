@@ -446,7 +446,7 @@ onMounted(() => {
       }
       
       .info-value {
-        color: #303133;
+        color: var(--aitest-text-1);
         font-size: 14px;
       }
     }
@@ -462,7 +462,7 @@ onMounted(() => {
     .checklist-title {
       font-weight: 500;
       margin-bottom: 8px;
-      color: #303133;
+      color: var(--aitest-text-1);
     }
     
     ul {
@@ -492,7 +492,7 @@ onMounted(() => {
     .reviewers-title {
       font-weight: 500;
       margin-bottom: 8px;
-      color: #303133;
+      color: var(--aitest-text-1);
     }
     
     .reviewers-list {

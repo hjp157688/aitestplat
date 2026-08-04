@@ -625,7 +625,7 @@ onMounted(async () => {
   padding: 20px;
   height: 100%;
   overflow-y: auto;
-  background: #f5f5f5;
+  background: var(--aitest-canvas);
 }
 
 .page-header {
@@ -641,7 +641,7 @@ onMounted(async () => {
 .page-title {
   margin: 0;
   font-size: 24px;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .card-container {
@@ -669,7 +669,7 @@ onMounted(async () => {
   .logs-container {
     max-height: 500px;
     overflow-y: auto;
-    background: #f5f7fa;
+    background: var(--aitest-canvas);
     padding: 15px;
     border-radius: 4px;
 
@@ -742,7 +742,7 @@ onMounted(async () => {
 
       h5 {
         margin: 0 0 15px 0;
-        color: #303133;
+        color: var(--aitest-text-1);
         font-size: 14px;
       }
 
@@ -841,7 +841,7 @@ onMounted(async () => {
     justify-content: space-between;
     margin-bottom: 15px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #f5f5f5;
+    border-bottom: 1px solid var(--aitest-border);
   }
 
   .error-header .el-tag {

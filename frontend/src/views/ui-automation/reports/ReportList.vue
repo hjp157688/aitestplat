@@ -521,7 +521,7 @@ onMounted(async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
+  background: var(--aitest-canvas);
 }
 
 .header {
@@ -535,7 +535,7 @@ onMounted(async () => {
 
   h3 {
     margin: 0;
-    color: #303133;
+    color: var(--aitest-text-1);
     font-size: 24px;
   }
 
@@ -566,11 +566,11 @@ onMounted(async () => {
 
     h4 {
       margin: 0 0 20px 0;
-      color: #303133;
+      color: var(--aitest-text-1);
     }
 
     .stat-card {
-      background: #f5f7fa;
+      background: var(--aitest-canvas);
       padding: 20px;
       border-radius: 4px;
       text-align: center;
@@ -599,7 +599,7 @@ onMounted(async () => {
       .stat-value {
         font-size: 32px;
         font-weight: bold;
-        color: #303133;
+        color: var(--aitest-text-1);
       }
     }
 
@@ -608,7 +608,7 @@ onMounted(async () => {
 
       h5 {
         margin: 0 0 15px 0;
-        color: #303133;
+        color: var(--aitest-text-1);
         font-size: 16px;
       }
     }
@@ -619,11 +619,11 @@ onMounted(async () => {
 
     h4 {
       margin: 0 0 15px 0;
-      color: #303133;
+      color: var(--aitest-text-1);
     }
 
     .result-data {
-      background: #f5f7fa;
+      background: var(--aitest-canvas);
       padding: 15px;
       border-radius: 4px;
       max-height: 400px;
@@ -639,7 +639,7 @@ onMounted(async () => {
 
     h4 {
       margin: 0 0 15px 0;
-      color: #303133;
+      color: var(--aitest-text-1);
     }
   }
 }
@@ -688,7 +688,7 @@ onMounted(async () => {
   justify-content: space-between;
   margin-bottom: 15px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .error-header .el-tag {
@@ -701,14 +701,14 @@ onMounted(async () => {
 .case-detail {
   h4 {
     margin: 0 0 20px 0;
-    color: #303133;
+    color: var(--aitest-text-1);
     font-size: 16px;
   }
 
   .log-container {
     max-height: 500px;
     overflow-y: auto;
-    background: #f5f7fa;
+    background: var(--aitest-canvas);
     padding: 15px;
     border-radius: 4px;
 
@@ -765,7 +765,7 @@ onMounted(async () => {
 
       h5 {
         margin: 0 0 15px 0;
-        color: #303133;
+        color: var(--aitest-text-1);
         font-size: 14px;
       }
 

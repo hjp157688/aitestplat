@@ -599,7 +599,7 @@ onBeforeUnmount(() => {
   h3 {
     margin: 0;
     font-size: 20px;
-    color: #303133;
+    color: var(--aitest-text-1);
   }
 }
 

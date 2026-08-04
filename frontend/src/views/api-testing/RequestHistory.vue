@@ -403,7 +403,7 @@ onMounted(() => {
 
 .header h3 {
   margin: 0;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .filters {
@@ -433,7 +433,7 @@ onMounted(() => {
 
 .detail-section h4 {
   margin: 20px 0 10px 0;
-  color: #303133;
+  color: var(--aitest-text-1);
   font-size: 14px;
   font-weight: 600;
 }
@@ -448,7 +448,7 @@ onMounted(() => {
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-all;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
 }
 
 .response-actions {

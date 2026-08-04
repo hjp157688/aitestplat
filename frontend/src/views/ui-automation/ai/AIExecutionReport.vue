@@ -599,7 +599,7 @@ const handleClose = () => {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #E4E7ED;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .report-content {
@@ -613,10 +613,10 @@ const handleClose = () => {
 .section-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--aitest-text-1);
   margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #E4E7ED;
+  border-bottom: 2px solid var(--aitest-border);
 }
 
 .overview-cards {
@@ -626,7 +626,7 @@ const handleClose = () => {
 }
 
 .overview-card {
-  background: #F5F7FA;
+  background: var(--aitest-canvas);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -641,7 +641,7 @@ const handleClose = () => {
 .card-value {
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .statistics-container {
@@ -671,7 +671,7 @@ const handleClose = () => {
 
 .stats-table-content td {
   padding: 10px 16px;
-  border-bottom: 1px solid #E4E7ED;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .stats-table-content tr:last-child td {
@@ -689,7 +689,7 @@ const handleClose = () => {
 }
 
 .info-row {
-  background-color: #F5F7FA;
+  background-color: var(--aitest-canvas);
 }
 
 .danger-row {
@@ -714,7 +714,7 @@ const handleClose = () => {
   flex: 1;
   margin-right: 12px;
   font-size: 14px;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .steps-list {
@@ -756,7 +756,7 @@ const handleClose = () => {
 }
 
 .metric-card {
-  background: #F5F7FA;
+  background: var(--aitest-canvas);
   border-radius: 8px;
   padding: 20px;
   text-align: center;
@@ -795,7 +795,7 @@ const handleClose = () => {
 }
 
 .report-container::-webkit-scrollbar-track {
-  background: #F5F7FA;
+  background: var(--aitest-canvas);
   border-radius: 3px;
 }
 

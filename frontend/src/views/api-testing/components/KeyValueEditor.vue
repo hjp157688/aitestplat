@@ -128,7 +128,7 @@
               <el-table-column prop="syntax" :label="$t('apiTesting.component.keyValueEditor.syntax')" min-width="200" show-overflow-tooltip />
               <el-table-column prop="example" :label="$t('apiTesting.component.keyValueEditor.example')" min-width="200" show-overflow-tooltip />
               <el-table-column :label="$t('apiTesting.component.keyValueEditor.operation')" width="80" fixed="right">
-                <template #default="{ row }">
+                <template #default>
                   <el-button link type="primary" size="small">{{ $t('apiTesting.component.keyValueEditor.insert') }}</el-button>
                 </template>
               </el-table-column>
@@ -518,15 +518,15 @@ defineExpose({
 
 <style scoped>
 .key-value-editor {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
   border-radius: 4px;
   background: white;
 }
 
 .header {
   display: flex;
-  background: #f5f7fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--aitest-canvas);
+  border-bottom: 1px solid var(--aitest-border);
   padding: 8px;
   font-weight: 500;
   font-size: 12px;
@@ -540,7 +540,7 @@ defineExpose({
 
 .row {
   display: flex;
-  border-bottom: 1px solid #f5f7fa;
+  border-bottom: 1px solid var(--aitest-border);
   padding: 8px;
   min-height: 40px;
   align-items: center;
@@ -612,7 +612,7 @@ defineExpose({
 
 .footer {
   padding: 8px;
-  border-top: 1px solid #f5f7fa;
+  border-top: 1px solid var(--aitest-border);
   background: #fafbfc;
 }
 
@@ -634,9 +634,9 @@ defineExpose({
 }
 
 :deep(.el-table th) {
-  background-color: #f5f7fa;
+  background-color: var(--aitest-canvas);
   font-weight: 600;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 :deep(.el-table td) {
@@ -652,7 +652,7 @@ defineExpose({
 }
 
 :deep(.el-table__row:hover) {
-  background-color: #f5f7fa;
+  background-color: var(--aitest-canvas);
 }
 
 :deep(.el-table__row.current-row) {

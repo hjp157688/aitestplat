@@ -128,7 +128,7 @@
                     </div>
                     <div v-else class="element-canvas">
                       <div
-                        v-for="(poElement, index) in pageObjectElements"
+                        v-for="poElement in pageObjectElements"
                         :key="poElement.id"
                         class="canvas-element"
                         @click="selectCanvasElement(poElement)"
@@ -843,7 +843,7 @@ onMounted(async () => {
 
 .class-name {
   font-family: monospace;
-  background-color: #f5f5f5;
+  background-color: var(--aitest-canvas);
   padding: 2px 6px;
   border-radius: 3px;
   font-size: 12px;

@@ -348,7 +348,7 @@ refreshCaptcha()
     margin-bottom: 30px;
 
     h2 {
-      color: #303133;
+      color: var(--aitest-text-1);
       font-size: 28px;
       font-weight: 600;
       margin: 0 0 10px 0;

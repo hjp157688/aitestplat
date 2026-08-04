@@ -72,7 +72,7 @@ const { t } = useI18n()
 }
 
 .stat-icon.bg-blue {
-  background-color: #1890ff;
+  background-color: var(--aitest-primary);
 }
 
 .stat-icon.bg-green {
@@ -223,7 +223,7 @@ const { t } = useI18n()
   justify-content: center;
   margin: 0 auto 20px;
   font-size: 36px;
-  color: #1890ff;
+  color: var(--aitest-primary);
 }
 
 .feature-title {

@@ -384,7 +384,7 @@ onMounted(() => {
   h3 {
     margin: 0 0 8px;
     font-size: 15px;
-    color: #303133;
+    color: var(--aitest-text-1);
   }
 
   p {
@@ -424,7 +424,7 @@ onMounted(() => {
 }
 
 .transition-operator {
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .transition-status {
@@ -439,7 +439,7 @@ onMounted(() => {
 .comment-item,
 .attachment-item {
   padding: 12px 0;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--aitest-border);
 
   &:last-child {
     border-bottom: 0;
@@ -459,7 +459,7 @@ onMounted(() => {
 
 .comment-item p {
   margin: 8px 0 0;
-  color: #303133;
+  color: var(--aitest-text-1);
   line-height: 1.7;
   white-space: pre-wrap;
 }

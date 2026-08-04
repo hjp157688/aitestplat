@@ -680,12 +680,12 @@ onMounted(() => {
       justify-content: space-between;
       align-items: center;
       padding: 12px 16px;
-      background-color: #f5f7fa;
+      background-color: var(--aitest-canvas);
       border-bottom: 1px solid #dcdfe6;
 
       .checklist-title {
         font-weight: 500;
-        color: #303133;
+        color: var(--aitest-text-1);
       }
 
       .checklist-actions {
@@ -712,7 +712,7 @@ onMounted(() => {
           flex: 1;
 
           .item-text {
-            color: #303133;
+            color: var(--aitest-text-1);
             line-height: 1.6;
           }
         }

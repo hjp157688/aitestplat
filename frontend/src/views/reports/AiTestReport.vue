@@ -386,7 +386,7 @@ onUnmounted(() => {
 <style scoped>
 .test-report {
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--aitest-canvas);
   min-height: 100vh;
 }
 
@@ -452,7 +452,7 @@ onUnmounted(() => {
 .card-value {
   font-size: 24px;
   font-weight: bold;
-  color: #303133;
+  color: var(--aitest-text-1);
   line-height: 1.2;
 }
 
@@ -493,14 +493,14 @@ onUnmounted(() => {
 
 .chart-header {
   margin-bottom: 20px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--aitest-border);
   padding-bottom: 10px;
 }
 
 .chart-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #303133;
+  color: var(--aitest-text-1);
   font-weight: 600;
 }
 
@@ -532,7 +532,7 @@ onUnmounted(() => {
 .metric-value {
   font-size: 20px;
   font-weight: bold;
-  color: #303133;
+  color: var(--aitest-text-1);
   margin-bottom: 5px;
 }
 

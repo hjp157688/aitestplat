@@ -64,7 +64,7 @@ const handleMenuSelect = (index) => {
 }
 
 .top-nav {
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--aitest-border);
   background: white;
   padding: 0 20px;
   display: flex;
@@ -74,7 +74,7 @@ const handleMenuSelect = (index) => {
 
 .top-nav h2 {
   margin: 0;
-  color: #303133;
+  color: var(--aitest-text-1);
   white-space: nowrap;
 }
 

@@ -483,7 +483,7 @@
               <el-table-column prop="syntax" :label="t('uiAutomation.testCase.syntax')" min-width="200" show-overflow-tooltip />
               <el-table-column prop="example" :label="t('uiAutomation.testCase.example')" min-width="200" show-overflow-tooltip />
               <el-table-column :label="t('uiAutomation.testCase.operation')" width="80" fixed="right">
-                <template #default="{ row }">
+                <template #default>
                   <el-button link type="primary" size="small">{{ t('uiAutomation.testCase.insert') }}</el-button>
                 </template>
               </el-table-column>
@@ -1407,7 +1407,7 @@ onMounted(async () => {
 }
 
 .steps-scroll-container::-webkit-scrollbar-track {
-  background: #f5f5f5;
+  background: var(--aitest-canvas);
   border-radius: 3px;
 }
 
@@ -1550,7 +1550,7 @@ onMounted(async () => {
 .logs-container {
   max-height: 500px;
   overflow-y: auto;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   padding: 15px;
   border-radius: 4px;
 }
@@ -1634,7 +1634,7 @@ onMounted(async () => {
   position: relative;
   width: 100%;
   min-height: 200px;
-  background: #f5f5f5;
+  background: var(--aitest-canvas);
   border-radius: 8px;
   border: 2px solid #e6e6e6;
   overflow: hidden;
@@ -1733,7 +1733,7 @@ onMounted(async () => {
 .preview-info {
   margin-bottom: 20px;
   padding: 15px;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   border-radius: 6px;
 }
 
@@ -1753,7 +1753,7 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f5f5f5;
+  background: var(--aitest-canvas);
   border-radius: 8px;
   padding: 20px;
   max-height: 70vh;
@@ -1791,7 +1791,7 @@ onMounted(async () => {
   justify-content: space-between;
   margin-bottom: 15px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .error-header .el-tag {
@@ -1838,7 +1838,7 @@ onMounted(async () => {
 }
 
 .meta-value {
-  color: #303133;
+  color: var(--aitest-text-1);
   flex: 1;
 }
 

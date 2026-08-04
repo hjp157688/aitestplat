@@ -3023,7 +3023,7 @@ defineExpose({
 
 .custom-step-list {
     flex: 1;
-    border: 1px solid #ebeef5;
+    border: 1px solid var(--aitest-border);
     border-radius: 6px;
     padding: 8px;
     min-height: 220px;
@@ -3068,7 +3068,7 @@ defineExpose({
 
 .custom-step-config {
     flex: 1;
-    border: 1px solid #ebeef5;
+    border: 1px solid var(--aitest-border);
     border-radius: 6px;
     padding: 12px;
     min-height: 220px;
@@ -3096,7 +3096,7 @@ defineExpose({
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    border: 1px solid #ebeef5;
+    border: 1px solid var(--aitest-border);
     border-radius: 6px;
     cursor: pointer;
     background: #fff;
@@ -3197,7 +3197,7 @@ defineExpose({
 .package-list {
     max-height: 240px;
     overflow-y: auto;
-    border: 1px solid #ebeef5;
+    border: 1px solid var(--aitest-border);
     border-radius: 4px;
     padding: 6px;
 }
@@ -3207,7 +3207,7 @@ defineExpose({
     justify-content: space-between;
     align-items: center;
     padding: 4px 0;
-    border-bottom: 1px dashed #ebeef5;
+    border-bottom: 1px dashed var(--aitest-border);
 }
 
 .package-item:last-child {
@@ -3216,7 +3216,7 @@ defineExpose({
 
 .package-name {
     font-size: 12px;
-    color: #303133;
+    color: var(--aitest-text-1);
     max-width: 220px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3245,7 +3245,7 @@ defineExpose({
 
 .element-selector-filter {
     padding: 10px;
-    background-color: #f5f7fa;
+    background-color: var(--aitest-canvas);
     border-radius: 4px;
 }
 
@@ -3264,9 +3264,9 @@ defineExpose({
 .field-group {
     margin-bottom: 20px;
     padding: 16px;
-    background: #f5f7fa;
+    background: var(--aitest-canvas);
     border-radius: 4px;
-    border: 1px solid #e4e7ed;
+    border: 1px solid var(--aitest-border);
 }
 
 .group-header {
@@ -3281,7 +3281,7 @@ defineExpose({
 .group-title {
     font-size: 14px;
     font-weight: 600;
-    color: #303133;
+    color: var(--aitest-text-1);
 }
 
 .element-linked-alert {

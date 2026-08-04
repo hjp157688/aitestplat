@@ -680,7 +680,7 @@ onMounted(() => {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
-    color: #303133;
+    color: var(--aitest-text-1);
   }
 
   .header-actions {
@@ -716,7 +716,7 @@ onMounted(() => {
 
 .selector-panel {
   flex: 1;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
   border-radius: 6px;
   display: flex;
   flex-direction: column;
@@ -727,11 +727,11 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     padding: 10px 14px;
-    background: #f5f7fa;
-    border-bottom: 1px solid #e4e7ed;
+    background: var(--aitest-canvas);
+    border-bottom: 1px solid var(--aitest-border);
     font-weight: 600;
     font-size: 14px;
-    color: #303133;
+    color: var(--aitest-text-1);
   }
 
   .panel-body {
@@ -758,7 +758,7 @@ onMounted(() => {
   &.disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background: #f5f7fa;
+    background: var(--aitest-canvas);
   }
 
   &.selected {

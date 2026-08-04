@@ -430,7 +430,7 @@ export default {
 <style scoped>
 .notification-configs-container {
   padding: 24px;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   min-height: 100vh;
 }
 

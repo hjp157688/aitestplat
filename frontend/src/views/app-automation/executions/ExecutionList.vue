@@ -325,7 +325,7 @@ onUnmounted(() => {
   overflow-y: auto;
   
   pre {
-    background: #f5f7fa;
+    background: var(--aitest-canvas);
     padding: 15px;
     border-radius: 4px;
     font-family: 'Courier New', Courier, monospace;

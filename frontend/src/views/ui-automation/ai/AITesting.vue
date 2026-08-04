@@ -331,7 +331,7 @@ const confirmSaveCase = async () => {
 }
 
 .task-list-container {
-  background-color: #f5f7fa;
+  background-color: var(--aitest-canvas);
   border-radius: 4px;
   padding: 15px;
   margin-bottom: 20px;
@@ -342,7 +342,7 @@ const confirmSaveCase = async () => {
     display: flex;
     align-items: flex-start;
     padding: 10px;
-    border-bottom: 1px solid #e4e7ed;
+    border-bottom: 1px solid var(--aitest-border);
     transition: all 0.3s;
     
     &:last-child {

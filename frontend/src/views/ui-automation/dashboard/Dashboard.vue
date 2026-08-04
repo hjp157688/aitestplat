@@ -371,7 +371,7 @@ onMounted(() => {
 }
 
 .stat-icon.bg-blue {
-  background-color: #1890ff;
+  background-color: var(--aitest-primary);
 }
 
 .stat-icon.bg-green {
@@ -451,7 +451,7 @@ onMounted(() => {
 
 .activity-icon.icon-create {
   background-color: #e6f7ff;
-  color: #1890ff;
+  color: var(--aitest-primary);
 }
 
 .activity-icon.icon-edit {
@@ -496,7 +496,7 @@ onMounted(() => {
 
 .activity-text .operation-user {
   font-weight: 600;
-  color: #1890ff;
+  color: var(--aitest-primary);
 }
 
 .activity-text .operation-action {
@@ -557,7 +557,7 @@ onMounted(() => {
 }
 
 .action-icon.bg-blue {
-  background-color: #1890ff;
+  background-color: var(--aitest-primary);
 }
 
 .action-icon.bg-green {
@@ -617,7 +617,7 @@ onMounted(() => {
   justify-content: center;
   margin: 0 auto 20px;
   font-size: 36px;
-  color: #1890ff;
+  color: var(--aitest-primary);
 }
 
 .feature-title {

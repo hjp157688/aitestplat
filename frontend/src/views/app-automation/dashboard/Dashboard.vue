@@ -307,7 +307,7 @@ onUnmounted(() => {
       .stat-value {
         font-size: 28px;
         font-weight: bold;
-        color: #303133;
+        color: var(--aitest-text-1);
         line-height: 1;
         margin-bottom: 8px;
       }
@@ -341,7 +341,7 @@ onUnmounted(() => {
       text-align: center;
       padding: 15px;
       border-radius: 8px;
-      background: #f5f7fa;
+      background: var(--aitest-canvas);
       
       .stat-label {
         font-size: 14px;
@@ -369,14 +369,14 @@ onUnmounted(() => {
       justify-content: space-between;
       align-items: center;
       padding: 12px;
-      border-bottom: 1px solid #ebeef5;
+      border-bottom: 1px solid var(--aitest-border);
       
       &:last-child {
         border-bottom: none;
       }
       
       &:hover {
-        background: #f5f7fa;
+        background: var(--aitest-canvas);
       }
       
       .execution-info {
@@ -385,7 +385,7 @@ onUnmounted(() => {
         .execution-name {
           font-size: 14px;
           font-weight: 500;
-          color: #303133;
+          color: var(--aitest-text-1);
           margin-bottom: 8px;
         }
         
@@ -422,7 +422,7 @@ onUnmounted(() => {
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.3s;
-      background: #f5f7fa;
+      background: var(--aitest-canvas);
       
       &:hover {
         background: #ecf5ff;
@@ -449,7 +449,7 @@ onUnmounted(() => {
       .action-label {
         font-size: 14px;
         font-weight: 500;
-        color: #303133;
+        color: var(--aitest-text-1);
       }
     }
   }

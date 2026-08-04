@@ -679,7 +679,7 @@
                     node-key="key"
                     class="json-tree"
                   >
-                    <template #default="{ node, data }">
+                    <template #default="{ data }">
                       <span class="json-tree-node" :class="`json-type-${data.type}`">
                         <span class="json-node-label">{{ data.label }}</span>
                       </span>
@@ -2198,7 +2198,7 @@ onMounted(async () => {
 .data-factory-container {
   padding: 20px;
   min-height: calc(100vh - 60px);
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
 }
 
 .header-card {
@@ -2485,7 +2485,7 @@ onMounted(async () => {
       .el-table__header {
         th {
           text-align: center;
-          background-color: #f5f7fa;
+          background-color: var(--aitest-canvas);
         }
       }
     }
@@ -2621,7 +2621,7 @@ onMounted(async () => {
       align-items: center;
       margin-bottom: 10px;
       padding: 10px;
-      background: #f5f7fa;
+      background: var(--aitest-canvas);
       border-radius: 6px;
       
       h4 {
@@ -2652,7 +2652,7 @@ onMounted(async () => {
       overflow: auto;
       overflow-x: auto;
       padding: 10px;
-      background: #f5f7fa;
+      background: var(--aitest-canvas);
       border-radius: 6px;
       border: 1px solid #dcdfe6;
       display: flex;
@@ -2678,7 +2678,7 @@ onMounted(async () => {
       align-items: center;
       justify-content: center;
       min-height: 200px;
-      background: #f5f7fa;
+      background: var(--aitest-canvas);
       border-radius: 6px;
       border: 1px solid #dcdfe6;
     }

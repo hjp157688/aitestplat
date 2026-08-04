@@ -1841,13 +1841,13 @@ export default {
 .page-header h1 {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0 0 6px 0;
   letter-spacing: -0.02em;
 }
 
 .page-header p {
-  color: #64748B;
+  color: var(--aitest-text-2);
   font-size: 0.95rem;
   margin: 0;
   font-weight: 400;
@@ -1859,16 +1859,16 @@ export default {
 }
 
 .output-mode-card {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .output-mode-card h3 {
   font-size: 0.9rem;
-  color: #64748B;
+  color: var(--aitest-text-2);
   margin: 0 0 4px 0;
   font-weight: 600;
   text-transform: uppercase;
@@ -1876,7 +1876,7 @@ export default {
 }
 
 .mode-section-desc {
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-size: 0.8rem;
   margin: 0 0 14px 0;
   line-height: 1.4;
@@ -1902,11 +1902,11 @@ export default {
 }
 
 .mode-content {
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--aitest-border);
   border-radius: 10px;
   padding: 14px 16px;
   transition: all 0.2s ease;
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1915,35 +1915,35 @@ export default {
 }
 
 .mode-option:hover .mode-content {
-  border-color: #93C5FD;
-  background: #F8FAFC;
+  border-color: var(--el-color-primary-light-7);
+  background: var(--aitest-canvas);
 }
 
 .mode-option.active .mode-content {
-  border-color: #2563EB;
-  background: #EFF6FF;
+  border-color: var(--aitest-primary);
+  background: var(--aitest-primary-subtle);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
 .mode-title {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--aitest-text-2);
   margin-bottom: 4px;
 }
 
 .mode-desc {
   font-size: 0.8rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   line-height: 1.4;
 }
 
 .mode-option.active .mode-title {
-  color: #1D4ED8;
+  color: var(--aitest-primary-hover);
 }
 
 .mode-option.active .mode-desc {
-  color: #64748B;
+  color: var(--aitest-text-2);
 }
 
 /* ---------- Main Content Layout ---------- */
@@ -1962,10 +1962,10 @@ export default {
 
 /* ---------- Cards ---------- */
 .manual-input-card, .upload-card {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 14px;
   padding: 28px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
   height: fit-content;
 }
@@ -1973,11 +1973,11 @@ export default {
 .card-section-title {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0 0 22px 0;
   letter-spacing: -0.01em;
   padding-bottom: 14px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 /* ---------- Form Elements ---------- */
@@ -1990,17 +1990,17 @@ export default {
   margin-bottom: 6px;
   font-weight: 600;
   font-size: 0.85rem;
-  color: #334155;
+  color: var(--aitest-text-2);
 }
 
 .form-input, .form-select {
   width: 100%;
   padding: 10px 14px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--aitest-border);
   border-radius: 8px;
   font-size: 0.9rem;
-  color: #0F172A;
-  background: #FFFFFF;
+  color: var(--aitest-text-1);
+  background: var(--aitest-surface);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
   font-family: inherit;
@@ -2008,22 +2008,22 @@ export default {
 
 .form-input:focus, .form-select:focus {
   outline: none;
-  border-color: #2563EB;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--aitest-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .form-input::placeholder {
-  color: #94A3B8;
+  color: var(--aitest-text-3);
 }
 
 .form-textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--aitest-border);
   border-radius: 8px;
   font-size: 0.9rem;
-  color: #0F172A;
-  background: #FFFFFF;
+  color: var(--aitest-text-1);
+  background: var(--aitest-surface);
   resize: vertical;
   font-family: inherit;
   line-height: 1.6;
@@ -2033,30 +2033,30 @@ export default {
 
 .form-textarea:focus {
   outline: none;
-  border-color: #2563EB;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--aitest-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .form-textarea::placeholder {
-  color: #94A3B8;
+  color: var(--aitest-text-3);
 }
 
 .char-count {
   text-align: right;
   font-size: 0.78rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   margin-top: 4px;
 }
 
 .required {
-  color: #DC2626;
+  color: var(--aitest-danger);
   font-weight: 500;
 }
 
 /* ---------- Primary Buttons ---------- */
 .generate-manual-btn, .generate-btn {
-  background: #2563EB;
-  color: #FFFFFF;
+  background: var(--aitest-primary);
+  color: var(--aitest-surface);
   border: none;
   padding: 13px 28px;
   border-radius: 10px;
@@ -2078,7 +2078,7 @@ export default {
   border-radius: 10px;
   opacity: 0;
   transition: opacity 0.3s ease;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(37, 99, 235, 0.1));
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(79, 70, 229, 0.1));
 }
 
 .generate-manual-btn:hover:not(:disabled)::after, .generate-btn:hover:not(:disabled)::after {
@@ -2086,14 +2086,14 @@ export default {
 }
 
 .generate-manual-btn:hover:not(:disabled), .generate-btn:hover:not(:disabled) {
-  background: #1D4ED8;
+  background: var(--aitest-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
 }
 
 .generate-manual-btn:disabled, .generate-btn:disabled {
-  background: #CBD5E1;
-  color: #94A3B8;
+  background: var(--aitest-border-strong);
+  color: var(--aitest-text-3);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -2101,48 +2101,48 @@ export default {
 
 /* ---------- Upload Area ---------- */
 .upload-area {
-  border: 2px dashed #CBD5E1;
+  border: 2px dashed var(--aitest-border-strong);
   border-radius: 10px;
   padding: 36px 24px;
   text-align: center;
   transition: all 0.2s ease;
   margin-bottom: 20px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
 }
 
 .upload-area.drag-over {
-  border-color: #2563EB;
-  background: #EFF6FF;
+  border-color: var(--aitest-primary);
+  background: var(--aitest-primary-subtle);
   border-style: solid;
 }
 
 .upload-placeholder {
-  color: #64748B;
+  color: var(--aitest-text-2);
 }
 
 .upload-icon {
   font-size: 2.5rem;
   margin-bottom: 12px;
   display: block;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
 }
 
 .upload-placeholder p {
   margin: 0;
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--aitest-text-2);
 }
 
 .upload-hint {
-  color: #94A3B8 !important;
+  color: var(--aitest-text-3) !important;
   font-size: 0.8rem !important;
   margin-top: 4px !important;
 }
 
 .select-file-btn {
-  background: #F1F5F9;
-  color: #334155;
-  border: 1.5px solid #E2E8F0;
+  background: var(--aitest-surface-subtle);
+  color: var(--aitest-text-2);
+  border: 1.5px solid var(--aitest-border);
   padding: 9px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -2153,13 +2153,13 @@ export default {
 }
 
 .select-file-btn:hover {
-  background: #E2E8F0;
-  border-color: #CBD5E1;
+  background: var(--aitest-surface-subtle);
+  border-color: var(--aitest-border-strong);
 }
 
 .file-selected {
   padding: 18px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   border-radius: 8px;
 }
 
@@ -2171,7 +2171,7 @@ export default {
 
 .file-icon {
   font-size: 1.75rem;
-  color: #64748B;
+  color: var(--aitest-text-2);
 }
 
 .file-details {
@@ -2181,12 +2181,12 @@ export default {
 .file-name {
   font-weight: 600;
   margin: 0;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-size: 0.9rem;
 }
 
 .file-size {
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-size: 0.8rem;
   margin: 3px 0 0 0;
 }
@@ -2196,15 +2196,15 @@ export default {
   border: none;
   cursor: pointer;
   font-size: 1.1rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   padding: 4px;
   border-radius: 6px;
   transition: all 0.15s ease;
 }
 
 .remove-file:hover {
-  color: #DC2626;
-  background: #FEF2F2;
+  color: var(--aitest-danger);
+  background: var(--aitest-danger-bg);
 }
 
 /* ---------- Generation Progress ---------- */
@@ -2214,10 +2214,10 @@ export default {
 }
 
 .progress-card {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 14px;
   padding: 32px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
   text-align: center;
   position: relative;
@@ -2231,7 +2231,7 @@ export default {
   inset: -2px;
   border-radius: 16px;
   padding: 2px;
-  background: linear-gradient(135deg, #2563EB, #7C3AED, #2563EB);
+  background: linear-gradient(135deg, var(--aitest-primary), #7C3AED, var(--aitest-primary));
   background-size: 200% 200%;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -2253,7 +2253,7 @@ export default {
 .progress-card h3 {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0 0 24px 0;
   display: flex;
   align-items: center;
@@ -2264,13 +2264,13 @@ export default {
 
 .current-mode-badge {
   display: inline-block;
-  background: #EFF6FF;
-  color: #2563EB;
+  background: var(--aitest-primary-subtle);
+  color: var(--aitest-primary);
   padding: 3px 10px;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
-  border: 1px solid #BFDBFE;
+  border: 1px solid var(--el-color-primary-light-7);
 }
 
 .progress-info {
@@ -2289,7 +2289,7 @@ export default {
 
 .progress-item .label {
   font-size: 0.78rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -2298,7 +2298,7 @@ export default {
 .progress-item .value {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #0F172A;
+  color: var(--aitest-text-1);
 }
 
 /* ---------- Progress Steps ---------- */
@@ -2329,7 +2329,7 @@ export default {
   left: calc(50% + 20px);
   width: calc(100% - 40px);
   height: 1.5px;
-  background: #E2E8F0;
+  background: var(--aitest-border);
   transition: background 0.5s ease;
 }
 
@@ -2342,50 +2342,50 @@ export default {
 }
 
 .step.active::after {
-  background: #2563EB;
+  background: var(--aitest-primary);
 }
 
 .step-number {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #F1F5F9;
+  background: var(--aitest-surface-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 0.85rem;
-  color: #94A3B8;
-  border: 2px solid #E2E8F0;
+  color: var(--aitest-text-3);
+  border: 2px solid var(--aitest-border);
   transition: all 0.3s ease;
 }
 
 .step.active .step-number {
-  background: #2563EB;
-  border-color: #2563EB;
-  color: #FFFFFF;
+  background: var(--aitest-primary);
+  border-color: var(--aitest-primary);
+  color: var(--aitest-surface);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
 .step-text {
   font-size: 0.8rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-weight: 500;
   white-space: nowrap;
 }
 
 .step.active .step-text {
-  color: #334155;
+  color: var(--aitest-text-2);
   font-weight: 600;
 }
 
 /* ---------- Stream Content Display ---------- */
 .stream-content-display {
   margin: 20px 0;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   border-radius: 10px;
   overflow: hidden;
-  background: #FFFFFF;
+  background: var(--aitest-surface);
 }
 
 .stream-header {
@@ -2393,23 +2393,23 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 12px 18px;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
+  background: var(--aitest-canvas);
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .stream-title {
   font-weight: 600;
-  color: #334155;
+  color: var(--aitest-text-2);
   font-size: 0.85rem;
 }
 
 .stream-status {
   font-size: 0.78rem;
-  color: #94A3B8;
-  background: #FFFFFF;
+  color: var(--aitest-text-3);
+  background: var(--aitest-surface);
   padding: 3px 10px;
   border-radius: 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
 }
 
 .stream-content {
@@ -2417,10 +2417,10 @@ export default {
   overflow-y: auto;
   padding: 18px;
   text-align: left;
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   font-size: 0.88rem;
   line-height: 1.7;
-  color: #334155;
+  color: var(--aitest-text-2);
   white-space: pre-wrap;
   word-wrap: break-word;
 }
@@ -2434,24 +2434,24 @@ export default {
 }
 
 .stream-content::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: var(--aitest-border-strong);
   border-radius: 3px;
 }
 
 .stream-content::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: var(--aitest-text-3);
 }
 
 .stream-content h1, .stream-content h2, .stream-content h3,
 .stream-content h4, .stream-content h5, .stream-content h6 {
   margin-top: 1em;
   margin-bottom: 0.5em;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-weight: 600;
 }
 
 .stream-content code {
-  background: #F1F5F9;
+  background: var(--aitest-surface-subtle);
   padding: 2px 6px;
   border-radius: 4px;
   font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
@@ -2459,7 +2459,7 @@ export default {
 }
 
 .stream-content pre {
-  background: #F1F5F9;
+  background: var(--aitest-surface-subtle);
   padding: 12px;
   border-radius: 6px;
   overflow-x: auto;
@@ -2481,9 +2481,9 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 14px 18px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   border-radius: 10px 10px 0 0;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   border-bottom: none;
 }
 
@@ -2494,7 +2494,7 @@ export default {
 
 .cards-title {
   font-weight: 600;
-  color: #1E40AF;
+  color: var(--aitest-primary-hover);
   font-size: 0.88rem;
   display: flex;
   align-items: center;
@@ -2507,11 +2507,11 @@ export default {
 
 .cards-meta {
   font-size: 0.8rem;
-  color: #64748B;
-  background: #FFFFFF;
+  color: var(--aitest-text-2);
+  background: var(--aitest-surface);
   padding: 4px 12px;
   border-radius: 20px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -2522,7 +2522,7 @@ export default {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #2563EB;
+  background: var(--aitest-primary);
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
@@ -2538,7 +2538,7 @@ export default {
   gap: 12px;
   padding: 16px;
   background: #FAFBFC;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   border-top: none;
   border-radius: 0 0 10px 10px;
   max-height: 560px;
@@ -2554,20 +2554,20 @@ export default {
 }
 
 .cards-grid::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: var(--aitest-border-strong);
   border-radius: 3px;
 }
 
 .cards-grid::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: var(--aitest-text-3);
 }
 
 /* Single Test Case Card */
 .testcase-card {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 10px;
   padding: 16px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   transition: all 0.25s ease;
   position: relative;
@@ -2589,13 +2589,13 @@ export default {
 .testcase-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   transform: translateY(-1px);
-  border-color: #CBD5E1;
+  border-color: var(--aitest-border-strong);
 }
 
 .testcase-card.is-incomplete {
-  border-color: #93C5FD;
+  border-color: var(--el-color-primary-light-7);
   border-style: dashed;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
 }
 
 .testcase-card.is-new {
@@ -2620,7 +2620,7 @@ export default {
   left: 0;
   right: 0;
   height: 2.5px;
-  background: linear-gradient(90deg, transparent, #2563EB, #7C3AED, transparent);
+  background: linear-gradient(90deg, transparent, var(--aitest-primary), #7C3AED, transparent);
   animation: shimmer 1.8s infinite;
   border-radius: 0 0 10px 10px;
 }
@@ -2641,8 +2641,8 @@ export default {
 .testcase-card .case-id {
   font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
   font-size: 0.75rem;
-  color: #64748B;
-  background: #F1F5F9;
+  color: var(--aitest-text-2);
+  background: var(--aitest-surface-subtle);
   padding: 2px 10px;
   border-radius: 5px;
   letter-spacing: 0.02em;
@@ -2658,23 +2658,23 @@ export default {
   text-transform: uppercase;
 }
 
-.priority-badge.p0 { background: #FEF2F2; color: #DC2626; }
+.priority-badge.p0 { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
 .priority-badge.p1 { background: #FFFBEB; color: #D97706; }
-.priority-badge.p2 { background: #EFF6FF; color: #2563EB; }
+.priority-badge.p2 { background: var(--aitest-primary-subtle); color: var(--aitest-primary); }
 .priority-badge.p3 { background: #F0FDF4; color: #059669; }
 .priority-badge.低 { background: #F0FDF4; color: #059669; }
-.priority-badge.中 { background: #EFF6FF; color: #2563EB; }
+.priority-badge.中 { background: var(--aitest-primary-subtle); color: var(--aitest-primary); }
 .priority-badge.高 { background: #FFFBEB; color: #D97706; }
-.priority-badge.紧急 { background: #FEF2F2; color: #DC2626; }
+.priority-badge.紧急 { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
 .priority-badge.low { background: #F0FDF4; color: #059669; }
-.priority-badge.medium { background: #EFF6FF; color: #2563EB; }
+.priority-badge.medium { background: var(--aitest-primary-subtle); color: var(--aitest-primary); }
 .priority-badge.high { background: #FFFBEB; color: #D97706; }
-.priority-badge.critical { background: #FEF2F2; color: #DC2626; }
+.priority-badge.critical { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
 
 /* Card scenario */
 .testcase-card .card-scenario {
   font-weight: 600;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-size: 0.88rem;
   margin-bottom: 12px;
   line-height: 1.45;
@@ -2687,7 +2687,7 @@ export default {
 /* Card divider */
 .testcase-card .card-divider {
   height: 1px;
-  background: #F1F5F9;
+  background: var(--aitest-surface-subtle);
   margin-bottom: 10px;
 }
 
@@ -2705,11 +2705,11 @@ export default {
   flex-shrink: 0;
   margin-top: 1px;
   font-size: 0.82rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
 }
 
 .testcase-card .field-label {
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-weight: 500;
   flex-shrink: 0;
   min-width: 26px;
@@ -2717,7 +2717,7 @@ export default {
 }
 
 .testcase-card .field-value {
-  color: #475569;
+  color: var(--aitest-text-2);
   word-break: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -2740,8 +2740,8 @@ export default {
 
 /* ---------- Completion Actions ---------- */
 .cancel-generation-btn {
-  background: #FEF2F2;
-  color: #DC2626;
+  background: var(--aitest-danger-bg);
+  color: var(--aitest-danger);
   border: 1.5px solid #FECACA;
   padding: 10px 24px;
   border-radius: 8px;
@@ -2782,7 +2782,7 @@ export default {
 
 .completion-actions .download-btn {
   background: #059669;
-  color: #FFFFFF;
+  color: var(--aitest-surface);
 }
 
 .completion-actions .download-btn:hover {
@@ -2792,24 +2792,24 @@ export default {
 }
 
 .completion-actions .save-btn {
-  background: #2563EB;
-  color: #FFFFFF;
+  background: var(--aitest-primary);
+  color: var(--aitest-surface);
 }
 
 .completion-actions .save-btn:hover {
-  background: #1D4ED8;
+  background: var(--aitest-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .completion-actions .new-generation-btn {
-  background: #F1F5F9;
-  color: #475569;
-  border: 1.5px solid #E2E8F0;
+  background: var(--aitest-surface-subtle);
+  color: var(--aitest-text-2);
+  border: 1.5px solid var(--aitest-border);
 }
 
 .completion-actions .new-generation-btn:hover {
-  background: #E2E8F0;
+  background: var(--aitest-surface-subtle);
   transform: translateY(-1px);
 }
 
@@ -2834,7 +2834,7 @@ export default {
 }
 
 .guide-config-modal {
-  background: #FFFFFF !important;
+  background: var(--aitest-surface) !important;
   border-radius: 20px;
   padding: 36px;
   max-width: 850px;
@@ -2842,7 +2842,7 @@ export default {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   position: relative;
   flex-shrink: 0;
   margin: auto;
@@ -2856,7 +2856,7 @@ export default {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #2563EB, #7C3AED);
+  background: linear-gradient(90deg, var(--aitest-primary), #7C3AED);
   border-radius: 20px 20px 0 0;
 }
 
@@ -2875,14 +2875,14 @@ export default {
 
 .guide-title h2 {
   font-size: 1.4rem;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0 0 4px 0;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 .guide-title p {
-  color: #64748B;
+  color: var(--aitest-text-2);
   font-size: 0.9rem;
   margin: 0;
   font-weight: 400;
@@ -2898,7 +2898,7 @@ export default {
 
 .group-label {
   font-size: 0.78rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   margin-bottom: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -2958,7 +2958,7 @@ export default {
 }
 
 .config-item-inline.status-unconfigured {
-  background: #FEF2F2;
+  background: var(--aitest-danger-bg);
   border-color: rgba(239, 68, 68, 0.2);
 }
 
@@ -2975,14 +2975,14 @@ export default {
 
 .config-label {
   font-size: 0.9rem;
-  color: #334155;
+  color: var(--aitest-text-2);
   font-weight: 600;
   flex-shrink: 0;
 }
 
 .config-name {
   font-size: 0.82rem;
-  color: #64748B;
+  color: var(--aitest-text-2);
   margin-left: 4px;
   font-weight: 500;
 }
@@ -2994,7 +2994,7 @@ export default {
   font-size: 0.72rem;
   font-weight: 700;
   background: #EF4444;
-  color: #FFFFFF;
+  color: var(--aitest-surface);
   white-space: nowrap;
 }
 
@@ -3030,8 +3030,8 @@ export default {
 }
 
 .guide-actions .generate-manual-btn {
-  background: linear-gradient(135deg, #2563EB, #7C3AED) !important;
-  color: #FFFFFF !important;
+  background: linear-gradient(135deg, var(--aitest-primary), #7C3AED) !important;
+  color: var(--aitest-surface) !important;
   border: none !important;
   box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
   transition: all 0.2s ease;
@@ -3044,7 +3044,7 @@ export default {
 
 .guide-actions .skip-action {
   font-size: 0.82rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   cursor: pointer;
   text-decoration: none;
   padding: 4px 8px;
@@ -3052,7 +3052,7 @@ export default {
 }
 
 .guide-actions .skip-action:hover {
-  color: #64748B;
+  color: var(--aitest-text-2);
 }
 
 /* ---------- Knowledge Panel ---------- */
@@ -3064,7 +3064,7 @@ export default {
   width: 100%;
   padding: 10px 16px;
   background: linear-gradient(135deg, #7C3AED, #6D28D9);
-  color: #FFFFFF;
+  color: var(--aitest-surface);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -3079,8 +3079,8 @@ export default {
 }
 
 .retrieve-knowledge-btn:disabled {
-  background: #CBD5E1;
-  color: #94A3B8;
+  background: var(--aitest-border-strong);
+  color: var(--aitest-text-3);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -3089,7 +3089,7 @@ export default {
 .selected-knowledge-summary {
   margin-top: 8px;
   font-size: 0.82rem;
-  color: #64748B;
+  color: var(--aitest-text-2);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -3113,10 +3113,10 @@ export default {
 
 .knowledge-panel {
   margin-bottom: 16px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   border-radius: 10px;
   overflow: hidden;
-  background: #FFFFFF;
+  background: var(--aitest-surface);
 }
 
 .knowledge-panel-header {
@@ -3124,20 +3124,20 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   font-weight: 600;
   font-size: 0.85rem;
-  color: #334155;
-  border-bottom: 1px solid #E2E8F0;
+  color: var(--aitest-text-2);
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .knowledge-count {
   font-size: 0.78rem;
-  color: #94A3B8;
-  background: #FFFFFF;
+  color: var(--aitest-text-3);
+  background: var(--aitest-surface);
   padding: 2px 10px;
   border-radius: 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
 }
 
 .knowledge-panel-body {
@@ -3149,7 +3149,7 @@ export default {
 .knowledge-empty {
   text-align: center;
   padding: 28px;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-size: 0.85rem;
 }
 
@@ -3157,8 +3157,8 @@ export default {
   padding: 12px;
   margin-bottom: 6px;
   border-radius: 8px;
-  border: 1px solid #E2E8F0;
-  background: #FFFFFF;
+  border: 1px solid var(--aitest-border);
+  background: var(--aitest-surface);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -3188,7 +3188,7 @@ export default {
 .knowledge-item-name {
   font-weight: 600;
   font-size: 0.85rem;
-  color: #334155;
+  color: var(--aitest-text-2);
   flex: 1;
 }
 
@@ -3196,13 +3196,13 @@ export default {
   font-size: 0.72rem;
   padding: 2px 8px;
   border-radius: 10px;
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--aitest-surface-subtle);
+  color: var(--aitest-text-2);
 }
 
 .knowledge-item-type.chunk {
-  background: #EFF6FF;
-  color: #2563EB;
+  background: var(--aitest-primary-subtle);
+  color: var(--aitest-primary);
 }
 
 .knowledge-item-type.entry {
@@ -3225,13 +3225,13 @@ export default {
 }
 
 .knowledge-item-score.low {
-  background: #FEF2F2;
-  color: #DC2626;
+  background: var(--aitest-danger-bg);
+  color: var(--aitest-danger);
 }
 
 .knowledge-item-content {
   font-size: 0.8rem;
-  color: #64748B;
+  color: var(--aitest-text-2);
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -3245,16 +3245,16 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #F8FAFC;
-  border-top: 1px solid #E2E8F0;
+  background: var(--aitest-canvas);
+  border-top: 1px solid var(--aitest-border);
   font-size: 0.82rem;
-  color: #64748B;
+  color: var(--aitest-text-2);
 }
 
 .confirm-knowledge-btn {
   padding: 6px 20px;
   background: #7C3AED;
-  color: #FFFFFF;
+  color: var(--aitest-surface);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -3339,7 +3339,7 @@ export default {
 }
 
 .guide-config-modal {
-  background: #FFFFFF !important;
+  background: var(--aitest-surface) !important;
   border-radius: 20px;
   padding: 36px;
   max-width: 850px !important;
@@ -3348,7 +3348,7 @@ export default {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   position: relative;
   flex-shrink: 0;
   margin: auto;
@@ -3384,15 +3384,15 @@ export default {
 }
 
 .guide-actions .generate-manual-btn {
-  background: linear-gradient(135deg, #2563EB, #7C3AED) !important;
-  color: #FFFFFF !important;
+  background: linear-gradient(135deg, var(--aitest-primary), #7C3AED) !important;
+  color: var(--aitest-surface) !important;
   border: none !important;
   box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
 }
 
 .guide-actions .skip-action {
   font-size: 0.82rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   cursor: pointer;
   text-decoration: none;
   padding: 4px 8px;
@@ -3400,6 +3400,6 @@ export default {
 }
 
 .guide-actions .skip-action:hover {
-  color: #64748B;
+  color: var(--aitest-text-2);
 }
 </style>

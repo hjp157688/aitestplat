@@ -176,7 +176,7 @@
                     </template>
                   </el-table-column>
                   <el-table-column :label="$t('uiAutomation.common.operation')" width="120">
-                    <template #default="{ row, $index }">
+                    <template #default="{ $index }">
                       <el-button
                         size="small"
                         text
@@ -766,7 +766,7 @@ const handleNewSuite = async () => {
 <style scoped lang="scss">
 .page-container {
   padding: 20px;
-  background: #f5f5f5;
+  background: var(--aitest-canvas);
   min-height: 100vh;
 }
 
@@ -816,7 +816,7 @@ const handleNewSuite = async () => {
 }
 
 .panel-header {
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   padding: 12px 15px;
   border-bottom: 1px solid #dcdfe6;
   display: flex;
@@ -826,7 +826,7 @@ const handleNewSuite = async () => {
   h4 {
     margin: 0;
     font-size: 14px;
-    color: #303133;
+    color: var(--aitest-text-1);
   }
 }
 
@@ -843,7 +843,7 @@ const handleNewSuite = async () => {
   cursor: pointer;
 
   &:hover {
-    background-color: #f5f7fa;
+    background-color: var(--aitest-canvas);
   }
 }
 

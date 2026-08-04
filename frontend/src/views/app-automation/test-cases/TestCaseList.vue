@@ -838,7 +838,7 @@ onBeforeUnmount(() => {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
-    color: #303133;
+    color: var(--aitest-text-1);
   }
 
   .header-actions {
@@ -864,7 +864,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   padding: 4px 8px;
-  background-color: #f5f7fa;
+  background-color: var(--aitest-canvas);
   border-radius: 4px;
 
   .progress-text {
@@ -891,7 +891,7 @@ onBeforeUnmount(() => {
   :deep(.el-card__header) {
     padding: 16px 20px;
     background-color: #fafafa;
-    border-bottom: 1px solid #e8e8e8;
+    border-bottom: 1px solid var(--aitest-border);
   }
 
   :deep(.el-card__body) {
@@ -911,7 +911,7 @@ onBeforeUnmount(() => {
 
   .el-table__body {
     tr:hover {
-      background-color: #f5f7fa;
+      background-color: var(--aitest-canvas);
     }
   }
 }

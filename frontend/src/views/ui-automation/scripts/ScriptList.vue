@@ -411,7 +411,7 @@ onMounted(async () => {
   flex: 1;
   padding: 20px;
   overflow: auto;
-  background: #f5f5f5;
+  background: var(--aitest-canvas);
 }
 
 .pagination {

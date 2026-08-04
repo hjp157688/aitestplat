@@ -131,7 +131,7 @@ onMounted(() => {
 .steps-content {
   white-space: pre-wrap;
   line-height: 1.6;
-  color: #303133;
+  color: var(--aitest-text-1);
   font-family: inherit;
 }
 </style>

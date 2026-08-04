@@ -450,7 +450,7 @@ onUnmounted(() => {
 .login-container {
   height: 100vh;
   display: flex;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   overflow: hidden;
 }
 
@@ -718,7 +718,7 @@ onUnmounted(() => {
     h2 {
       font-size: 28px;
       font-weight: 700;
-      color: #303133;
+      color: var(--aitest-text-1);
       margin: 0 0 12px 0;
     }
 

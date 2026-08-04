@@ -971,7 +971,7 @@ export default {
 }
 
 .page-header p {
-  color: #64748B;
+  color: var(--aitest-text-2);
   font-size: 0.95rem;
   margin: 0;
 }
@@ -991,7 +991,7 @@ export default {
 }
 
 .add-config-btn {
-  background: #2563EB;
+  background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
   padding: 10px 22px;
@@ -1006,7 +1006,7 @@ export default {
 }
 
 .add-config-btn:hover {
-  background: #1D4ED8;
+  background: var(--aitest-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
@@ -1021,7 +1021,7 @@ export default {
   background: #FFFFFF;
   border-radius: 14px;
   padding: 24px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -1037,7 +1037,7 @@ export default {
   align-items: flex-start;
   margin-bottom: 20px;
   padding-bottom: 14px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .config-title h3 {
@@ -1060,16 +1060,16 @@ export default {
   font-weight: 600;
 }
 
-.model-badge.deepseek { background: #EFF6FF; color: #2563EB; }
+.model-badge.deepseek { background: #EFF6FF; color: var(--aitest-primary); }
 .model-badge.qwen { background: #F5F3FF; color: #7C3AED; }
 .model-badge.siliconflow { background: #ECFEFF; color: #0891B2; }
-.model-badge.other { background: #F1F5F9; color: #64748B; }
+.model-badge.other { background: var(--aitest-surface-subtle); color: var(--aitest-text-2); }
 .model-badge.xiaomi { background: #FFFBEB; color: #D97706; }
 .model-badge.xiaomi_coding_plan { background: #FFF7ED; color: #EA580C; }
 
 .role-badge.writer { background: #F0FDF4; color: #059669; }
 .role-badge.reviewer { background: #FFFBEB; color: #D97706; }
-.role-badge.api_testcase_generator { background: #EFF6FF; color: #2563EB; }
+.role-badge.api_testcase_generator { background: #EFF6FF; color: var(--aitest-primary); }
 
 .status-badge { background: #FEF2F2; color: #DC2626; }
 .status-badge.active { background: #F0FDF4; color: #059669; }
@@ -1090,8 +1090,8 @@ export default {
   transition: all 0.15s;
 }
 
-.test-btn { background: #2563EB; color: #FFFFFF; }
-.test-btn:hover:not(:disabled) { background: #1D4ED8; }
+.test-btn { background: var(--aitest-primary); color: #FFFFFF; }
+.test-btn:hover:not(:disabled) { background: var(--aitest-primary-hover); }
 .test-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
 
 .edit-btn { background: #F59E0B; color: #FFFFFF; }
@@ -1127,7 +1127,7 @@ export default {
 .empty-state {
   text-align: center;
   padding: 80px 20px;
-  color: #64748B;
+  color: var(--aitest-text-2);
 }
 
 .empty-icon {
@@ -1141,7 +1141,7 @@ export default {
 }
 
 .add-first-config-btn {
-  background: #2563EB;
+  background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
   padding: 14px 28px;
@@ -1157,7 +1157,7 @@ export default {
 }
 
 .add-first-config-btn:hover {
-  background: #1D4ED8;
+  background: var(--aitest-primary-hover);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
@@ -1166,7 +1166,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .modal-header h3 {
@@ -1191,7 +1191,7 @@ export default {
 
 .close-btn:hover {
   color: #0F172A !important;
-  background: #F1F5F9 !important;
+  background: var(--aitest-surface-subtle) !important;
 }
 
 .modal-body {
@@ -1206,14 +1206,14 @@ export default {
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
-  color: #334155;
+  color: var(--aitest-text-2);
   font-size: 0.85rem;
 }
 
 .form-input, .form-select {
   width: 100%;
   padding: 10px 12px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--aitest-border);
   border-radius: 8px;
   font-size: 0.9rem;
   color: #0F172A;
@@ -1257,20 +1257,20 @@ export default {
 .toggle-model-list-btn {
   background: transparent;
   border: none;
-  color: #2563EB;
+  color: var(--aitest-primary);
   cursor: pointer;
   padding: 0;
   font-size: 0.85rem;
   font-weight: 500;
 }
 
-.toggle-model-list-btn:hover { color: #1D4ED8; }
+.toggle-model-list-btn:hover { color: var(--aitest-primary-hover); }
 
 .model-list-panel {
   margin-top: 10px;
   max-height: 220px;
   overflow-y: auto;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   border-radius: 8px;
   background: #FFFFFF;
   padding: 8px;
@@ -1282,9 +1282,9 @@ export default {
 .model-list-item {
   width: 100%;
   text-align: left;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   background: #FFFFFF;
-  color: #334155;
+  color: var(--aitest-text-2);
   border-radius: 6px;
   padding: 10px 12px;
   cursor: pointer;
@@ -1294,14 +1294,14 @@ export default {
 }
 
 .model-list-item:hover {
-  border-color: #2563EB;
+  border-color: var(--aitest-primary);
   background: #F8FAFC;
 }
 
 .model-list-item.active {
-  border-color: #2563EB;
+  border-color: var(--aitest-primary);
   background: #EFF6FF;
-  color: #1D4ED8;
+  color: var(--aitest-primary-hover);
 }
 
 .model-list-empty {
@@ -1312,7 +1312,7 @@ export default {
 
 .form-input:focus, .form-select:focus {
   outline: none;
-  border-color: #2563EB;
+  border-color: var(--aitest-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
@@ -1332,7 +1332,7 @@ export default {
 
 .checkbox-label input[type="checkbox"] {
   width: auto;
-  accent-color: #2563EB;
+  accent-color: var(--aitest-primary);
 }
 
 .required { color: #DC2626; }
@@ -1353,9 +1353,9 @@ export default {
 }
 
 .cancel-btn {
-  background: #F1F5F9;
+  background: var(--aitest-surface-subtle);
   color: #475569;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--aitest-border);
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -1364,10 +1364,10 @@ export default {
   transition: all 0.15s;
 }
 
-.cancel-btn:hover { background: #E2E8F0; }
+.cancel-btn:hover { background: var(--aitest-surface-subtle); }
 
 .test-btn-form {
-  background: #2563EB;
+  background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
   padding: 10px 20px;
@@ -1378,11 +1378,11 @@ export default {
   transition: all 0.15s;
 }
 
-.test-btn-form:hover:not(:disabled) { background: #1D4ED8; }
+.test-btn-form:hover:not(:disabled) { background: var(--aitest-primary-hover); }
 .test-btn-form:disabled { background: #CBD5E1; cursor: not-allowed; }
 
 .confirm-btn {
-  background: #2563EB;
+  background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
   padding: 10px 20px;
@@ -1393,7 +1393,7 @@ export default {
   transition: all 0.15s;
 }
 
-.confirm-btn:hover:not(:disabled) { background: #1D4ED8; }
+.confirm-btn:hover:not(:disabled) { background: var(--aitest-primary-hover); }
 .confirm-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
 
 .test-result {
@@ -1417,19 +1417,19 @@ export default {
   padding: 15px;
   background: #F8FAFC;
   border-radius: 8px;
-  border-left: 3px solid #2563EB;
+  border-left: 3px solid var(--aitest-primary);
 }
 
 .api-response label {
   font-weight: 600;
-  color: #334155;
+  color: var(--aitest-text-2);
   margin-bottom: 8px;
   font-size: 0.85rem;
 }
 
 .api-response p {
   margin: 0;
-  color: #64748B;
+  color: var(--aitest-text-2);
   line-height: 1.5;
 }
 
@@ -1475,7 +1475,7 @@ export default {
   overflow-y: auto !important;
   position: relative !important;
   z-index: 10000 !important;
-  border: 1px solid #E2E8F0 !important;
+  border: 1px solid var(--aitest-border) !important;
   box-shadow: 0 25px 50px rgba(0,0,0,0.12) !important;
 }
 </style>

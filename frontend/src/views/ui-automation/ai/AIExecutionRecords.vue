@@ -382,8 +382,8 @@ onUnmounted(() => {
   }
 
   .task-description-container {
-    background-color: #f5f7fa;
-    border: 1px solid #e4e7ed;
+    background-color: var(--aitest-canvas);
+    border: 1px solid var(--aitest-border);
     border-radius: 4px;
     padding: 12px 15px;
     margin-top: 8px;

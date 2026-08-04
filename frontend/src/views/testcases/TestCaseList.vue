@@ -668,7 +668,7 @@ onMounted(() => {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .header-actions {
@@ -689,7 +689,7 @@ onMounted(() => {
 
 .filter-bar {
   padding: 20px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--aitest-border);
   flex-shrink: 0;
 }
 
@@ -709,7 +709,7 @@ onMounted(() => {
 
 .pagination-container {
   padding: 20px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--aitest-border);
   display: flex;
   justify-content: center;
   flex-shrink: 0;
@@ -797,7 +797,7 @@ onMounted(() => {
 
 .preview-info {
   padding: 15px;
-  background-color: #f5f7fa;
+  background-color: var(--aitest-canvas);
   border-radius: 4px;
 
   p {

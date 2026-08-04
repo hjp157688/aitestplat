@@ -610,7 +610,7 @@ function formatDuration(seconds) {
 .pagination { margin-top: 20px; display: flex; justify-content: flex-end; }
 .step-stats { display: flex; align-items: center; font-size: 13px; }
 .detail-section { margin-top: 24px; }
-.detail-section h4 { margin-bottom: 12px; color: #303133; }
+.detail-section h4 { margin-bottom: 12px; color: var(--aitest-text-1); }
 .detail-stat { text-align: center; padding: 16px; border-radius: 8px; }
 .detail-stat-num { font-size: 24px; font-weight: bold; }
 .detail-stat-label { font-size: 13px; color: #606266; margin-top: 4px; }

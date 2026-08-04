@@ -10,7 +10,7 @@
                 <el-icon><Folder /></el-icon>
               </div>
               <div class="stat-info">
-                <div class="stat-value">{{ projectCount }}</div>
+                <div class="stat-value tab-nums">{{ projectCount }}</div>
                 <div class="stat-label">{{ $t('apiTesting.dashboard.apiProjects') }}</div>
               </div>
             </div>
@@ -23,7 +23,7 @@
                 <el-icon><Link /></el-icon>
               </div>
               <div class="stat-info">
-                <div class="stat-value">{{ interfaceCount }}</div>
+                <div class="stat-value tab-nums">{{ interfaceCount }}</div>
                 <div class="stat-label">{{ $t('apiTesting.dashboard.interfaceCount') }}</div>
               </div>
             </div>
@@ -36,7 +36,7 @@
                 <el-icon><Collection /></el-icon>
               </div>
               <div class="stat-info">
-                <div class="stat-value">{{ suiteCount }}</div>
+                <div class="stat-value tab-nums">{{ suiteCount }}</div>
                 <div class="stat-label">{{ $t('apiTesting.dashboard.testSuites') }}</div>
               </div>
             </div>
@@ -49,7 +49,7 @@
                 <el-icon><Timer /></el-icon>
               </div>
               <div class="stat-info">
-                <div class="stat-value">{{ historyCount }}</div>
+                <div class="stat-value tab-nums">{{ historyCount }}</div>
                 <div class="stat-label">{{ $t('apiTesting.dashboard.executionRecords') }}</div>
               </div>
             </div>
@@ -72,11 +72,11 @@
         <div v-else class="activities-list">
           <div v-for="log in operationLogs" :key="log.id" class="activity-item">
             <div class="activity-icon">
-              <el-icon v-if="log.operation_type === 'create'" color="#52c41a"><Plus /></el-icon>
-              <el-icon v-else-if="log.operation_type === 'edit'" color="#1890ff"><Edit /></el-icon>
-              <el-icon v-else-if="log.operation_type === 'delete'" color="#ff4d4f"><Delete /></el-icon>
+              <el-icon v-if="log.operation_type === 'create'" color="var(--aitest-success)"><Plus /></el-icon>
+              <el-icon v-else-if="log.operation_type === 'edit'" color="var(--aitest-primary)"><Edit /></el-icon>
+              <el-icon v-else-if="log.operation_type === 'delete'" color="var(--aitest-danger)"><Delete /></el-icon>
               <el-icon v-else-if="log.operation_type === 'execute'" color="#722ed1"><VideoPlay /></el-icon>
-              <el-icon v-else color="#666"><Operation /></el-icon>
+              <el-icon v-else color="var(--aitest-text-2)"><Operation /></el-icon>
             </div>
             <div class="activity-content">
               <div class="activity-description">{{ log.description }}</div>
@@ -344,11 +344,11 @@ onMounted(() => {
 }
 
 .stat-icon.bg-blue {
-  background-color: #1890ff;
+  background-color: var(--aitest-primary);
 }
 
 .stat-icon.bg-green {
-  background-color: #52c41a;
+  background-color: var(--aitest-success);
 }
 
 .stat-icon.bg-purple {
@@ -366,13 +366,13 @@ onMounted(() => {
 .stat-value {
   font-size: 28px;
   font-weight: bold;
-  color: #1a1a1a;
+  color: var(--aitest-text-1);
   margin-bottom: 5px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #666;
+  color: var(--aitest-text-2);
 }
 
 .content-section {
@@ -402,15 +402,15 @@ onMounted(() => {
   text-align: center;
   padding: 15px 10px;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: var(--aitest-surface-subtle);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .action-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--aitest-primary-subtle);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .action-item .action-icon {
@@ -439,11 +439,11 @@ onMounted(() => {
 }
 
 .action-icon.bg-blue {
-  background-color: #1890ff;
+  background-color: var(--aitest-primary);
 }
 
 .action-icon.bg-green {
-  background-color: #52c41a;
+  background-color: var(--aitest-success);
 }
 
 .action-icon.bg-cyan {
@@ -464,7 +464,7 @@ onMounted(() => {
 
 .action-label {
   font-size: 16px;
-  color: #333;
+  color: var(--aitest-text-1);
   font-weight: 500;
 }
 
@@ -476,7 +476,7 @@ onMounted(() => {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 20px;
-  color: #1a1a1a;
+  color: var(--aitest-text-1);
 }
 
 .feature-card {
@@ -489,13 +489,13 @@ onMounted(() => {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background-color: #f0f0f0;
+  background-color: var(--aitest-primary-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
   font-size: 36px;
-  color: #1890ff;
+  color: var(--aitest-primary);
 }
 
 .feature-icon :deep(.el-icon) {
@@ -515,12 +515,12 @@ onMounted(() => {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
-  color: #1a1a1a;
+  color: var(--aitest-text-1);
 }
 
 .feature-description {
   font-size: 14px;
-  color: #666;
+  color: var(--aitest-text-2);
   line-height: 1.6;
 }
 
@@ -532,7 +532,7 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .activity-item:last-child {
@@ -543,7 +543,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #f5f5f5;
+  background-color: var(--aitest-canvas);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -571,7 +571,7 @@ onMounted(() => {
 
 .activity-description {
   font-size: 14px;
-  color: #333;
+  color: var(--aitest-text-1);
   margin-bottom: 4px;
   word-break: break-all;
 }
@@ -580,7 +580,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   font-size: 12px;
-  color: #999;
+  color: var(--aitest-text-3);
 }
 
 .activity-user {
@@ -588,7 +588,7 @@ onMounted(() => {
 }
 
 .activity-time {
-  color: #bbb;
+  color: var(--aitest-text-3);
 }
 
 @media screen and (max-width: 1920px) {

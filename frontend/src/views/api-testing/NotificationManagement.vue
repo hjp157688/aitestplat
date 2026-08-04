@@ -591,7 +591,7 @@ onMounted(() => {
 <style scoped>
 .notification-management {
   padding: 20px;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   min-height: 100%;
 }
 
@@ -601,7 +601,7 @@ onMounted(() => {
 
 .header h3 {
   margin: 0;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .notification-tabs {
@@ -633,7 +633,7 @@ onMounted(() => {
 
 .config-section h4 {
   margin: 0 0 16px 0;
-  color: #303133;
+  color: var(--aitest-text-1);
   font-weight: 600;
 }
 
@@ -645,7 +645,7 @@ onMounted(() => {
 .notification-detail .content-pre {
   white-space: pre-wrap;
   word-wrap: break-word;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   padding: 12px;
   border-radius: 4px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;

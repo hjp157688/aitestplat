@@ -901,7 +901,7 @@ watch(() => props.modelValue, (val) => {
   border: 1px solid #dcdfe6;
   border-radius: 4px;
   overflow: hidden;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   display: flex;
   align-items: center;
   justify-content: center;

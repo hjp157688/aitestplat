@@ -145,7 +145,7 @@ onMounted(() => {
 
 .header h3 {
   margin: 0;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .content {

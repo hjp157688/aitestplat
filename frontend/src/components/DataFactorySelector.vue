@@ -485,7 +485,7 @@ watch(() => props.modelValue, (newVal) => {
       cursor: pointer;
       
       &:hover {
-        background-color: #f5f7fa;
+        background-color: var(--aitest-canvas);
       }
     }
   }
@@ -505,7 +505,7 @@ watch(() => props.modelValue, (newVal) => {
     overflow: auto;
     overflow-x: auto;
     overflow-y: auto;
-    background: #f5f7fa;
+    background: var(--aitest-canvas);
     padding: 10px;
     border-radius: 4px;
     font-family: 'Courier New', monospace;

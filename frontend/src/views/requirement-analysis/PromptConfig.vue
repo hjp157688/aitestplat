@@ -609,7 +609,7 @@ export default {
 }
 
 .page-header p {
-  color: #64748B;
+  color: var(--aitest-text-2);
   font-size: 0.95rem;
   margin: 0;
 }
@@ -650,7 +650,7 @@ export default {
 .load-defaults-btn:hover { background: #6D28D9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); }
 
 .add-config-btn {
-  background: #2563EB;
+  background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
   padding: 10px 22px;
@@ -661,7 +661,7 @@ export default {
   transition: all 0.2s;
 }
 
-.add-config-btn:hover { background: #1D4ED8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+.add-config-btn:hover { background: var(--aitest-primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
 
 .configs-grid {
   display: grid;
@@ -673,7 +673,7 @@ export default {
   background: #FFFFFF;
   border-radius: 14px;
   padding: 24px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -689,7 +689,7 @@ export default {
   align-items: flex-start;
   margin-bottom: 20px;
   padding-bottom: 14px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .config-title h3 {
@@ -714,7 +714,7 @@ export default {
 
 .type-badge.writer { background: #F0FDF4; color: #059669; }
 .type-badge.reviewer { background: #FFFBEB; color: #D97706; }
-.type-badge.api_testcase_generator { background: #EFF6FF; color: #2563EB; }
+.type-badge.api_testcase_generator { background: #EFF6FF; color: var(--aitest-primary); }
 
 .status-badge { background: #FEF2F2; color: #DC2626; }
 .status-badge.active { background: #F0FDF4; color: #059669; }
@@ -735,8 +735,8 @@ export default {
   transition: all 0.15s;
 }
 
-.preview-btn { background: #2563EB; color: #FFFFFF; }
-.preview-btn:hover { background: #1D4ED8; }
+.preview-btn { background: var(--aitest-primary); color: #FFFFFF; }
+.preview-btn:hover { background: var(--aitest-primary-hover); }
 .edit-btn { background: #F59E0B; color: #FFFFFF; }
 .edit-btn:hover { background: #D97706; }
 .delete-btn { background: #DC2626; color: #FFFFFF; }
@@ -758,10 +758,10 @@ export default {
   background: #F8FAFC;
   padding: 12px;
   border-radius: 8px;
-  color: #334155;
+  color: var(--aitest-text-2);
   font-size: 0.85rem;
   line-height: 1.5;
-  border-left: 3px solid #2563EB;
+  border-left: 3px solid var(--aitest-primary);
 }
 
 .config-meta {
@@ -783,14 +783,14 @@ export default {
 }
 
 .meta-item span {
-  color: #334155;
+  color: var(--aitest-text-2);
   font-size: 0.85rem;
 }
 
 .empty-state {
   text-align: center;
   padding: 80px 20px;
-  color: #64748B;
+  color: var(--aitest-text-2);
 }
 
 .empty-icon { font-size: 4rem; margin-bottom: 20px; }
@@ -818,8 +818,8 @@ export default {
   transition: all 0.2s;
 }
 
-.add-first-config-btn { background: #2563EB; color: #FFFFFF; }
-.add-first-config-btn:hover { background: #1D4ED8; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+.add-first-config-btn { background: var(--aitest-primary); color: #FFFFFF; }
+.add-first-config-btn:hover { background: var(--aitest-primary-hover); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
 .load-defaults-first-btn { background: #7C3AED; color: #FFFFFF; }
 .load-defaults-first-btn:hover { background: #6D28D9; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); }
 
@@ -842,7 +842,7 @@ export default {
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--aitest-border);
   box-shadow: 0 25px 50px rgba(0,0,0,0.12);
 }
 
@@ -853,7 +853,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .modal-header h3 {
@@ -873,7 +873,7 @@ export default {
   transition: all 0.15s;
 }
 
-.close-btn:hover { color: #0F172A; background: #F1F5F9; }
+.close-btn:hover { color: #0F172A; background: var(--aitest-surface-subtle); }
 
 .modal-body { padding: 24px; }
 
@@ -883,14 +883,14 @@ export default {
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
-  color: #334155;
+  color: var(--aitest-text-2);
   font-size: 0.85rem;
 }
 
 .form-input, .form-select {
   width: 100%;
   padding: 10px 12px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--aitest-border);
   border-radius: 8px;
   font-size: 0.9rem;
   color: #0F172A;
@@ -901,7 +901,7 @@ export default {
 
 .form-input:focus, .form-select:focus {
   outline: none;
-  border-color: #2563EB;
+  border-color: var(--aitest-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
@@ -910,13 +910,13 @@ export default {
 .form-textarea {
   width: 100%;
   padding: 12px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--aitest-border);
   border-radius: 8px;
   font-size: 0.9rem;
   font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
   resize: vertical;
   min-height: 200px;
-  color: #334155;
+  color: var(--aitest-text-2);
   background: #FFFFFF;
   transition: border-color 0.2s;
   box-sizing: border-box;
@@ -926,7 +926,7 @@ export default {
 
 .form-textarea:focus {
   outline: none;
-  border-color: #2563EB;
+  border-color: var(--aitest-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
@@ -942,12 +942,12 @@ export default {
   padding: 14px;
   background: #F8FAFC;
   border-radius: 8px;
-  border-left: 3px solid #2563EB;
+  border-left: 3px solid var(--aitest-primary);
 }
 
 .textarea-tips p {
   margin: 0 0 10px 0;
-  color: #334155;
+  color: var(--aitest-text-2);
   font-weight: 600;
   font-size: 0.85rem;
 }
@@ -955,7 +955,7 @@ export default {
 .textarea-tips ul { margin: 0; padding-left: 20px; }
 
 .textarea-tips li {
-  color: #64748B;
+  color: var(--aitest-text-2);
   margin-bottom: 5px;
   line-height: 1.4;
   font-size: 0.82rem;
@@ -969,7 +969,7 @@ export default {
   user-select: none;
 }
 
-.checkbox-label input[type="checkbox"] { width: auto; accent-color: #2563EB; }
+.checkbox-label input[type="checkbox"] { width: auto; accent-color: var(--aitest-primary); }
 
 .checkbox-hint {
   margin-top: 5px;
@@ -988,9 +988,9 @@ export default {
 }
 
 .cancel-btn {
-  background: #F1F5F9;
+  background: var(--aitest-surface-subtle);
   color: #475569;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--aitest-border);
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -999,10 +999,10 @@ export default {
   transition: all 0.15s;
 }
 
-.cancel-btn:hover { background: #E2E8F0; }
+.cancel-btn:hover { background: var(--aitest-surface-subtle); }
 
 .confirm-btn {
-  background: #2563EB;
+  background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
   padding: 10px 20px;
@@ -1013,7 +1013,7 @@ export default {
   transition: all 0.15s;
 }
 
-.confirm-btn:hover:not(:disabled) { background: #1D4ED8; }
+.confirm-btn:hover:not(:disabled) { background: var(--aitest-primary-hover); }
 .confirm-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
 
 .preview-content, .defaults-content { margin-bottom: 20px; }
@@ -1037,7 +1037,7 @@ export default {
 
 .content-display label {
   font-weight: 600;
-  color: #334155;
+  color: var(--aitest-text-2);
   margin-bottom: 10px;
   display: block;
   font-size: 0.85rem;
@@ -1047,12 +1047,12 @@ export default {
   background: #F8FAFC;
   padding: 20px;
   border-radius: 8px;
-  color: #334155;
+  color: var(--aitest-text-2);
   line-height: 1.6;
   white-space: pre-wrap;
   font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
   font-size: 0.85rem;
-  border-left: 3px solid #2563EB;
+  border-left: 3px solid var(--aitest-primary);
   max-height: 400px;
   overflow-y: auto;
 }
@@ -1061,7 +1061,7 @@ export default {
   display: flex;
   gap: 2px;
   margin-bottom: 20px;
-  border-bottom: 1.5px solid #E2E8F0;
+  border-bottom: 1.5px solid var(--aitest-border);
 }
 
 .tab-btn {
@@ -1069,7 +1069,7 @@ export default {
   border: none;
   padding: 12px 20px;
   cursor: pointer;
-  color: #64748B;
+  color: var(--aitest-text-2);
   font-size: 0.9rem;
   font-weight: 500;
   border-bottom: 2px solid transparent;
@@ -1077,8 +1077,8 @@ export default {
 }
 
 .tab-btn.active {
-  color: #2563EB;
-  border-bottom-color: #2563EB;
+  color: var(--aitest-primary);
+  border-bottom-color: var(--aitest-primary);
   background: #F8FAFC;
 }
 

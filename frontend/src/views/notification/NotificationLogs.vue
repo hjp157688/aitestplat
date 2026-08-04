@@ -650,7 +650,7 @@ export default {
   background: #ffffff;
   border-radius: 8px;
   padding: 20px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -681,7 +681,7 @@ export default {
 }
 
 .content-value {
-  color: #303133;
+  color: var(--aitest-text-1);
   flex: 1;
   word-break: break-word;
   font-size: 14px;
@@ -693,9 +693,9 @@ export default {
   word-break: break-word;
   margin: 0;
   padding: 16px;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   border-radius: 8px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
   font-size: 13px;
   line-height: 1.6;
   color: #606266;
@@ -726,7 +726,7 @@ export default {
   word-break: break-word;
   margin: 0;
   padding: 12px;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   border-radius: 4px;
   max-height: 150px;
   overflow-y: auto;

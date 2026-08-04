@@ -222,7 +222,7 @@
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item :label="$t('appAutomation.element.configInfo')" :span="2">
-          <pre style="margin: 0; padding: 10px; background: #f5f7fa; border-radius: 4px;">{{ JSON.stringify(viewingElement.config, null, 2) }}</pre>
+          <pre style="margin: 0; padding: 10px; background: var(--aitest-canvas); border-radius: 4px;">{{ JSON.stringify(viewingElement.config, null, 2) }}</pre>
         </el-descriptions-item>
         <el-descriptions-item :label="$t('appAutomation.element.usageCount')">{{ viewingElement.usage_count || 0 }}</el-descriptions-item>
         <el-descriptions-item :label="$t('appAutomation.common.createTime')">{{ formatDateTime(viewingElement.created_at) }}</el-descriptions-item>
@@ -491,7 +491,7 @@ onMounted(() => {
     padding: 5px;
     
     :deep(.el-image) {
-      border: 1px solid #e4e7ed;
+      border: 1px solid var(--aitest-border);
       border-radius: 4px;
       overflow: hidden;
       

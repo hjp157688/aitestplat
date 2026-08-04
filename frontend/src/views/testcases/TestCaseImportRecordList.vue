@@ -280,7 +280,7 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .header-actions {
@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
 
 .pagination-container {
   padding: 20px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--aitest-border);
   display: flex;
   justify-content: center;
 }

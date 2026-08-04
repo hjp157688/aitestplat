@@ -456,7 +456,7 @@ const exposeToWindow = () => {
       projects,
       selectedElement,
       loadElementTree,
-      treeRef: typeof treeRef !== 'undefined' ? treeRef : null,
+      treeRef: treeRef?.value ?? null,
       expandedKeys,
       pages,
       $vm: { // 当前组件实例
@@ -1339,15 +1339,15 @@ const updatePage = async () => {
 
 .sidebar {
   width: 300px;
-  border-right: 1px solid #e4e7ed;
+  border-right: 1px solid var(--aitest-border);
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
 }
 
 .sidebar-header {
   padding: 15px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--aitest-border);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1403,7 +1403,7 @@ const updatePage = async () => {
 .element-header {
   margin-bottom: 20px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .element-info {
@@ -1427,7 +1427,7 @@ const updatePage = async () => {
   position: fixed;
   z-index: 9999;
   background: white;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   padding: 5px 0;
@@ -1444,7 +1444,7 @@ const updatePage = async () => {
 }
 
 .context-menu li:hover {
-  background-color: #f5f7fa;
+  background-color: var(--aitest-canvas);
   color: #409eff;
 }
 </style>

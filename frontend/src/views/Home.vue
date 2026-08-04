@@ -285,8 +285,8 @@ const handleNavigate = (type) => {
         card_type: type
       }
     })
-    const routeData = router.resolve({ path: routes[type] })
-    window.open(routeData.href, '_blank')
+    // 应用内跳转，避免每次都新开标签页
+    router.push(routes[type])
   }
 }
 </script>
@@ -294,7 +294,7 @@ const handleNavigate = (type) => {
 <style scoped lang="scss">
 .home-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, var(--aitest-canvas) 0%, #c3cfe2 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -908,7 +908,7 @@ const handleNavigate = (type) => {
     .el-dialog__title {
       font-size: 17px;
       font-weight: 600;
-      color: #303133;
+      color: var(--aitest-text-1);
       line-height: 1.4;
     }
 

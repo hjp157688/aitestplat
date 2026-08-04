@@ -941,7 +941,7 @@
       :close-on-click-modal="false"
       width="900px"
     >
-      <div v-if="variableCategories.length === 0" style="padding: 20px; text-align: center; color: #999;">
+      <div v-if="variableCategories.length === 0" style="padding: 20px; text-align: center; color: var(--aitest-text-3);">
         <p>{{ $t('apiTesting.interface.variableCategoriesLoading') }}</p>
         <p>{{ $t('apiTesting.interface.variableCategoriesCount', { count: variableCategories.length }) }}</p>
       </div>
@@ -962,7 +962,7 @@
               <el-table-column prop="syntax" :label="$t('apiTesting.interface.syntax')" min-width="200" show-overflow-tooltip />
               <el-table-column prop="example" :label="$t('apiTesting.interface.example')" min-width="200" show-overflow-tooltip />
               <el-table-column :label="$t('apiTesting.interface.operation')" width="80" fixed="right">
-                <template #default="{ row }">
+                <template #default>
                   <el-button link type="primary" size="small">{{ $t('apiTesting.interface.insert') }}</el-button>
                 </template>
               </el-table-column>
@@ -3017,7 +3017,7 @@ const useLocalVariableCategories = () => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -3030,23 +3030,23 @@ const useLocalVariableCategories = () => {
 /* 左侧边栏 */
 .sidebar {
   width: 300px;
-  border-right: 1px solid #e4e7ed;
-  background: #ffffff;
+  border-right: 1px solid var(--aitest-border);
+  background: var(--aitest-surface);
   overflow: visible;
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--aitest-shadow-xs);
 }
 
 .sidebar-header {
   padding: 16px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--aitest-border);
   display: flex;
   flex-direction: column;
   gap: 12px;
   align-items: stretch;
   position: relative;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
 }
 
 .header-actions {
@@ -3068,7 +3068,7 @@ const useLocalVariableCategories = () => {
 
 .header-actions .el-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .collection-tree {
@@ -3102,7 +3102,7 @@ const useLocalVariableCategories = () => {
 
 .tree-node .el-icon {
   font-size: 16px;
-  color: #606266;
+  color: var(--aitest-text-2);
   flex-shrink: 0;
 }
 
@@ -3110,7 +3110,7 @@ const useLocalVariableCategories = () => {
   flex: 1;
   min-width: 0;
   font-size: 14px;
-  color: #303133;
+  color: var(--aitest-text-1);
   transition: color 0.2s;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3118,7 +3118,7 @@ const useLocalVariableCategories = () => {
 }
 
 .tree-node:hover .node-label {
-  color: #409eff;
+  color: var(--aitest-primary);
 }
 
 /* 悬浮操作按钮：默认隐藏，悬浮节点时显示 */
@@ -3136,11 +3136,11 @@ const useLocalVariableCategories = () => {
 
 .node-actions .el-button {
   padding: 2px;
-  color: #909399;
+  color: var(--aitest-text-3);
 }
 
 .node-actions .el-button:hover {
-  color: #409eff;
+  color: var(--aitest-primary);
 }
 
 .node-edit {
@@ -3208,10 +3208,10 @@ const useLocalVariableCategories = () => {
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-md);
   z-index: 1000;
   max-height: 400px;
   overflow: auto;
@@ -3223,10 +3223,10 @@ const useLocalVariableCategories = () => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #e4e7ed;
-  background: #f8f9fa;
+  border-bottom: 1px solid var(--aitest-border);
+  background: var(--aitest-surface-subtle);
   font-weight: 500;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .search-results-list {
@@ -3240,11 +3240,11 @@ const useLocalVariableCategories = () => {
   padding: 12px 16px;
   cursor: pointer;
   transition: background 0.2s;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .search-result-item:hover {
-  background: #ecf5ff;
+  background: var(--aitest-primary-subtle);
 }
 
 .search-result-content {
@@ -3254,7 +3254,7 @@ const useLocalVariableCategories = () => {
 
 .search-result-name {
   font-weight: 500;
-  color: #303133;
+  color: var(--aitest-text-1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3263,7 +3263,7 @@ const useLocalVariableCategories = () => {
 
 .search-result-url {
   font-size: 12px;
-  color: #909399;
+  color: var(--aitest-text-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3275,7 +3275,7 @@ const useLocalVariableCategories = () => {
   display: flex;
   flex-direction: column;
   overflow: auto;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
 }
 
 .empty-state {
@@ -3283,7 +3283,7 @@ const useLocalVariableCategories = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fafafa;
+  background: var(--aitest-canvas);
 }
 
 .request-detail {
@@ -3298,15 +3298,15 @@ const useLocalVariableCategories = () => {
 .request-header {
   margin-bottom: 0;
   padding: 24px;
-  background: #ffffff;
+  background: var(--aitest-surface);
   border-radius: 12px;
-  border: 1px solid #e9ecef;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--aitest-border);
+  box-shadow: var(--aitest-shadow-sm);
   transition: box-shadow 0.2s ease;
 }
 
 .request-header:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-md);
 }
 
 .request-line {
@@ -3425,7 +3425,7 @@ const useLocalVariableCategories = () => {
 /* 方法选择器下拉菜单样式 */
 .method-select :deep(.el-select-dropdown) {
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--aitest-shadow-md);
 }
 
 .method-select :deep(.el-select-dropdown__item) {
@@ -3434,12 +3434,12 @@ const useLocalVariableCategories = () => {
 }
 
 .method-select :deep(.el-select-dropdown__item:hover) {
-  background-color: #f0f0f0;
+  background-color: var(--aitest-surface-subtle);
 }
 
 .method-select :deep(.el-select-dropdown__item.selected) {
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: var(--aitest-primary-subtle);
+  color: var(--aitest-primary);
 }
 
 /* 为不同方法的下拉选项添加颜色 */
@@ -3515,14 +3515,14 @@ const useLocalVariableCategories = () => {
   border-radius: 8px;
   font-weight: 600;
   transition: all 0.2s ease;
-  background: #5046e5;
+  background: var(--aitest-primary);
   border: none;
 }
 
 .send-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(80, 70, 229, 0.4);
-  background: #4338ca;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
+  background: var(--aitest-primary-hover);
 }
 
 /* 请求元数据 */
@@ -3555,7 +3555,7 @@ const useLocalVariableCategories = () => {
 
 .action-buttons .el-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .action-buttons .el-dropdown {
@@ -3564,32 +3564,32 @@ const useLocalVariableCategories = () => {
 
 /* 标签页内容 */
 .tab-content {
-  background: white;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
   border-radius: 10px;
   padding: 24px;
   margin-bottom: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 /* 响应区域 */
 .response-section {
-  background: white;
-  border: 1px solid #e9ecef;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--aitest-shadow-sm);
   transition: box-shadow 0.2s ease;
 }
 
 .response-section:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-md);
 }
 
 .response-header {
   padding: 20px 24px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  background: var(--aitest-surface-subtle);
+  border-bottom: 1px solid var(--aitest-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -3599,7 +3599,7 @@ const useLocalVariableCategories = () => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .response-info {
@@ -3610,9 +3610,9 @@ const useLocalVariableCategories = () => {
 
 .response-time {
   font-size: 14px;
-  color: #606266;
+  color: var(--aitest-text-2);
   font-weight: 500;
-  background: #e9ecef;
+  background: var(--aitest-surface-subtle);
   padding: 4px 12px;
   border-radius: 16px;
 }
@@ -3623,11 +3623,11 @@ const useLocalVariableCategories = () => {
   min-height: 400px;
   max-height: 600px;
   overflow: auto;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   border-radius: 10px;
   margin: 20px;
-  border: 1px solid #e9ecef;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--aitest-border);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .response-actions {
@@ -3637,8 +3637,8 @@ const useLocalVariableCategories = () => {
 .response-actions .el-button-group {
   border-radius: 8px;
   overflow: hidden;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--aitest-surface);
+  box-shadow: var(--aitest-shadow-xs);
 }
 
 .response-actions .el-button {
@@ -3646,23 +3646,23 @@ const useLocalVariableCategories = () => {
   transition: all 0.2s ease;
   background: transparent;
   border: none;
-  color: #666;
+  color: var(--aitest-text-2);
 }
 
 .response-actions .el-button:hover {
-  background: #f5f7fa;
-  color: #5046e5;
+  background: var(--aitest-canvas);
+  color: var(--aitest-primary);
 }
 
 .response-content {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 14px;
   line-height: 1.6;
-  color: #303133;
-  background: white;
+  color: var(--aitest-text-1);
+  background: var(--aitest-surface);
   padding: 20px 20px 20px 20px;
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--aitest-border);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -3671,17 +3671,17 @@ const useLocalVariableCategories = () => {
 /* 响应头 */
 .response-headers {
   padding: 24px;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   border-radius: 10px;
   margin: 20px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--aitest-border);
   max-height: 80vh;
   overflow: auto;
 }
 
 .header-row {
   padding: 8px 0;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .header-row:last-child {
@@ -3709,14 +3709,14 @@ const useLocalVariableCategories = () => {
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: #ecf5ff;
+  background: var(--aitest-primary-subtle);
   border-radius: 6px;
-  border: 1px solid #d9ecff;
+  border: 1px solid var(--aitest-border);
   margin-bottom: 8px;
 }
 
 .request-line strong {
-  color: #409eff;
+  color: var(--aitest-primary);
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   flex-shrink: 0;
 }
@@ -3725,17 +3725,17 @@ const useLocalVariableCategories = () => {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 13px;
   word-break: break-all;
-  color: #303133;
+  color: var(--aitest-text-1);
   min-width: 0;
 }
 
 /* 空数据提示 */
 .empty-tip {
   padding: 24px 16px;
-  color: #909399;
+  color: var(--aitest-text-3);
   font-size: 13px;
   text-align: center;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   border-radius: 6px;
 }
 
@@ -3744,8 +3744,8 @@ const useLocalVariableCategories = () => {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 14px;
   line-height: 1.6;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
   border-radius: 8px;
   padding: 16px;
   min-height: 200px;
@@ -3755,16 +3755,16 @@ const useLocalVariableCategories = () => {
 
 .code-editor:focus {
   outline: none;
-  border-color: #5046e5;
-  box-shadow: 0 0 0 2px rgba(80, 70, 229, 0.2);
+  border-color: var(--aitest-primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
 }
 
 .code-generate {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 14px;
   line-height: 1.6;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
   border-radius: 8px;
   padding: 16px;
   min-height: 300px;
@@ -3775,10 +3775,10 @@ const useLocalVariableCategories = () => {
 .context-menu {
   position: fixed;
   z-index: 1000;
-  background: white;
-  border: 1px solid #e9ecef;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--aitest-shadow-md);
   padding: 8px 0;
   min-width: 140px;
   list-style: none;
@@ -3790,12 +3790,12 @@ const useLocalVariableCategories = () => {
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 14px;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .context-menu li:hover {
-  background: #f5f3ff;
-  color: #5046e5;
+  background: var(--aitest-primary-subtle);
+  color: var(--aitest-primary);
   font-weight: 500;
 }
 
@@ -3823,10 +3823,10 @@ const useLocalVariableCategories = () => {
   display: flex;
   gap: 6px;
   z-index: 10;
-  background: white;
+  background: var(--aitest-surface);
   border-radius: 8px;
   padding: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .script-buttons .el-button {
@@ -3841,23 +3841,23 @@ const useLocalVariableCategories = () => {
 .script-buttons .el-button:hover {
   transform: none;
   box-shadow: none;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
 }
 
 .script-factory-btn {
-  color: #10b981;
+  color: var(--aitest-success);
 }
 
 .script-factory-btn:hover {
-  background: #ecfdf5;
+  background: var(--aitest-success-bg);
 }
 
 .script-variable-btn {
-  color: #5046e5;
+  color: var(--aitest-primary);
 }
 
 .script-variable-btn:hover {
-  background: #f5f3ff;
+  background: var(--aitest-primary-subtle);
 }
 
 /* Raw 选项 */
@@ -3867,10 +3867,10 @@ const useLocalVariableCategories = () => {
   align-items: center;
   margin-bottom: 16px;
   flex-wrap: wrap;
-  background: white;
+  background: var(--aitest-surface);
   border-radius: 8px;
   padding: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-xs);
 }
 
 .raw-options .el-select {
@@ -3890,23 +3890,23 @@ const useLocalVariableCategories = () => {
 .raw-options .el-button:hover {
   transform: none;
   box-shadow: none;
-  background: #f5f7fa;
+  background: var(--aitest-canvas);
 }
 
 .data-factory-btn {
-  background-color: #409eff !important;
-  border-color: #409eff !important;
+  background-color: var(--aitest-primary) !important;
+  border-color: var(--aitest-primary) !important;
   color: white !important;
 }
 
 .data-factory-btn:hover {
-  background-color: #66b1ff !important;
-  border-color: #66b1ff !important;
+  background-color: var(--aitest-primary-hover) !important;
+  border-color: var(--aitest-primary-hover) !important;
 }
 
 .variable-helper-btn {
-  background-color: #67c23a !important;
-  border-color: #67c23a !important;
+  background-color: var(--aitest-success) !important;
+  border-color: var(--aitest-success) !important;
   color: white !important;
 }
 
@@ -3925,9 +3925,9 @@ const useLocalVariableCategories = () => {
 /* 断言编辑器 */
 .assertions-editor {
   padding: 20px;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   border-radius: 12px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--aitest-border);
 }
 
 .assertions-header {
@@ -3936,12 +3936,12 @@ const useLocalVariableCategories = () => {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .assertions-header .el-button {
   border-radius: 8px;
-  background: #5046e5;
+  background: var(--aitest-primary);
   border: none;
   font-weight: 500;
   transition: all 0.2s ease;
@@ -3949,8 +3949,8 @@ const useLocalVariableCategories = () => {
 
 .assertions-header .el-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(80, 70, 229, 0.4);
-  background: #4338ca;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
+  background: var(--aitest-primary-hover);
 }
 
 .assertions-list {
@@ -3961,17 +3961,17 @@ const useLocalVariableCategories = () => {
 
 /* 断言项 */
 .assertion-item {
-  background: white;
-  border: 1px solid #e9ecef;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
   border-radius: 10px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--aitest-shadow-xs);
   transition: all 0.2s ease;
 }
 
 .assertion-item:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border-color: #dee2e6;
+  box-shadow: var(--aitest-shadow-md);
+  border-color: var(--aitest-border-strong);
 }
 
 .assertion-header {
@@ -4020,27 +4020,27 @@ const useLocalVariableCategories = () => {
 
 .tab-button {
   padding: 10px 20px;
-  border: 1px solid #e4e7ed;
-  background: white;
+  border: 1px solid var(--aitest-border);
+  background: var(--aitest-surface);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 14px;
-  color: #606266;
+  color: var(--aitest-text-2);
 }
 
 .tab-button.active {
-  background: #409eff;
+  background: var(--aitest-primary);
   color: white;
-  border-color: #409eff;
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+  border-color: var(--aitest-primary);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
 }
 
 .tab-button:hover:not(.active) {
-  border-color: #c6e2ff;
-  color: #409eff;
+  border-color: var(--aitest-primary-subtle);
+  color: var(--aitest-primary);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 /* 表单行 */
@@ -4055,7 +4055,7 @@ const useLocalVariableCategories = () => {
 .form-label {
   width: 100px;
   font-weight: 500;
-  color: #303133;
+  color: var(--aitest-text-1);
   flex-shrink: 0;
 }
 
@@ -4070,17 +4070,17 @@ const useLocalVariableCategories = () => {
 
 /* 字符串构建器 */
 .string-builder {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
   border-radius: 6px;
   overflow: hidden;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  background: var(--aitest-surface);
+  box-shadow: var(--aitest-shadow-xs);
 }
 
 .string-builder-header {
   padding: 12px 16px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--aitest-surface-subtle);
+  border-bottom: 1px solid var(--aitest-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -4089,13 +4089,13 @@ const useLocalVariableCategories = () => {
 .string-builder-body {
   padding: 16px;
   min-height: 120px;
-  background: white;
+  background: var(--aitest-surface);
 }
 
 .string-builder-footer {
   padding: 12px 16px;
-  background: #f8f9fa;
-  border-top: 1px solid #e4e7ed;
+  background: var(--aitest-surface-subtle);
+  border-top: 1px solid var(--aitest-border);
   display: flex;
   gap: 10px;
   justify-content: flex-end;
@@ -4114,10 +4114,10 @@ const useLocalVariableCategories = () => {
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--aitest-shadow-md);
   z-index: 1000;
   width: 450px;
   max-height: 500px;
@@ -4129,8 +4129,8 @@ const useLocalVariableCategories = () => {
 
 .variable-header {
   padding: 16px 20px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--aitest-surface-subtle);
+  border-bottom: 1px solid var(--aitest-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -4140,7 +4140,7 @@ const useLocalVariableCategories = () => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .variable-content {
@@ -4159,9 +4159,9 @@ const useLocalVariableCategories = () => {
 .variable-category-title {
   font-weight: 600;
   margin-bottom: 12px;
-  color: #303133;
+  color: var(--aitest-text-1);
   font-size: 14px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--aitest-border);
   padding-bottom: 6px;
 }
 
@@ -4173,60 +4173,60 @@ const useLocalVariableCategories = () => {
 
 .variable-item {
   padding: 14px;
-  background: #f8f9fa;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .variable-item:hover {
-  background: #ecf5ff;
-  border-color: #c6e2ff;
+  background: var(--aitest-primary-subtle);
+  border-color: var(--aitest-border-strong);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .variable-name {
   font-weight: 500;
   margin-bottom: 6px;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .variable-syntax {
   font-size: 12px;
-  color: #909399;
+  color: var(--aitest-text-3);
   font-family: 'Courier New', Courier, monospace;
   margin-bottom: 6px;
-  background: white;
+  background: var(--aitest-surface);
   padding: 4px 8px;
   border-radius: 4px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--aitest-border);
 }
 
 .variable-desc {
   font-size: 12px;
-  color: #606266;
+  color: var(--aitest-text-2);
   margin-bottom: 4px;
 }
 
 .variable-example {
   font-size: 12px;
-  color: #67c23a;
+  color: var(--aitest-success);
   font-family: 'Courier New', Courier, monospace;
   margin-top: 4px;
-  background: #f0f9eb;
+  background: var(--aitest-success-bg);
   padding: 4px 8px;
   border-radius: 4px;
-  border: 1px solid #c2e7b0;
+  border: 1px solid var(--aitest-border);
 }
 
 /* JSONPath 部分 */
 .jsonpath-extractor {
   margin-top: 16px;
   padding: 16px;
-  background: #f8f9fa;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
   border-radius: 6px;
 }
 
@@ -4243,8 +4243,8 @@ const useLocalVariableCategories = () => {
 }
 
 .jsonpath-result {
-  background: white;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
   border-radius: 6px;
   padding: 12px;
   font-family: 'Courier New', Courier, monospace;
@@ -4265,23 +4265,23 @@ const useLocalVariableCategories = () => {
 }
 
 .status-badge.success {
-  background: #f0f9eb;
-  color: #67c23a;
+  background: var(--aitest-success-bg);
+  color: var(--aitest-success);
 }
 
 .status-badge.warning {
-  background: #fdf6ec;
-  color: #e6a23c;
+  background: var(--aitest-warning-bg);
+  color: var(--aitest-warning);
 }
 
 .status-badge.danger {
-  background: #fef0f0;
-  color: #f56c6c;
+  background: var(--aitest-danger-bg);
+  color: var(--aitest-danger);
 }
 
 .status-badge.info {
-  background: #ecf5ff;
-  color: #409eff;
+  background: var(--aitest-primary-subtle);
+  color: var(--aitest-primary);
 }
 
 /* 断言结果 */
@@ -4293,20 +4293,20 @@ const useLocalVariableCategories = () => {
 }
 
 .assertion-result-item {
-  background: white;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--aitest-shadow-xs);
   transition: all 0.2s ease;
 }
 
 .assertion-result-item.passed {
-  border-left: 4px solid #67c23a;
+  border-left: 4px solid var(--aitest-success);
 }
 
 .assertion-result-item.failed {
-  border-left: 4px solid #f56c6c;
+  border-left: 4px solid var(--aitest-danger);
 }
 
 .assertion-result-header {
@@ -4333,21 +4333,21 @@ const useLocalVariableCategories = () => {
   width: 80px;
   font-size: 14px;
   font-weight: 500;
-  color: #606266;
+  color: var(--aitest-text-2);
   flex-shrink: 0;
 }
 
 .result-row .value {
   flex: 1;
   font-size: 14px;
-  color: #303133;
+  color: var(--aitest-text-1);
   font-family: 'Courier New', Courier, monospace;
   white-space: pre-wrap;
   word-break: break-all;
 }
 
 .result-row .value.error {
-  color: #f56c6c;
+  color: var(--aitest-danger);
 }
 
 /* WebSocket 相关 */
@@ -4358,8 +4358,8 @@ const useLocalVariableCategories = () => {
 }
 
 .message-input-section {
-  background: #f8f9fa;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
   border-radius: 8px;
   padding: 20px;
 }
@@ -4378,12 +4378,12 @@ const useLocalVariableCategories = () => {
 
 .message-actions .el-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .websocket-response-section {
-  background: #f8f9fa;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
   border-radius: 8px;
   padding: 20px;
 }
@@ -4393,7 +4393,7 @@ const useLocalVariableCategories = () => {
   margin-bottom: 16px;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--aitest-text-1);
 }
 
 .websocket-messages {
@@ -4403,41 +4403,41 @@ const useLocalVariableCategories = () => {
   max-height: 400px;
   overflow: auto;
   padding: 10px;
-  background: white;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
   border-radius: 6px;
 }
 
 .websocket-message-item {
   padding: 12px;
   border-radius: 6px;
-  border: 1px solid #e4e7ed;
-  background: white;
+  border: 1px solid var(--aitest-border);
+  background: var(--aitest-surface);
 }
 
 .websocket-message-item.sent {
-  border-left: 4px solid #409eff;
-  background: #ecf5ff;
+  border-left: 4px solid var(--aitest-primary);
+  background: var(--aitest-primary-subtle);
 }
 
 .websocket-message-item.received {
-  border-left: 4px solid #67c23a;
-  background: #f0f9eb;
+  border-left: 4px solid var(--aitest-success);
+  background: var(--aitest-success-bg);
 }
 
 .websocket-message-item.connected {
-  border-left: 4px solid #67c23a;
-  background: #f0f9eb;
+  border-left: 4px solid var(--aitest-success);
+  background: var(--aitest-success-bg);
 }
 
 .websocket-message-item.info {
-  border-left: 4px solid #909399;
-  background: #f5f7fa;
+  border-left: 4px solid var(--aitest-neutral);
+  background: var(--aitest-neutral-bg);
 }
 
 .websocket-message-item.error {
-  border-left: 4px solid #f56c6c;
-  background: #fef0f0;
+  border-left: 4px solid var(--aitest-danger);
+  background: var(--aitest-danger-bg);
 }
 
 .message-header {
@@ -4455,32 +4455,32 @@ const useLocalVariableCategories = () => {
 }
 
 .message-type.sent {
-  background: #d9ecff;
-  color: #409eff;
+  background: var(--aitest-primary-subtle);
+  color: var(--aitest-primary);
 }
 
 .message-type.received {
-  background: #e8f5e8;
-  color: #67c23a;
+  background: var(--aitest-success-bg);
+  color: var(--aitest-success);
 }
 
 .message-type.connected {
-  background: #e8f5e8;
-  color: #67c23a;
+  background: var(--aitest-success-bg);
+  color: var(--aitest-success);
 }
 
 .message-type.info {
-  background: #f0f2f5;
-  color: #909399;
+  background: var(--aitest-neutral-bg);
+  color: var(--aitest-neutral);
 }
 
 .message-type.error {
-  background: #fde2e2;
-  color: #f56c6c;
+  background: var(--aitest-danger-bg);
+  color: var(--aitest-danger);
 }
 
 .message-time {
-  color: #909399;
+  color: var(--aitest-text-3);
 }
 
 .message-content {
@@ -4494,8 +4494,8 @@ const useLocalVariableCategories = () => {
 .uploaded-file {
   margin-top: 12px;
   padding: 8px 12px;
-  background: #f8f9fa;
-  border: 1px solid #e4e7ed;
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
   border-radius: 6px;
   display: flex;
   justify-content: space-between;
@@ -4512,7 +4512,7 @@ const useLocalVariableCategories = () => {
     width: 100%;
     max-height: 300px;
     border-right: none;
-    border-bottom: 1px solid #e4e7ed;
+    border-bottom: 1px solid var(--aitest-border);
   }
 
   .request-line {
@@ -4587,17 +4587,17 @@ const useLocalVariableCategories = () => {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--aitest-surface-subtle);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--aitest-border-strong);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--aitest-text-3);
 }
 
 /* 覆盖方法标签样式 */
@@ -4728,16 +4728,16 @@ const useLocalVariableCategories = () => {
 .auth-header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .auth-label { font-weight: 500; min-width: 120px; }
 .auth-value-input { flex: 1; max-width: 400px; }
-.auth-source-icon { color: #909399; cursor: help; }
-.auth-hint { color: #909399; font-size: 12px; margin-top: 8px; }
+.auth-source-icon { color: var(--aitest-text-3); cursor: help; }
+.auth-hint { color: var(--aitest-text-3); font-size: 12px; margin-top: 8px; }
 
 /* Schema tab styles */
 .schema-viewer { padding: 16px; }
 .schema-section { margin-bottom: 16px; }
 .schema-section h4 { margin: 0 0 8px; font-size: 14px; }
-.schema-status-group h5 { margin: 8px 0 4px; font-size: 13px; color: #409eff; }
+.schema-status-group h5 { margin: 8px 0 4px; font-size: 13px; color: var(--aitest-primary); }
 .schema-tree { margin-top: 8px; }
-.empty-tip { color: #909399; font-size: 13px; padding: 16px 0; }
+.empty-tip { color: var(--aitest-text-3); font-size: 13px; padding: 16px 0; }
 
 /* Deprecated tree node styles */
 .deprecated-node .node-label {

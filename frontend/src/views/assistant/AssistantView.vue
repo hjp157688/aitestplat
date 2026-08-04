@@ -399,61 +399,61 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* 左侧侧边栏 */
+/* 左侧侧边栏（浅色靛蓝主题） */
 .sidebar {
   width: 260px;
-  background: #001529; /* 与主布局一致的深色背景 */
-  border-right: 1px solid #1f1f1f;
+  background: var(--aitest-surface);
+  border-right: 1px solid var(--aitest-border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.65);
-  
+  color: var(--aitest-text-1);
+
   .new-chat-btn-wrapper {
     padding: 20px;
-    
+
     .new-chat-btn {
       width: 100%;
       height: 40px;
       border-radius: 4px; /* 稍微减小圆角以匹配整体风格 */
       font-size: 14px;
-      background: #1890ff;
-      border-color: #1890ff;
+      background: var(--aitest-primary);
+      border-color: var(--aitest-primary);
       color: white;
-      
+
       &:hover {
-        background: #40a9ff;
-        border-color: #40a9ff;
+        background: var(--aitest-primary-hover);
+        border-color: var(--aitest-primary-hover);
       }
     }
   }
-  
+
   .history-list {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    
+
     .history-label {
       padding: 0 20px 10px;
       font-size: 12px;
-      color: rgba(255, 255, 255, 0.45);
+      color: var(--aitest-text-3);
     }
-    
+
     .session-scroll-area {
       flex: 1;
       overflow-y: auto;
       padding: 0 10px;
-      
+
       &::-webkit-scrollbar {
         width: 4px;
       }
       &::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
+        background: var(--aitest-border-strong);
         border-radius: 2px;
       }
     }
-    
+
     .session-item {
       display: flex;
       align-items: center;
@@ -463,33 +463,34 @@ onMounted(() => {
       border-radius: 4px;
       cursor: pointer;
       transition: all 0.2s;
-      color: rgba(255, 255, 255, 0.65);
-      
+      color: var(--aitest-text-2);
+
       &:hover {
-        background: rgba(255, 255, 255, 0.08);
-        color: white;
-        
+        background: var(--aitest-surface-subtle);
+        color: var(--aitest-text-1);
+
         .session-actions {
           opacity: 1;
         }
       }
-      
+
       &.active {
-        background: #1890ff;
-        color: white;
+        background: var(--aitest-primary-subtle);
+        color: var(--aitest-primary);
+        font-weight: 600;
       }
-      
+
       .session-title-wrapper {
         display: flex;
         align-items: center;
         gap: 8px;
         flex: 1;
         overflow: hidden;
-        
+
         .chat-icon {
           font-size: 16px;
         }
-        
+
         .session-title {
           font-size: 14px;
           white-space: nowrap;
@@ -497,26 +498,26 @@ onMounted(() => {
           text-overflow: ellipsis;
         }
       }
-      
+
       .session-actions {
         opacity: 0;
         transition: opacity 0.2s;
-        
+
         .delete-icon {
           font-size: 14px;
-          color: rgba(255, 255, 255, 0.45);
+          color: var(--aitest-text-3);
           &:hover {
-            color: #ff4d4f;
+            color: var(--aitest-danger);
           }
         }
       }
     }
   }
-  
+
   .user-profile {
     padding: 16px;
-    border-top: 1px solid #1f1f1f;
-    
+    border-top: 1px solid var(--aitest-border);
+
     .user-info {
       display: flex;
       align-items: center;
@@ -524,23 +525,23 @@ onMounted(() => {
       padding: 8px;
       border-radius: 4px;
       transition: all 0.2s;
-      
+
       &:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--aitest-surface-subtle);
       }
-      
+
       .username {
         margin: 0 8px;
         font-size: 14px;
-        color: rgba(255, 255, 255, 0.85);
+        color: var(--aitest-text-1);
         flex: 1;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-      
+
       .el-icon {
-        color: rgba(255, 255, 255, 0.45);
+        color: var(--aitest-text-3);
       }
     }
   }
@@ -596,7 +597,7 @@ onMounted(() => {
     
     h1 {
       font-size: 28px;
-      color: #303133;
+      color: var(--aitest-text-1);
       margin: 0 0 10px;
     }
     
@@ -618,7 +619,7 @@ onMounted(() => {
         padding: 16px 50px 16px 20px;
         font-size: 16px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e4e7ed;
+        border: 1px solid var(--aitest-border);
         transition: all 0.3s;
         
         &:focus {
@@ -643,7 +644,7 @@ onMounted(() => {
     
     .chip {
       padding: 8px 16px;
-      background: #f5f7fa;
+      background: var(--aitest-canvas);
       border-radius: 20px;
       font-size: 14px;
       color: #606266;
@@ -677,7 +678,7 @@ onMounted(() => {
     .chat-title {
       font-size: 16px;
       font-weight: 600;
-      color: #303133;
+      color: var(--aitest-text-1);
     }
     
     .chat-time {
@@ -718,8 +719,8 @@ onMounted(() => {
       
       &.assistant {
         .message-bubble {
-          background: #f5f7fa;
-          color: #303133;
+          background: var(--aitest-canvas);
+          color: var(--aitest-text-1);
           border-radius: 12px 12px 12px 0;
         }
       }
@@ -789,7 +790,7 @@ onMounted(() => {
     
     .input-box {
       position: relative;
-      border: 1px solid #e4e7ed;
+      border: 1px solid var(--aitest-border);
       border-radius: 12px;
       padding: 8px;
       background: #fff;
