@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    RequirementDocument, RequirementAnalysis, BusinessRequirement,
+    RequirementDocument, RequirementAnalysis,
     GeneratedTestCase, AnalysisTask, AIModelConfig, PromptConfig,
     GenerationConfig, TestCaseGenerationTask
 )
@@ -22,19 +22,11 @@ class RequirementAnalysisAdmin(admin.ModelAdmin):
     readonly_fields = ['analysis_time', 'created_at', 'updated_at']
 
 
-@admin.register(BusinessRequirement)
-class BusinessRequirementAdmin(admin.ModelAdmin):
-    list_display = ['requirement_id', 'requirement_name', 'requirement_type', 'requirement_level', 'module']
-    list_filter = ['requirement_type', 'requirement_level', 'module', 'created_at']
-    search_fields = ['requirement_id', 'requirement_name', 'description']
-    readonly_fields = ['created_at', 'updated_at']
-
-
 @admin.register(GeneratedTestCase)
 class GeneratedTestCaseAdmin(admin.ModelAdmin):
     list_display = ['case_id', 'title', 'priority', 'status', 'generated_by_ai', 'reviewed_by_ai']
     list_filter = ['priority', 'status', 'generated_by_ai', 'reviewed_by_ai', 'created_at']
-    search_fields = ['case_id', 'title', 'requirement__requirement_name']
+    search_fields = ['case_id', 'title', 'requirement__title']
     readonly_fields = ['created_at', 'updated_at']
 
 

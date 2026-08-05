@@ -8,7 +8,7 @@ from datetime import timedelta, datetime
 from .models import TestReport, ReportTemplate
 from apps.executions.models import TestPlan, TestRun, TestRunCase
 from apps.testcases.models import TestCase
-from apps.requirement_analysis.models import RequirementAnalysis, GeneratedTestCase, BusinessRequirement
+from apps.requirement_analysis.models import RequirementAnalysis, GeneratedTestCase, Requirement
 
 class TestReportViewSet(viewsets.ModelViewSet):
     """测试报告视图集"""
@@ -199,7 +199,7 @@ class TestReportViewSet(viewsets.ModelViewSet):
         
         cases_qs = TestCase.objects.all()
         generated_qs = GeneratedTestCase.objects.all()
-        requirements_qs = BusinessRequirement.objects.all()
+        requirements_qs = Requirement.objects.filter(analysis__isnull=False)
         
         if project_id:
             cases_qs = cases_qs.filter(project_id=project_id)

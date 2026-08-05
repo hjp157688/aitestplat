@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     RequirementDocumentViewSet,
     RequirementAnalysisViewSet,
-    BusinessRequirementViewSet,
     GeneratedTestCaseViewSet,
     AnalysisTaskViewSet,
     AIModelConfigViewSet,
@@ -30,7 +29,6 @@ from .views import (
 router = DefaultRouter()
 router.register(r'documents', RequirementDocumentViewSet, basename='requirementdocument')
 router.register(r'analyses', RequirementAnalysisViewSet, basename='requirementanalysis')
-router.register(r'requirements', BusinessRequirementViewSet, basename='businessrequirement')
 router.register(r'test-cases', GeneratedTestCaseViewSet, basename='generatedtestcase')
 router.register(r'tasks', AnalysisTaskViewSet, basename='analysistask')
 router.register(r'ai-models', AIModelConfigViewSet, basename='aimodelconfig')

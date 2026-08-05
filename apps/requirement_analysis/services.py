@@ -19,7 +19,7 @@ except ImportError:
 from django.conf import settings
 from django.core.files.storage import default_storage
 
-from .models import RequirementDocument, RequirementAnalysis, BusinessRequirement, GeneratedTestCase, AnalysisTask
+from .models import RequirementDocument, RequirementAnalysis, Requirement, GeneratedTestCase, AnalysisTask, create_requirement_from_br_data
 
 logger = logging.getLogger(__name__)
 
@@ -257,7 +257,7 @@ class AIService:
         }
     
     @staticmethod
-    async def generate_test_cases(requirement: BusinessRequirement, test_level: str, test_priority: str, count: int) -> List[Dict[str, Any]]:
+    async def generate_test_cases(requirement: Requirement, test_level: str, test_priority: str, count: int) -> List[Dict[str, Any]]:
         """生成测试用例 - 大模型A"""
         # 模拟AI生成过程
         await asyncio.sleep(1)
@@ -287,7 +287,7 @@ class AIService:
             case_id = generate_unique_case_id(requirement, existing_count + i + 1)
             
             # 根据需求类型生成不同的测试用例
-            if "登录" in requirement.requirement_name:
+            if "登录" in requirement.title:
                 test_cases.append({
                     "case_id": case_id,
                     "title": f"验证用户使用有效凭证登录系统的认证流程和权限获取",
@@ -296,7 +296,7 @@ class AIService:
                     "test_steps": "1. 打开登录页面\n2. 输入有效的用户名和密码\n3. 点击登录按钮\n4. 检查登录结果和页面跳转",
                     "expected_result": "用户成功登录系统，跳转到主页面，显示用户信息和相应权限功能"
                 })
-            elif "数据" in requirement.requirement_name:
+            elif "数据" in requirement.title:
                 test_cases.append({
                     "case_id": case_id,
                     "title": f"测试数据录入功能在各种输入场景下的验证机制和保存结果",
@@ -305,7 +305,7 @@ class AIService:
                     "test_steps": "1. 进入数据录入页面\n2. 填写必填字段信息\n3. 提交数据\n4. 验证数据保存结果",
                     "expected_result": "数据成功保存到数据库，页面显示保存成功提示，可以查询到新录入的数据"
                 })
-            elif "报告" in requirement.requirement_name:
+            elif "报告" in requirement.title:
                 test_cases.append({
                     "case_id": case_id,
                     "title": f"验证报告生成功能在不同格式和数据量下的处理能力和输出质量",
@@ -317,11 +317,11 @@ class AIService:
             else:
                 test_cases.append({
                     "case_id": case_id,
-                    "title": f"验证{requirement.requirement_name}功能的基本操作流程和预期结果",
+                    "title": f"验证{requirement.title}功能的基本操作流程和预期结果",
                     "priority": test_priority,
                     "precondition": "系统正常运行，用户已登录",
-                    "test_steps": f"1. 访问{requirement.requirement_name}功能\n2. 执行主要操作步骤\n3. 验证操作结果",
-                    "expected_result": f"{requirement.requirement_name}功能正常工作，操作结果符合预期"
+                    "test_steps": f"1. 访问{requirement.title}功能\n2. 执行主要操作步骤\n3. 验证操作结果",
+                    "expected_result": f"{requirement.title}功能正常工作，操作结果符合预期"
                 })
         
         return test_cases
@@ -421,10 +421,7 @@ class RequirementAnalysisService:
             
             # 保存需求数据
             for req_data in analysis_result['requirements']:
-                BusinessRequirement.objects.create(
-                    analysis=analysis,
-                    **req_data
-                )
+                create_requirement_from_br_data(analysis, req_data)
             
             # 更新文档状态
             document.status = 'analyzed'
@@ -461,7 +458,7 @@ class RequirementAnalysisService:
         
         for req_id in requirement_ids:
             try:
-                requirement = BusinessRequirement.objects.get(id=req_id)
+                requirement = Requirement.objects.get(id=req_id)
                 
                 # 调用AI生成测试用例
                 test_cases_data = await AIService.generate_test_cases(
@@ -482,7 +479,7 @@ class RequirementAnalysisService:
                     )
                     generated_cases.append(test_case)
                     
-            except BusinessRequirement.DoesNotExist:
+            except Requirement.DoesNotExist:
                 logger.error(f"需求ID {req_id} 不存在")
                 continue
             except Exception as e:

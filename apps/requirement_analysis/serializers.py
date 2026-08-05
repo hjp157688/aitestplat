@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    RequirementDocument, RequirementAnalysis, BusinessRequirement,
+    RequirementDocument, RequirementAnalysis,
     GeneratedTestCase, AnalysisTask, AIModelConfig, PromptConfig, TestCaseGenerationTask,
     GenerationConfig, ZentaoConfig, Requirement, KnowledgeDocument, KnowledgeEntry
 )
@@ -12,55 +12,81 @@ class RequirementDocumentSerializer(serializers.ModelSerializer):
     document_type_display = serializers.CharField(source='get_document_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     file_url = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = RequirementDocument
-        fields = ['id', 'title', 'file', 'file_url', 'document_type', 'document_type_display', 
-                 'status', 'status_display', 'uploaded_by', 'uploaded_by_name', 'project', 
+        fields = ['id', 'title', 'file', 'file_url', 'document_type', 'document_type_display',
+                 'status', 'status_display', 'uploaded_by', 'uploaded_by_name', 'project',
                  'project_name', 'created_at', 'updated_at', 'file_size', 'extracted_text']
         read_only_fields = ['uploaded_by', 'file_size', 'extracted_text']
-    
+
     def get_file_url(self, obj):
         if obj.file:
             return obj.file.url
         return None
 
 
-class BusinessRequirementSerializer(serializers.ModelSerializer):
-    requirement_type_display = serializers.CharField(source='get_requirement_type_display', read_only=True)
-    requirement_level_display = serializers.CharField(source='get_requirement_level_display', read_only=True)
-    parent_requirement_name = serializers.CharField(source='parent_requirement.requirement_name', read_only=True)
-    
-    class Meta:
-        model = BusinessRequirement
-        fields = ['id', 'requirement_id', 'requirement_name', 'requirement_type', 
-                 'requirement_type_display', 'parent_requirement', 'parent_requirement_name',
-                 'module', 'requirement_level', 'requirement_level_display', 'reviewer', 
-                 'estimated_hours', 'description', 'acceptance_criteria', 'created_at', 'updated_at']
+class RequirementSerializer(serializers.ModelSerializer):
+    """需求管理序列化器"""
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
+    source_type_display = serializers.CharField(source='get_source_type_display', read_only=True)
 
+    class Meta:
+        model = Requirement
+        fields = [
+            'id', 'project', 'project_name', 'zentao_id', 'product_id',
+            'product_name', 'title', 'spec', 'category', 'priority',
+            'stage', 'status', 'source_type', 'source_type_display',
+            'source_note', 'estimate', 'module_id', 'assigned_to',
+            'raw_data', 'synced_at', 'created_by', 'created_by_name',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at', 'synced_at', 'raw_data']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            validated_data['created_by'] = user
+        return super().create(validated_data)
+
+
+class RequirementListSerializer(serializers.ModelSerializer):
+    """需求列表序列化器（简化版）"""
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    source_type_display = serializers.CharField(source='get_source_type_display', read_only=True)
+
+    class Meta:
+        model = Requirement
+        fields = [
+            'id', 'project', 'project_name', 'zentao_id', 'product_id',
+            'product_name', 'title', 'priority', 'status', 'source_type',
+            'source_type_display', 'category', 'estimate', 'module_id',
+            'assigned_to', 'synced_at', 'created_at', 'updated_at'
+        ]
 
 class RequirementAnalysisSerializer(serializers.ModelSerializer):
     document_title = serializers.CharField(source='document.title', read_only=True)
     document_id = serializers.IntegerField(source='document.id', read_only=True)
-    requirements = BusinessRequirementSerializer(many=True, read_only=True)
-    
+    requirements = RequirementSerializer(many=True, read_only=True, source='unified_requirements')
+
     class Meta:
         model = RequirementAnalysis
-        fields = ['id', 'document_id', 'document_title', 'analysis_report', 
+        fields = ['id', 'document_id', 'document_title', 'analysis_report',
                  'requirements_count', 'analysis_time', 'created_at', 'updated_at', 'requirements']
 
 
 class GeneratedTestCaseSerializer(serializers.ModelSerializer):
     priority_display = serializers.CharField(source='get_priority_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    requirement_name = serializers.CharField(source='requirement.requirement_name', read_only=True)
+    requirement_name = serializers.CharField(source='requirement.title', read_only=True)
     requirement_id_display = serializers.CharField(source='requirement.requirement_id', read_only=True)
-    
+
     class Meta:
         model = GeneratedTestCase
         fields = ['id', 'case_id', 'title', 'priority', 'priority_display', 'precondition',
                  'test_steps', 'expected_result', 'status', 'status_display', 'generated_by_ai',
-                 'reviewed_by_ai', 'review_comments', 'requirement', 'requirement_name', 
+                 'reviewed_by_ai', 'review_comments', 'requirement', 'requirement_name',
                  'requirement_id_display', 'created_at', 'updated_at']
 
 
@@ -69,14 +95,14 @@ class AnalysisTaskSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     document_title = serializers.CharField(source='document.title', read_only=True)
     duration = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = AnalysisTask
         fields = ['id', 'task_id', 'task_type', 'task_type_display', 'document', 'document_title',
-                 'status', 'status_display', 'progress', 'result', 'error_message', 
+                 'status', 'status_display', 'progress', 'result', 'error_message',
                  'started_at', 'completed_at', 'created_at', 'duration']
         read_only_fields = ['task_id', 'result', 'error_message', 'started_at', 'completed_at']
-    
+
     def get_duration(self, obj):
         if obj.started_at and obj.completed_at:
             return (obj.completed_at - obj.started_at).total_seconds()
@@ -88,7 +114,7 @@ class DocumentUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = RequirementDocument
         fields = ['id', 'title', 'file', 'project']
-    
+
     def create(self, validated_data):
         # 自动设置上传者（如果用户已登录）
         user = self.context['request'].user
@@ -101,7 +127,7 @@ class DocumentUploadSerializer(serializers.ModelSerializer):
             if not default_user:
                 default_user = User.objects.first()
             validated_data['uploaded_by'] = default_user
-        
+
         # 根据文件扩展名设置文档类型
         file = validated_data['file']
         if file.name.lower().endswith('.pdf'):
@@ -112,10 +138,10 @@ class DocumentUploadSerializer(serializers.ModelSerializer):
             validated_data['document_type'] = 'txt'
         elif file.name.lower().endswith('.md'):
             validated_data['document_type'] = 'md'
-        
+
         # 设置文件大小
         validated_data['file_size'] = file.size
-        
+
         return super().create(validated_data)
 
 
@@ -262,7 +288,7 @@ class PromptConfigSerializer(serializers.ModelSerializer):
             if not default_user:
                 default_user = User.objects.first()
             validated_data['created_by'] = default_user
-        
+
         return super().create(validated_data)
 
 
@@ -276,7 +302,7 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
     writer_prompt_name = serializers.CharField(source='writer_prompt_config.name', read_only=True)
     reviewer_prompt_name = serializers.CharField(source='reviewer_prompt_config.name', read_only=True)
     granularity_display = serializers.CharField(source='get_granularity_display', read_only=True)
-    
+
     class Meta:
         model = TestCaseGenerationTask
         fields = ['id', 'task_id', 'title', 'requirement_text', 'status', 'status_display',
@@ -286,10 +312,10 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
                  'review_feedback', 'final_test_cases', 'generation_log', 'error_message',
                  'created_by', 'created_by_name', 'created_at', 'updated_at', 'completed_at',
                  'case_type', 'granularity', 'granularity_display']
-        read_only_fields = ['task_id', 'status', 'progress', 'generated_test_cases', 
-                          'review_feedback', 'final_test_cases', 'generation_log', 
+        read_only_fields = ['task_id', 'status', 'progress', 'generated_test_cases',
+                          'review_feedback', 'final_test_cases', 'generation_log',
                           'error_message', 'created_by', 'completed_at']
-    
+
     def create(self, validated_data):
         # 自动设置创建者和任务ID
         import uuid
@@ -302,9 +328,9 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
             if not default_user:
                 default_user = User.objects.first()
             validated_data['created_by'] = default_user
-        
+
         validated_data['task_id'] = f"TASK_{uuid.uuid4().hex[:8].upper()}"
-        
+
         return super().create(validated_data)
 
 
@@ -366,46 +392,6 @@ class ZentaoConfigSerializer(serializers.ModelSerializer):
             else:
                 return '*' * len(obj.zentao_password)
         return ''
-
-
-class RequirementSerializer(serializers.ModelSerializer):
-    """需求管理序列化器"""
-    project_name = serializers.CharField(source='project.name', read_only=True)
-    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
-    source_type_display = serializers.CharField(source='get_source_type_display', read_only=True)
-
-    class Meta:
-        model = Requirement
-        fields = [
-            'id', 'project', 'project_name', 'zentao_id', 'product_id',
-            'product_name', 'title', 'spec', 'category', 'priority',
-            'stage', 'status', 'source_type', 'source_type_display',
-            'source_note', 'estimate', 'module_id', 'assigned_to',
-            'raw_data', 'synced_at', 'created_by', 'created_by_name',
-            'created_at', 'updated_at'
-        ]
-        read_only_fields = ['created_by', 'created_at', 'updated_at', 'synced_at', 'raw_data']
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            validated_data['created_by'] = user
-        return super().create(validated_data)
-
-
-class RequirementListSerializer(serializers.ModelSerializer):
-    """需求列表序列化器（简化版）"""
-    project_name = serializers.CharField(source='project.name', read_only=True)
-    source_type_display = serializers.CharField(source='get_source_type_display', read_only=True)
-
-    class Meta:
-        model = Requirement
-        fields = [
-            'id', 'project', 'project_name', 'zentao_id', 'product_id',
-            'product_name', 'title', 'priority', 'status', 'source_type',
-            'source_type_display', 'category', 'estimate', 'module_id',
-            'assigned_to', 'synced_at', 'created_at', 'updated_at'
-        ]
 
 
 class AIRequirementParseRequestSerializer(serializers.Serializer):

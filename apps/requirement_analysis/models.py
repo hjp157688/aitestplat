@@ -74,50 +74,6 @@ class RequirementAnalysis(models.Model):
         return f"{self.document.title} - 分析报告"
 
 
-class BusinessRequirement(models.Model):
-    """业务需求模型"""
-    REQUIREMENT_TYPE_CHOICES = [
-        ('functional', '功能需求'),
-        ('performance', '性能需求'),
-        ('security', '安全需求'),
-        ('usability', '可用性需求'),
-        ('interface', '接口需求'),
-        ('other', '其他需求'),
-    ]
-
-    REQUIREMENT_LEVEL_CHOICES = [
-        ('high', '高'),
-        ('medium', '中'),
-        ('low', '低'),
-    ]
-
-    analysis = models.ForeignKey(RequirementAnalysis, on_delete=models.CASCADE, related_name='requirements',
-                                 verbose_name='关联分析')
-    requirement_id = models.CharField(max_length=50, verbose_name='需求编号')
-    requirement_name = models.CharField(max_length=200, verbose_name='需求名称')
-    requirement_type = models.CharField(max_length=20, choices=REQUIREMENT_TYPE_CHOICES, verbose_name='需求类型')
-    parent_requirement = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
-                                           verbose_name='父级需求')
-    module = models.CharField(max_length=100, verbose_name='所属模块')
-    requirement_level = models.CharField(max_length=10, choices=REQUIREMENT_LEVEL_CHOICES, verbose_name='需求级别')
-    reviewer = models.CharField(max_length=50, verbose_name='评审人', default='admin')
-    estimated_hours = models.PositiveIntegerField(verbose_name='预计工时', default=8)
-    description = models.TextField(verbose_name='需求描述')
-    acceptance_criteria = models.TextField(verbose_name='验收标准')
-    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
-
-    class Meta:
-        db_table = 'business_requirements'
-        verbose_name = '业务需求'
-        verbose_name_plural = '业务需求'
-        ordering = ['-created_at']
-        unique_together = ['analysis', 'requirement_id']
-
-    def __str__(self):
-        return f"{self.requirement_id} - {self.requirement_name}"
-
-
 class GeneratedTestCase(models.Model):
     """生成的测试用例模型"""
     PRIORITY_CHOICES = [
@@ -572,6 +528,45 @@ class Requirement(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.get_source_type_display()}"
+
+
+def create_requirement_from_br_data(analysis, req_data):
+    """从旧 BusinessRequirement 格式的 req_data 字典创建 Requirement。
+
+    字段映射：
+        requirement_name -> title
+        description -> spec
+        requirement_type -> category
+        module -> module_name
+        estimated_hours -> estimate
+        requirement_id, requirement_level, acceptance_criteria, parent_requirement -> 同名
+        reviewer -> 丢弃（Requirement 无对应字段）
+    """
+    project = analysis.document.project
+    if not project:
+        from apps.projects.models import Project as _Project
+        from apps.users.models import User as _User
+        owner, _ = _User.objects.get_or_create(
+            username='ai_default', defaults={'is_active': False},
+        )
+        project, _ = _Project.objects.get_or_create(
+            name='AI分析需求默认项目',
+            defaults={'description': 'AI分析自动创建的需求', 'owner': owner},
+        )
+    return Requirement.objects.create(
+        project=project,
+        source_type='ai_import',
+        analysis=analysis,
+        title=req_data.get('requirement_name', '') or req_data.get('requirement_id', ''),
+        spec=req_data.get('description', '') or '',
+        category=req_data.get('requirement_type', '') or '',
+        module_name=req_data.get('module', '') or '',
+        requirement_id=req_data.get('requirement_id', '') or '',
+        requirement_level=req_data.get('requirement_level', '') or '',
+        acceptance_criteria=req_data.get('acceptance_criteria', '') or '',
+        estimate=req_data.get('estimated_hours'),
+        parent_requirement=req_data.get('parent_requirement'),
+    )
 
 
 class KnowledgeDocument(models.Model):
