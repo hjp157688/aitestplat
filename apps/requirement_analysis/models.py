@@ -137,7 +137,7 @@ class GeneratedTestCase(models.Model):
         ('discarded', '已弃用'),
     ]
 
-    requirement = models.ForeignKey(BusinessRequirement, on_delete=models.CASCADE, related_name='test_cases',
+    requirement = models.ForeignKey('Requirement', on_delete=models.CASCADE, related_name='test_cases',
                                     verbose_name='关联需求')
     case_id = models.CharField(max_length=50, verbose_name='用例编号')
     title = models.CharField(max_length=300, verbose_name='用例标题')
