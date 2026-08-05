@@ -150,3 +150,100 @@ class BatchDeleteTests(BatchDeleteBase):
             OperationLog.objects.filter(
                 resource_type='request', resource_id=self.other_request.id,
                 operation_type='delete').count(), 0)
+
+
+class CreateSuiteFromRequestsTests(BatchDeleteBase):
+    """create-from-requests + add-requests 归属校验"""
+
+    def test_create_suite_links_requests_in_order_and_dedup(self):
+        resp = self.client.post(
+            '/api/api-testing/test-suites/create-from-requests/',
+            {
+                'project_id': self.project.id,
+                'name': 'LoginSuite',
+                'request_ids': [self.request_b.id, self.request_a.id, self.request_a.id],
+            },
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 201)
+        data = resp.json()
+        self.assertEqual(data['added_count'], 2)
+        suite = TestSuite.objects.get(id=data['id'])
+        self.assertEqual(suite.name, 'LoginSuite')
+        self.assertEqual(suite.created_by, self.user)
+        links = list(TestSuiteRequest.objects.filter(
+            test_suite=suite).order_by('order'))
+        self.assertEqual([l.request_id for l in links],
+                         [self.request_b.id, self.request_a.id])
+
+    def test_requests_from_other_project_excluded(self):
+        resp = self.client.post(
+            '/api/api-testing/test-suites/create-from-requests/',
+            {
+                'project_id': self.project.id,
+                'name': 'X',
+                'request_ids': [self.other_request.id],
+            },
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.json()['added_count'], 0)
+        self.assertEqual(TestSuite.objects.filter(name='X').count(), 1)
+
+    def test_missing_name_400(self):
+        resp = self.client.post(
+            '/api/api-testing/test-suites/create-from-requests/',
+            {'project_id': self.project.id, 'request_ids': [self.request_a.id]},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_foreign_environment_400(self):
+        from apps.api_testing.models import Environment
+        foreign_env = Environment.objects.create(
+            scope='GLOBAL', name='ForeignEnv', project=None,
+            created_by=self.other)
+        resp = self.client.post(
+            '/api/api-testing/test-suites/create-from-requests/',
+            {
+                'project_id': self.project.id,
+                'name': 'Y',
+                'environment_id': foreign_env.id,
+                'request_ids': [self.request_a.id],
+            },
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_add_requests_rejects_foreign_requests(self):
+        suite = TestSuite.objects.create(
+            name='S', project=self.project, created_by=self.user)
+        resp = self.client.post(
+            f'/api/api-testing/test-suites/{suite.id}/add-requests/',
+            {'request_ids': [self.other_request.id, self.request_a.id]},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data['added_count'], 1)
+        self.assertEqual(data['rejected_count'], 1)
+        self.assertTrue(
+            TestSuiteRequest.objects.filter(
+                test_suite=suite, request=self.request_a).exists())
+        self.assertFalse(
+            TestSuiteRequest.objects.filter(
+                test_suite=suite, request=self.other_request).exists())
+
+    def test_create_suite_writes_operation_log(self):
+        resp = self.client.post(
+            '/api/api-testing/test-suites/create-from-requests/',
+            {'project_id': self.project.id, 'name': 'LogSuite',
+             'request_ids': [self.request_a.id]},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 201)
+        suite = TestSuite.objects.get(id=resp.json()['id'])
+        self.assertEqual(
+            OperationLog.objects.filter(
+                resource_type='suite', resource_id=suite.id,
+                operation_type='create').count(), 1)

@@ -1030,28 +1030,122 @@ class TestSuiteViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='add-requests')
     def add_requests(self, request, pk=None):
-        """添加请求到测试套件"""
+        """添加请求到测试套件（仅允许套件所属项目下的请求）"""
         test_suite = self.get_object()
-        request_ids = request.data.get('request_ids', [])
-        
+        request_ids = request.data.get('request_ids', []) or []
+
         try:
-            for request_id in request_ids:
-                api_request = ApiRequest.objects.get(id=request_id)
-                TestSuiteRequest.objects.get_or_create(
+            valid_ids = list(ApiRequest.objects.filter(
+                id__in=request_ids, collection__project=test_suite.project
+            ).values_list('id', flat=True))
+            rejected_count = len(request_ids) - len(valid_ids)
+
+            added_count = 0
+            for request_id in valid_ids:
+                _, created = TestSuiteRequest.objects.get_or_create(
                     test_suite=test_suite,
-                    request=api_request,
+                    request_id=request_id,
                     defaults={
-                        'order': TestSuiteRequest.objects.filter(test_suite=test_suite).count(),
+                        'order': TestSuiteRequest.objects.filter(
+                            test_suite=test_suite).count(),
                         'enabled': True,
                         'assertions': []
                     }
                 )
-            
-            return Response({'message': '添加成功'})
-            
+                if created:
+                    added_count += 1
+
+            return Response({
+                'added_count': added_count,
+                'remaining_count': TestSuiteRequest.objects.filter(
+                    test_suite=test_suite).count(),
+                'rejected_count': rejected_count,
+                'message': '添加成功',
+            })
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    @action(detail=False, methods=['post'], url_path='create-from-requests')
+    def create_from_requests(self, request):
+        """从选中的接口创建测试套件"""
+        project_id = request.data.get('project_id')
+        name = (request.data.get('name') or '').strip()
+        description = request.data.get('description', '')
+        environment_id = request.data.get('environment_id')
+        request_ids = request.data.get('request_ids', []) or []
+
+        if not project_id or not name:
+            return Response(
+                {'error': '项目与套件名称必填'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not request_ids:
+            return Response(
+                {'error': '请选择要加入套件的接口'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        project = ApiProject.objects.filter(
+            id=project_id, owner=request.user,
+        ).first() or ApiProject.objects.filter(
+            id=project_id, members=request.user,
+        ).first()
+        if not project:
+            return Response(
+                {'error': '项目不存在或无权访问'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        environment = None
+        if environment_id:
+            environment = Environment.objects.filter(
+                id=environment_id, project=project,
+            ).first()
+            if not environment:
+                return Response(
+                    {'error': '所选环境不属于该项目'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # 只保留该项目下的请求，按传入顺序去重（传重复 id 会触发 unique_together 冲突）
+        valid_request_set = set(ApiRequest.objects.filter(
+            id__in=request_ids, collection__project=project
+        ).values_list('id', flat=True))
+        ordered_ids = []
+        seen = set()
+        for rid in request_ids:
+            if rid in valid_request_set and rid not in seen:
+                seen.add(rid)
+                ordered_ids.append(rid)
+
+        with transaction.atomic():
+            suite = TestSuite.objects.create(
+                name=name,
+                description=description,
+                project=project,
+                environment=environment,
+                created_by=request.user,
+            )
+            for order, rid in enumerate(ordered_ids):
+                TestSuiteRequest.objects.create(
+                    test_suite=suite,
+                    request_id=rid,
+                    order=order,
+                    enabled=True,
+                    assertions=[],
+                )
+            log_operation(
+                operation_type='create', resource_type='suite',
+                resource_id=suite.id, resource_name=suite.name,
+                user=request.user,
+            )
+
+        return Response({
+            'id': suite.id,
+            'name': suite.name,
+            'added_count': len(ordered_ids),
+        }, status=status.HTTP_201_CREATED)
+
     def _replace_variables(self, text, variables):
         """替换文本中的变量"""
         if not isinstance(text, str):
