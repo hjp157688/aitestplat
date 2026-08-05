@@ -536,6 +536,27 @@ class Requirement(models.Model):
     synced_at = models.DateTimeField(
         null=True, blank=True, verbose_name='同步时间'
     )
+
+    # AI 分析来源独有（吸收自 BusinessRequirement）
+    requirement_id = models.CharField(
+        max_length=50, blank=True, default='', verbose_name='需求编号(AI生成)'
+    )
+    requirement_level = models.CharField(
+        max_length=10, blank=True, default='', verbose_name='需求级别'
+    )
+    acceptance_criteria = models.TextField(blank=True, default='', verbose_name='验收标准')
+    analysis = models.ForeignKey(
+        'RequirementAnalysis', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='unified_requirements', verbose_name='关联文档分析'
+    )
+    module_name = models.CharField(
+        max_length=100, blank=True, default='', verbose_name='模块名称(AI来源文本)'
+    )
+    parent_requirement = models.ForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True,
+        verbose_name='父级需求'
+    )
+
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True,
         related_name='created_requirements', verbose_name='创建者'
