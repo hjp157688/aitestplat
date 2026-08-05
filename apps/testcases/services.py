@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import uuid
 from dataclasses import dataclass
@@ -138,7 +139,6 @@ class TestCaseExcelImportService:
         '标题*': 'title',
         '前置条件': 'preconditions',
         '操作步骤*': 'steps',
-        '预期结果*': 'expected_result',
         '优先级': 'priority',
         '测试类型': 'test_type',
         '关联版本': 'versions',
@@ -147,7 +147,6 @@ class TestCaseExcelImportService:
         'title',
         'preconditions',
         'steps',
-        'expected_result',
         'priority',
         'test_type',
         'versions',
@@ -200,13 +199,13 @@ class TestCaseExcelImportService:
             version_names = cls._split_csv(row_data.get('versions'))
 
             with transaction.atomic():
+                steps_json = cls._parse_steps_cell(row_data['steps'])
                 testcase = TestCase.objects.create(
                     project=record.project,
                     title=row_data['title'],
                     description='',
                     preconditions=row_data.get('preconditions', ''),
-                    steps=row_data['steps'],
-                    expected_result=row_data['expected_result'],
+                    steps=json.dumps(steps_json, ensure_ascii=False),
                     priority=cls.PRIORITY_MAP.get(row_data.get('priority', '').lower(), 'medium'),
                     status='draft',
                     test_type=cls.TEST_TYPE_MAP.get(row_data.get('test_type', '').lower(), 'functional'),
@@ -267,8 +266,6 @@ class TestCaseExcelImportService:
             errors.append('标题不能为空')
         if not row_data.get('steps'):
             errors.append('操作步骤不能为空')
-        if not row_data.get('expected_result'):
-            errors.append('预期结果不能为空')
 
         priority = row_data.get('priority', '')
         if priority and priority.lower() not in cls.PRIORITY_MAP and priority not in cls.PRIORITY_MAP:
@@ -290,6 +287,23 @@ class TestCaseExcelImportService:
         if not username:
             return None
         return User.objects.filter(username=username).first()
+
+    @staticmethod
+    def _parse_steps_cell(cell_value: str) -> List[dict]:
+        """把Excel单元格文本解析为[{desc, expect}]"""
+        if not cell_value:
+            return []
+        steps = []
+        for line in str(cell_value).split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            m = re.match(r'^\d+\.\s*(.*?)\s*\|\s*预期:\s*(.*)$', line)
+            if m:
+                steps.append({'desc': m.group(1).strip(), 'expect': m.group(2).strip()})
+            else:
+                steps.append({'desc': re.sub(r'^\d+[\.\)、]\s*', '', line), 'expect': ''})
+        return steps
 
     @staticmethod
     def _split_csv(text: str) -> List[str]:

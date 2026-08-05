@@ -49,7 +49,7 @@ class TestCaseListSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestCase
         fields = [
-            'id', 'title', 'description', 'preconditions', 'steps', 'expected_result',
+            'id', 'title', 'description', 'preconditions', 'steps',
             'priority', 'test_type',
             'author', 'assignee', 'project', 'versions', 'tags', 'created_at', 'updated_at'
         ]
@@ -79,15 +79,15 @@ class TestCaseCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestCase
         fields = [
-            'title', 'description', 'preconditions', 'steps', 'expected_result',
+            'title', 'description', 'preconditions', 'steps',
             'priority', 'test_type', 'tags', 'project_id', 'version_ids'
         ]
-    
+
     def create(self, validated_data):
         version_ids = validated_data.pop('version_ids', [])
         # project_id会在视图的perform_create中处理
         validated_data.pop('project_id', None)
-        
+
         testcase = super().create(validated_data)
         
         # 设置版本关联
@@ -108,7 +108,7 @@ class TestCaseUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestCase
         fields = [
-            'title', 'description', 'preconditions', 'steps', 'expected_result',
+            'title', 'description', 'preconditions', 'steps',
             'priority', 'test_type', 'tags', 'project_id', 'version_ids'
         ]
     

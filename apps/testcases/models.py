@@ -33,12 +33,19 @@ class TestCase(models.Model):
     title = models.CharField(max_length=500, verbose_name='用例标题')
     description = models.TextField(blank=True, verbose_name='用例描述')
     preconditions = models.TextField(blank=True, verbose_name='前置条件')
-    steps = models.TextField(blank=True, max_length=1000, verbose_name='操作步骤')
-    expected_result = models.TextField(verbose_name='预期结果')
+    steps = models.TextField(blank=True, verbose_name='操作步骤')
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium', verbose_name='优先级')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name='状态')
     test_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='functional', verbose_name='测试类型')
     tags = models.JSONField(default=list, verbose_name='标签')
+    requirement = models.ForeignKey(
+        'requirement_analysis.Requirement', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='testcases', verbose_name='关联需求'
+    )
+    zentao_case_id = models.IntegerField(null=True, blank=True, unique=True, verbose_name='禅道用例ID')
+    product_id = models.IntegerField(null=True, blank=True, verbose_name='禅道产品ID')
+    module_id = models.IntegerField(null=True, blank=True, verbose_name='禅道模块ID')
+    story_id = models.IntegerField(null=True, blank=True, verbose_name='禅道需求ID')
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='authored_testcases', verbose_name='作者')
     assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_testcases', verbose_name='指派人')
     created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
