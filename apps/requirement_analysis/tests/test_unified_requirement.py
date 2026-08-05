@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 """统一需求模型测试：验证 Requirement 吸收 BusinessRequirement 后的字段"""
 from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
 
-from apps.requirement_analysis.models import Requirement
+from apps.requirement_analysis.models import (
+    Requirement, RequirementDocument, RequirementAnalysis,
+    BusinessRequirement,
+)
 from apps.projects.models import Project
 from apps.users.models import User
 
@@ -44,3 +48,47 @@ class UnifiedRequirementModelTests(TestCase):
         r.save()
         self.assertEqual(r.zentao_id, 100)
         self.assertEqual(r.module_id, 2)
+
+
+class BusinessRequirementMigrationTests(TestCase):
+    """测试 BusinessRequirement -> Requirement 数据迁移"""
+
+    def setUp(self):
+        self.user = User.objects.create(username='migration_tester')
+
+    def _make_requirement_document(self):
+        """RequirementDocument 需要 file 和 uploaded_by 必填字段"""
+        fake_file = SimpleUploadedFile(
+            'test.txt', b'test content', content_type='text/plain'
+        )
+        return RequirementDocument.objects.create(
+            title='d',
+            document_type='txt',
+            file=fake_file,
+            uploaded_by=self.user,
+        )
+
+    def test_migrate_preserves_fields(self):
+        doc = self._make_requirement_document()
+        analysis = RequirementAnalysis.objects.create(
+            document=doc, analysis_report='', requirements_count=1
+        )
+        br = BusinessRequirement.objects.create(
+            analysis=analysis, requirement_id='REQ-001',
+            requirement_name='登录', requirement_type='functional',
+            module='登录模块', requirement_level='high',
+            description='描述', acceptance_criteria='能登录',
+        )
+        # 执行迁移（在测试中调用 RunPython 的正向函数）
+        from django.apps import apps as django_apps
+        from apps.requirement_analysis.migrations._0012_helpers import migrate_business_requirements
+        migrate_business_requirements(django_apps, None)
+
+        r = Requirement.objects.filter(requirement_id='REQ-001', source_type='ai_import').first()
+        self.assertIsNotNone(r)
+        self.assertEqual(r.title, '登录')
+        self.assertEqual(r.spec, '描述')
+        self.assertEqual(r.module_name, '登录模块')
+        self.assertEqual(r.requirement_level, 'high')
+        self.assertEqual(r.acceptance_criteria, '能登录')
+        self.assertEqual(r.analysis_id, analysis.id)
