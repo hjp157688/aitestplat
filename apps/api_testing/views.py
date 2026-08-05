@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.db import models
+from django.db import transaction
 from django.utils import timezone
 from django.http import HttpResponse, FileResponse, Http404, HttpResponseNotFound
 from django.views.static import serve
@@ -41,6 +42,9 @@ from .serializers import (
 )
 
 logger = logging.getLogger(__name__)
+
+# 批量生成用例单次上限
+MAX_BATCH_GENERATE = 20
 
 from .utils import execute_assertions
 from .operation_logger import log_operation
@@ -553,6 +557,11 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         request_ids = serializer.validated_data['request_ids']
+        if len(request_ids) > MAX_BATCH_GENERATE:
+            return Response(
+                {'error': f'单次最多批量生成 {MAX_BATCH_GENERATE} 个接口的用例'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         ai_config_id = serializer.validated_data.get('ai_config_id')
 
         try:
