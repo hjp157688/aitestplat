@@ -199,3 +199,53 @@ class GeneratedTestCaseRepointTests(TestCase):
         from apps.requirement_analysis.models import GeneratedTestCase, Requirement
         fk = GeneratedTestCase._meta.get_field('requirement')
         self.assertEqual(fk.related_model.__name__, 'Requirement')
+
+    def test_reverse_repoint_restores_br_id(self):
+        """反向迁移 unpoint_gtc_requirement 应把 GTC.requirement_id 还原为原 BR.id"""
+        from apps.requirement_analysis.models import (
+            GeneratedTestCase, BusinessRequirement, RequirementDocument,
+            RequirementAnalysis,
+        )
+        from apps.requirement_analysis.migrations._0013_helpers import (
+            repoint_gtc_requirement, unpoint_gtc_requirement,
+        )
+        from django.db import connection
+
+        proj = self._make_project()
+        user = User.objects.create(username='reverse_tester')
+        doc = self._make_requirement_document(user)
+        analysis = RequirementAnalysis.objects.create(
+            document=doc, analysis_report='', requirements_count=1
+        )
+        br = BusinessRequirement.objects.create(
+            analysis=analysis, requirement_id='REQ-001',
+            requirement_name='登录', requirement_type='functional',
+            module='登录模块', requirement_level='high',
+            description='描述', acceptance_criteria='能登录',
+        )
+        with connection.cursor() as c:
+            c.execute('SET FOREIGN_KEY_CHECKS=0')
+        try:
+            gtc = GeneratedTestCase.objects.create(
+                requirement_id=br.id, case_id='TC-1', title='t',
+                priority='P1', precondition='', test_steps='', expected_result='',
+                generated_by_ai='AI-A',
+            )
+        finally:
+            with connection.cursor() as c:
+                c.execute('SET FOREIGN_KEY_CHECKS=1')
+
+        # 1.2 迁移
+        from apps.requirement_analysis.migrations._0012_helpers import migrate_business_requirements
+        migrate_business_requirements(__import__('django.apps', fromlist=['apps']).apps, None)
+
+        # 1.3 正向重指向
+        repoint_gtc_requirement(__import__('django.apps', fromlist=['apps']).apps, None)
+        gtc.refresh_from_db()
+        req = Requirement.objects.get(requirement_id='REQ-001', source_type='ai_import')
+        self.assertEqual(gtc.requirement_id, req.id)
+
+        # 反向还原
+        unpoint_gtc_requirement(__import__('django.apps', fromlist=['apps']).apps, None)
+        gtc.refresh_from_db()
+        self.assertEqual(gtc.requirement_id, br.id)
