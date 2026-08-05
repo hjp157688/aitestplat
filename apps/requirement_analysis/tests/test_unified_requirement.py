@@ -92,6 +92,8 @@ class BusinessRequirementMigrationTests(TestCase):
         self.assertEqual(r.requirement_level, 'high')
         self.assertEqual(r.acceptance_criteria, '能登录')
         self.assertEqual(r.analysis_id, analysis.id)
+        self.assertEqual(r.category, 'functional')
+        self.assertEqual(r.source_type, 'ai_import')
 
     def test_migrate_parent_requirement(self):
         doc = self._make_requirement_document()

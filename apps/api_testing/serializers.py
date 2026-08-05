@@ -102,7 +102,6 @@ class ApiRequestSerializer(serializers.ModelSerializer):
         queryset=ApiRequest.objects.all(),
         required=False,
         allow_null=True,
-        write_only=True
     )
     parent_request_name = serializers.CharField(source='parent_request.name', read_only=True)
     test_cases_count = serializers.SerializerMethodField()
