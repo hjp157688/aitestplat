@@ -371,6 +371,14 @@ class TestCaseGenerationTask(models.Model):
         related_name='generation_tasks',
         verbose_name='关联项目'
     )
+    requirement = models.ForeignKey(
+        'Requirement',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='generation_tasks',
+        verbose_name='关联需求'
+    )
 
     # 配置参数
     writer_model_config = models.ForeignKey(

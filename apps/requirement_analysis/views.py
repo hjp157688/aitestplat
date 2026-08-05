@@ -3290,6 +3290,7 @@ class RequirementViewSet(viewsets.ModelViewSet):
                 'granularity': granularity,
                 'project': requirement.project_id,
                 'output_mode': output_mode,
+                'requirement': requirement.id,
             }
             task, error_response = _create_generation_task(
                 task_data, requirement_knowledge, request
