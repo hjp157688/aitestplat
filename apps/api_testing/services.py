@@ -492,6 +492,38 @@ class OpenAPIParser:
 _generation_tasks = {}
 
 
+def _safe_json_loads(text) -> Optional[dict]:
+    """把 LLM 输出解析为 JSON 字典；解析失败返回 None。
+
+    先剥离 ```json 代码块并用标准库解析（快速路径），失败后交给
+    json_repair 修复 LLM 常见的非法输出（截断、缺括号、多余逗号、
+    "a".repeat(1000) / NaN / 单引号 等）。返回结构必须是 dict，
+    否则视为解析失败。
+    """
+    if not isinstance(text, str) or not text.strip():
+        return None
+
+    # 取出 ```json ... ``` 代码块（json_repair 也能处理，但先清理以便走快速路径）
+    match = re.search(r'```(?:json)?\s*([\s\S]*?)```', text)
+    candidate = match.group(1) if match else text
+    candidate = candidate.strip()
+
+    try:
+        parsed = json.loads(candidate, strict=False)
+        if isinstance(parsed, dict):
+            return parsed
+    except (json.JSONDecodeError, ValueError):
+        pass
+
+    try:
+        import json_repair
+        parsed = json_repair.loads(candidate)
+        return parsed if isinstance(parsed, dict) else None
+    except Exception as e:
+        logger.warning(f"json_repair 解析失败: {e}")
+        return None
+
+
 class ApiTestCaseGenerator:
     """使用 AI 为选中的 ApiRequest 生成测试用例变体"""
 
@@ -579,16 +611,11 @@ class ApiTestCaseGenerator:
             result = response.json()
             content = result['choices'][0]['message']['content']
 
-            # 尝试解析 JSON
-            try:
-                # 提取 JSON 部分（可能包裹在 markdown 代码块中）
-                json_match = re.search(r'```(?:json)?\s*([\s\S]*?)```', content)
-                if json_match:
-                    content = json_match.group(1).strip()
-                return json.loads(content)
-            except (json.JSONDecodeError, KeyError):
-                logger.warning(f"Failed to parse AI response as JSON: {content[:200]}")
-                return {'raw_content': content, 'test_cases': {}}
+            parsed = _safe_json_loads(content)
+            if parsed is None:
+                logger.warning(f"Failed to parse AI response as JSON: {content[:300]}")
+                raise Exception('AI 返回内容无法解析为测试用例 JSON，请重试（或增大 max_tokens 后重试）')
+            return parsed
 
         except requests.exceptions.Timeout:
             raise Exception('AI 服务请求超时')
@@ -659,6 +686,10 @@ class ApiTestCaseGenerator:
             # 构建 prompt 并调用 AI
             system_prompt, user_message = ApiTestCaseGenerator.build_prompt(requests_data)
             result = ApiTestCaseGenerator._call_ai(system_prompt, user_message, config)
+
+            test_cases = result.get('test_cases') if isinstance(result, dict) else None
+            if not isinstance(test_cases, dict) or not test_cases:
+                raise Exception('AI 未返回有效的测试用例结果，请重试')
 
             _generation_tasks[task_id]['progress'] = 90
             _generation_tasks[task_id]['result'] = result

@@ -70,12 +70,16 @@ jiter==0.12.0
 jsonpatch==1.33
 jsonpath-ng==1.7.0
 jsonpointer==3.0.0
+# LLM 输出 JSON 容错解析（截断/缺引号等）
+json-repair==0.61.7
 jsonschema==4.25.0
 jsonschema-specifications==2025.4.1
 kombu==5.5.4
 # chromadb 依赖; 固定到 36.0.0 以兼容 browser-use 的 aiohttp==3.12.15 (>=36.0.1 要求 aiohttp>=3.13.5)
 kubernetes==36.0.0
-langchain-core==1.2.6
+langchain-core==1.5.3
+# 知识库语义分块（SemanticChunker）
+langchain-experimental==0.4.2
 langchain-openai==1.1.6
 langsmith==0.6.0
 lxml==6.0.0

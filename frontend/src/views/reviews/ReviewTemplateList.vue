@@ -36,14 +36,14 @@
           <div class="card-header">
             <span class="template-name">{{ template.name }}</span>
             <div class="card-actions">
-              <el-button link type="primary" @click="useTemplate(template)">{{ $t('reviewTemplate.useTemplate') }}</el-button>
-              <el-button link type="warning" @click="editTemplate(template)">{{ $t('reviewTemplate.edit') }}</el-button>
+              <el-button type="primary" link size="small" @click="useTemplate(template)">{{ $t('reviewTemplate.useTemplate') }}</el-button>
+              <el-button type="primary" link size="small" @click="editTemplate(template)">{{ $t('reviewTemplate.edit') }}</el-button>
               <el-popconfirm
                 :title="$t('reviewTemplate.deleteConfirm')"
                 @confirm="deleteTemplate(template.id)"
               >
                 <template #reference>
-                  <el-button link type="danger">{{ $t('reviewTemplate.delete') }}</el-button>
+                  <el-button type="danger" link size="small">{{ $t('reviewTemplate.delete') }}</el-button>
                 </template>
               </el-popconfirm>
             </div>

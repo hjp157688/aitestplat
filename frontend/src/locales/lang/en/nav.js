@@ -71,7 +71,6 @@ export default {
     uiEnvConfig: 'UI Environment Configuration',
     aiModeConfig: 'AI Mode Configuration',
     scheduledTaskConfig: 'Scheduled Task Configuration',
-    difyConfig: 'Dify Configuration',
     zentaoConfig: 'Zentao Configuration'
   }
 }

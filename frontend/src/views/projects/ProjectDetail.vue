@@ -38,7 +38,7 @@
               </el-table-column>
               <el-table-column :label="$t('project.actions')" width="100">
                 <template #default="{ row }">
-                  <el-button size="small" type="danger" @click="removeMember(row)">{{ $t('common.delete') }}</el-button>
+                  <el-button type="danger" link size="small" @click="removeMember(row)">{{ $t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>

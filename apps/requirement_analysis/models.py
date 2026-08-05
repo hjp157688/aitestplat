@@ -213,6 +213,7 @@ class AIModelConfig(models.Model):
         ('reviewer', '测试评审专家'),
         ('browser_use_text', 'Browser Use - 文本模式'),
         ('embedding', '嵌入模型'),
+        ('tokenizer', '分词模型'),
         ('api_testcase_generator', '接口测试用例生成'),
     ]
 
@@ -357,6 +358,17 @@ class TestCaseGenerationTask(models.Model):
         choices=OUTPUT_MODE_CHOICES,
         default='stream',
         verbose_name='输出模式'
+    )
+
+    GRANULARITY_CHOICES = [
+        ('coarse', '粗粒度'),
+        ('medium', '中粒度'),
+        ('fine', '细粒度'),
+    ]
+
+    case_type = models.TextField(blank=True, default='', verbose_name='用例类型补充指令')
+    granularity = models.CharField(
+        max_length=10, choices=GRANULARITY_CHOICES, default='medium', verbose_name='颗粒度'
     )
 
     # 流式缓冲区和状态跟踪
@@ -545,6 +557,9 @@ class KnowledgeDocument(models.Model):
     chunk_count = models.IntegerField(default=0, verbose_name='分块数量')
     entry_count = models.IntegerField(default=0, verbose_name='提取的条目数')
     error_message = models.TextField(blank=True, verbose_name='错误信息')
+    is_extracting = models.BooleanField(default=False, verbose_name='是否提取中')
+    extract_progress = models.IntegerField(default=0, verbose_name='提取进度(0-100)')
+    extract_message = models.CharField(max_length=200, blank=True, default='', verbose_name='提取状态信息')
     is_active = models.BooleanField(default=True, verbose_name='是否启用')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
@@ -1016,32 +1031,9 @@ class AIModelService:
         # 构建业务知识部分
         knowledge_section = AIModelService._build_knowledge_section(selected_knowledge)
 
-        # 构建更明确的用户提示，采用思维链(CoT)引导和细粒度拆分策略
-        user_message = (
-            f"{knowledge_section}"
-            f"请深入分析以下需求文档，并设计高覆盖率的测试用例。\n\n"
-            f"【生成指令】\n"
-            f"1. **数量原则**：请根据需求内容的实际复杂度，自动决定生成用例的数量。务必覆盖所有功能点、异常场景和边界条件，不设数量上限，应写尽写。\n"
-            f"2. **深度遍历策略**：\n"
-            f"   - 请按文档结构逐章节分析，不要遗漏末尾的功能点。\n"
-            f"   - 对每个功能点，必须设计：1个正常场景 + 2-3个异常/边界场景。\n"
-            f"3. **拒绝合并**：严禁将多个验证点合并在一条用例中。例如'验证输入框'应拆分为'输入为空'、'输入超长'、'输入特殊字符'等独立用例。\n"
-            f"4. **场景扩展库**：\n"
-            f"   - 数据完整性（必填项、默认值、数据类型）\n"
-            f"   - 业务逻辑约束（状态流转、权限控制、重复操作）\n"
-            f"   - 外部接口异常（超时、断网、返回错误）\n"
-            f"   - UI交互体验（提示文案、跳转逻辑、防误触）\n"
-            f"5. **⚠️ 输出顺序要求（必须严格执行）**：\n"
-            f"   - **必须按用例编号从小到大的顺序输出**（如：001, 002, 003...或LOGIN_001, LOGIN_002, LOGIN_003...）\n"
-            f"   - **绝对不能跳号、重复或乱序输出**\n"
-            f"   - **编号必须连续，中间不能有遗漏**\n"
-            f"   - **所有用例必须一次性完整输出，不能中断**\n"
-            rf"6. **⚠️ 特殊字符处理（关键）**：\n"
-            rf"   - **如果在表格内容（如操作步骤、预期结果）中出现管道符 '|'，请使用HTML实体 '&#124;' 代替**。\n"
-            rf"   - **绝对不要使用反斜杠转义（如 '\|'），这会导致输出混乱**。\n"
-            rf"   - 示例：应输入 'a&#124;b' 而不是 'a|b' 或 'a\|b'。\n\n"
-            f"【需求文档内容】\n{task.requirement_text}"
-        )
+        # 构建用户提示（fine 保留既有详细指令；coarse/medium 精简偏好；输出顺序/特殊字符指令不变）
+        user_message = AIModelService._build_writer_user_message(
+            task.requirement_text, knowledge_section, task.case_type, task.granularity)
 
         messages = [
             {"role": "system", "content": writer_prompt},
@@ -1092,6 +1084,67 @@ class AIModelService:
             return f"评审过程中出现错误: {str(e)}\n\n建议：测试用例结构完整，可以使用。"
 
     @staticmethod
+    def _build_preferences_block(case_type: str = '', granularity: str = 'medium') -> str:
+        """按颗粒度与用户补充指令生成【生成偏好】指令块（纯函数，可单测）"""
+        lines = []
+        g = (granularity or 'medium').lower()
+        if g == 'coarse':
+            lines.append('【颗粒度：粗】场景级拆分：优先关键功能与主路径，同类验证点可合并为一条用例，数量精简。')
+        elif g == 'fine':
+            lines.append('【颗粒度：细】逐验证点拆分：禁止将多个验证点合并进一条用例，每条只验证一个点，应写尽写。')
+        else:
+            lines.append('【颗粒度：中】正常、异常与边界场景兼顾，同类验证点可适度合并。')
+        if case_type and case_type.strip():
+            lines.append(f'【用户补充要求】{case_type.strip()}')
+        return '\n'.join(lines)
+
+    @staticmethod
+    def _build_writer_user_message(
+            requirement_text: str,
+            knowledge_section: str,
+            case_type: str = '',
+            granularity: str = 'medium') -> str:
+        """构建测试用例生成阶段的用户消息（纯函数，可单测）。
+
+        granularity=fine 时保留既有详细指令（数量原则/深度遍历/拒绝合并/场景扩展库）；
+        coarse/medium 使用精简的颗粒度偏好行。均保留输出顺序与特殊字符指令，并追加用户补充要求。
+        """
+        g = (granularity or 'medium').lower()
+        if g == 'fine':
+            instructions = (
+                f"1. **数量原则**：请根据需求内容的实际复杂度，自动决定生成用例的数量。务必覆盖所有功能点、异常场景和边界条件，不设数量上限，应写尽写。\n"
+                f"2. **深度遍历策略**：\n"
+                f"   - 请按文档结构逐章节分析，不要遗漏末尾的功能点。\n"
+                f"   - 对每个功能点，必须设计：1个正常场景 + 2-3个异常/边界场景。\n"
+                f"3. **拒绝合并**：严禁将多个验证点合并在一条用例中。例如'验证输入框'应拆分为'输入为空'、'输入超长'、'输入特殊字符'等独立用例。\n"
+                f"4. **场景扩展库**：\n"
+                f"   - 数据完整性（必填项、默认值、数据类型）\n"
+                f"   - 业务逻辑约束（状态流转、权限控制、重复操作）\n"
+                f"   - 外部接口异常（超时、断网、返回错误）\n"
+                f"   - UI交互体验（提示文案、跳转逻辑、防误触）\n"
+            )
+            if case_type and case_type.strip():
+                instructions += f"【用户补充要求】{case_type.strip()}\n"
+        else:
+            instructions = AIModelService._build_preferences_block(case_type, granularity)
+
+        return (
+            f"{knowledge_section}"
+            f"请深入分析以下需求文档，并设计高覆盖率的测试用例。\n\n"
+            f"【生成指令】\n{instructions.rstrip()}\n"
+            f"5. **⚠️ 输出顺序要求（必须严格执行）**：\n"
+            f"   - **必须按用例编号从小到大的顺序输出**（如：001, 002, 003...或LOGIN_001, LOGIN_002, LOGIN_003...）\n"
+            f"   - **绝对不能跳号、重复或乱序输出**\n"
+            f"   - **编号必须连续，中间不能有遗漏**\n"
+            f"   - **所有用例必须一次性完整输出，不能中断**\n"
+            rf"6. **⚠️ 特殊字符处理（关键）**：\n"
+            rf"   - **如果在表格内容（如操作步骤、预期结果）中出现管道符 '|'，请使用HTML实体 '&#124;' 代替**。\n"
+            rf"   - **绝对不要使用反斜杠转义（如 '\|'），这会导致输出混乱**。\n"
+            rf"   - 示例：应输入 'a&#124;b' 而不是 'a|b' 或 'a\|b'。\n\n"
+            f"【需求文档内容】\n{requirement_text}"
+        )
+
+    @staticmethod
     async def generate_test_cases_stream(
             task: TestCaseGenerationTask,
             callback=None,
@@ -1113,32 +1166,9 @@ class AIModelService:
         # 构建业务知识部分
         knowledge_section = AIModelService._build_knowledge_section(selected_knowledge)
 
-        # 构建用户提示
-        user_message = (
-            f"{knowledge_section}"
-            f"请深入分析以下需求文档，并设计高覆盖率的测试用例。\n\n"
-            f"【生成指令】\n"
-            f"1. **数量原则**：请根据需求内容的实际复杂度，自动决定生成用例的数量。务必覆盖所有功能点、异常场景和边界条件，不设数量上限，应写尽写。\n"
-            f"2. **深度遍历策略**：\n"
-            f"   - 请按文档结构逐章节分析，不要遗漏末尾的功能点。\n"
-            f"   - 对每个功能点，必须设计：1个正常场景 + 2-3个异常/边界场景。\n"
-            f"3. **拒绝合并**：严禁将多个验证点合并在一条用例中。例如'验证输入框'应拆分为'输入为空'、'输入超长'、'输入特殊字符'等独立用例。\n"
-            f"4. **场景扩展库**：\n"
-            f"   - 数据完整性（必填项、默认值、数据类型）\n"
-            f"   - 业务逻辑约束（状态流转、权限控制、重复操作）\n"
-            f"   - 外部接口异常（超时、断网、返回错误）\n"
-            f"   - UI交互体验（提示文案、跳转逻辑、防误触）\n"
-            f"5. **⚠️ 输出顺序要求（必须严格执行）**：\n"
-            f"   - **必须按用例编号从小到大的顺序输出**（如：001, 002, 003...或LOGIN_001, LOGIN_002, LOGIN_003...）\n"
-            f"   - **绝对不能跳号、重复或乱序输出**\n"
-            f"   - **编号必须连续，中间不能有遗漏**\n"
-            f"   - **所有用例必须一次性完整输出，不能中断**\n"
-            rf"6. **⚠️ 特殊字符处理（关键）**：\n"
-            rf"   - **如果在表格内容（如操作步骤、预期结果）中出现管道符 '|'，请使用HTML实体 '&#124;' 代替**。\n"
-            rf"   - **绝对不要使用反斜杠转义（如 '\|'），这会导致输出混乱**。\n"
-            rf"   - 示例：应输入 'a&#124;b' 而不是 'a|b' 或 'a\|b'。\n\n"
-            f"【需求文档内容】\n{task.requirement_text}"
-        )
+        # 构建用户提示（fine 保留既有详细指令；输出顺序/特殊字符指令不变）
+        user_message = AIModelService._build_writer_user_message(
+            task.requirement_text, knowledge_section, task.case_type, task.granularity)
 
         messages = [
             {"role": "system", "content": writer_prompt},
@@ -1262,9 +1292,12 @@ class AIModelService:
         """
         writer_prompt = task.writer_prompt_config.content
 
+        prefs = AIModelService._build_preferences_block(task.case_type, task.granularity)
+
         # 构建改进指令
         user_message = (
             f"请根据以下专家评审意见，改进和完善测试用例。\n\n"
+            f"{prefs}\n\n"
             f"【原始测试用例】\n{original_test_cases}\n\n"
             f"【评审意见】\n{review_feedback}\n\n"
             f"【改进要求】\n"

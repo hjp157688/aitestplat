@@ -950,6 +950,11 @@ export default {
     negative: '异常用例',
     boundary: '边界值用例',
     generating: '正在生成测试用例...',
+    progressPreparing: '正在准备接口数据...',
+    progressLoadingConfig: '正在加载 AI 配置...',
+    progressGenerating: 'AI 正在生成测试用例，请耐心等待...',
+    progressFinishing: '正在整理生成结果...',
+    progressWithElapsed: '{stage}（进度 {progress}% · 已用时 {elapsed} 秒）',
     completed: '生成完成',
     totalCases: '共 {count} 条测试用例',
     cases: '条用例',
@@ -961,6 +966,8 @@ export default {
     save: '保存选中用例',
     saving: '保存中...',
     error: '生成失败',
+    emptyResult: 'AI 未返回可用的测试用例，请点击"重试"或检查 AI 配置',
+    retry: '重试',
     suiteNamePlaceholder: '输入测试套件名称（可选）'
   }
 }

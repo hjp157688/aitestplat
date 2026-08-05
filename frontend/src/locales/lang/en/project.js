@@ -98,8 +98,6 @@ export default {
     appAutomationDesc: 'Android APP automation based on Airtest',
     aiIntelligentMode: 'AI Intelligent Mode',
     aiIntelligentModeDesc: 'Natural language-based intelligent test execution',
-    aiEvaluator: 'AI Evaluator',
-    aiEvaluatorDesc: 'Professional software testing Q&A based on evaluator knowledge base',
     configCenter: 'Configuration Center',
     configCenterDesc: 'System environment, AI model and notification configuration',
 

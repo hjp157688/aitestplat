@@ -6,6 +6,19 @@
         <div class="task-info">
           <span class="task-id">{{ $t('taskDetail.taskId') }}: {{ taskId }}</span>
           <span class="task-status" :class="task.status">{{ getStatusText(task.status) }}</span>
+          <span
+            v-if="task.granularity"
+            class="task-chip"
+            :title="task.granularity === 'coarse'
+              ? $t('requirementAnalysis.granularityCoarseHint')
+              : (task.granularity === 'fine'
+                ? $t('requirementAnalysis.granularityFineHint')
+                : $t('requirementAnalysis.granularityMediumHint'))">
+            {{ $t('requirementAnalysis.granularityDisplay') }}：{{ task.granularity_display || task.granularity }}
+          </span>
+          <span v-if="task.case_type" class="task-chip">
+            {{ $t('requirementAnalysis.caseTypeLabel') }}：{{ task.case_type }}
+          </span>
         </div>
       </div>
       <div class="header-actions">
@@ -1416,6 +1429,19 @@ export default {
 
 .close-btn-footer { background: var(--aitest-surface-subtle); color: #475569; border: 1.5px solid var(--aitest-border); }
 .close-btn-footer:hover { background: var(--aitest-surface-subtle); }
+
+.task-chip {
+  font-size: 0.78rem;
+  color: var(--aitest-text-2);
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
+  padding: 2px 10px;
+  border-radius: 20px;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>
 
 <style>

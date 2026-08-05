@@ -16,7 +16,6 @@ MODULE_LABELS = {
     'ui_automation': 'UI自动化测试',
     'app_automation': 'APP自动化测试',
     'ai_intelligent_mode': 'AI智能模式',
-    'assistant': 'AI评测师',
     'data_factory': '数据工厂',
     'configuration': '配置中心',
     'other': '其他',
@@ -29,7 +28,6 @@ HOME_CARD_LABELS = {
     'ui': 'UI自动化测试',
     'app': 'APP自动化测试',
     'ai-intelligent': 'AI智能模式',
-    'assistant': 'AI评测师',
     'config': '配置中心',
     'data': '数据工厂',
 }
@@ -38,7 +36,6 @@ PAGE_LABELS = {
     '/home': '首页',
     '/login': '登录页',
     '/register': '注册页',
-    '/ai-generation/assistant': 'AI评测师',
     '/ai-generation/requirement-analysis': '需求分析',
     '/api-testing/dashboard': '接口测试仪表盘',
     '/ui-automation/dashboard': 'UI自动化仪表盘',

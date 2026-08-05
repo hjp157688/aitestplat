@@ -149,8 +149,8 @@
                 <option value="">{{ $t('configuration.aiModel.selectRole') }}</option>
                 <option value="writer">{{ $t('configuration.aiModel.roles.writer') }}</option>
                 <option value="reviewer">{{ $t('configuration.aiModel.roles.reviewer') }}</option>
-                <option value="api_testcase_generator">{{ $t('configuration.aiModel.roles.apiTestCaseGenerator') }}</option>
-              </select>
+                <option value="tokenizer">{{ $t('configuration.aiModel.roles.tokenizer') }}</option>
+                <option value="api_testcase_generator">{{ $t('configuration.aiModel.roles.api_testcase_generator') }}</option>              </select>
             </div>
 
             <div class="form-group">
@@ -1063,12 +1063,16 @@ export default {
 .model-badge.deepseek { background: #EFF6FF; color: var(--aitest-primary); }
 .model-badge.qwen { background: #F5F3FF; color: #7C3AED; }
 .model-badge.siliconflow { background: #ECFEFF; color: #0891B2; }
+.model-badge.zhipu { background: #DBEAFE; color: #1D4ED8; }
 .model-badge.other { background: var(--aitest-surface-subtle); color: var(--aitest-text-2); }
 .model-badge.xiaomi { background: #FFFBEB; color: #D97706; }
 .model-badge.xiaomi_coding_plan { background: #FFF7ED; color: #EA580C; }
 
 .role-badge.writer { background: #F0FDF4; color: #059669; }
 .role-badge.reviewer { background: #FFFBEB; color: #D97706; }
+.role-badge.tokenizer { background: #F0F9FF; color: #0284C7; }
+.role-badge.browser_use_text { background: #F8FAFC; color: #64748B; }
+.role-badge.embedding { background: #FCE7F3; color: #DB2777; }
 .role-badge.api_testcase_generator { background: #EFF6FF; color: var(--aitest-primary); }
 
 .status-badge { background: #FEF2F2; color: #DC2626; }

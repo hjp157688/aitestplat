@@ -514,35 +514,51 @@ class RequirementAnalysisService:
         return review_result
 
 
-import httpx
+import requests
+import warnings
+
 from django.utils import timezone
+
+# 禅道常部署于内网且使用自签名证书，屏蔽 urllib3 的 InsecureRequestWarning 噪音
+warnings.filterwarnings(
+    'ignore',
+    message='.*Unverified HTTPS request.*',
+    category=requests.packages.urllib3.exceptions.InsecureRequestWarning,
+)
 
 
 class ZentaoService:
     """禅道 API 集成服务"""
 
     @staticmethod
-    async def _get_token(config) -> str:
+    def _get_token(config) -> str:
         """获取禅道API Token"""
         url = config.zentao_url.rstrip('/') + '/api.php/v1/tokens'
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(
-                    url,
-                    json={'account': config.zentao_account, 'password': config.zentao_password},
-                )
-                if resp.status_code in (200, 201):
-                    data = resp.json()
-                    token = data.get('token', '')
-                    if not token:
-                        raise Exception(f"返回数据中无token字段，响应: {resp.text[:200]}")
-                    return token
-                else:
-                    raise Exception(f"HTTP {resp.status_code}: {resp.text[:500]}")
-        except httpx.TimeoutException:
+            resp = requests.post(
+                url,
+                json={'account': config.zentao_account, 'password': config.zentao_password},
+                headers={'Accept': 'application/json'},
+                verify=False,
+                timeout=10,
+            )
+            if resp.status_code in (200, 201):
+                data = resp.json()
+                token = data.get('token', '')
+                if not token:
+                    raise Exception(f"返回数据中无token字段，响应: {resp.text[:200]}")
+                return token
+            else:
+                raise Exception(f"HTTP {resp.status_code}: {resp.text[:500]}")
+        except requests.exceptions.SSLError:
+            raise Exception(
+                f"HTTPS 连接被中断 ({url})，可能是 VPN/代理/防火墙拦截了请求；"
+                f"请关闭 VPN 或检查网络环境后重试"
+            )
+        except requests.Timeout:
             raise Exception(f"连接禅道超时 ({url})")
-        except httpx.ConnectError:
+        except requests.ConnectionError:
             raise Exception(f"无法连接到禅道服务器 ({config.zentao_url})，请检查地址是否正确")
         except Exception as e:
             if 'token' not in str(e).lower():
@@ -550,26 +566,30 @@ class ZentaoService:
             raise
 
     @staticmethod
-    async def _call_api(config, endpoint: str, method: str = 'GET') -> dict:
+    def _call_api(config, endpoint: str, method: str = 'GET') -> dict:
         """调用禅道API"""
-        token = await ZentaoService._get_token(config)
+        token = ZentaoService._get_token(config)
         url = config.zentao_url.rstrip('/') + endpoint
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                if method == 'GET':
-                    resp = await client.get(url, headers={'Token': token})
-                else:
-                    resp = await client.post(url, headers={'Token': token})
+            if method == 'GET':
+                resp = requests.get(url, headers={'Token': token}, verify=False, timeout=30)
+            else:
+                resp = requests.post(url, headers={'Token': token}, verify=False, timeout=30)
 
-                if resp.status_code in (200, 201):
-                    data = resp.json()
-                    if isinstance(data, dict) and data.get('error'):
-                        raise Exception(f"禅道API返回错误: {data.get('error')}")
-                    return data
-                else:
-                    raise Exception(f"HTTP {resp.status_code}: {resp.text[:500]}")
-        except httpx.TimeoutException:
+            if resp.status_code in (200, 201):
+                data = resp.json()
+                if isinstance(data, dict) and data.get('error'):
+                    raise Exception(f"禅道API返回错误: {data.get('error')}")
+                return data
+            else:
+                raise Exception(f"HTTP {resp.status_code}: {resp.text[:500]}")
+        except requests.exceptions.SSLError:
+            raise Exception(
+                f"HTTPS 连接被中断 ({endpoint})，可能是 VPN/代理/防火墙拦截了请求；"
+                f"请关闭 VPN 或检查网络环境后重试"
+            )
+        except requests.Timeout:
             raise Exception(f"调用禅道API超时 ({endpoint})")
         except Exception as e:
             if 'HTTP' in str(e) or '禅道' in str(e):
@@ -577,43 +597,43 @@ class ZentaoService:
             raise Exception(f"调用禅道API异常 ({endpoint}): {str(e)}")
 
     @staticmethod
-    async def get_products(config) -> list:
+    def get_products(config) -> list:
         """获取禅道产品列表"""
-        data = await ZentaoService._call_api(config, '/api.php/v1/products?page=1&limit=100000')
+        data = ZentaoService._call_api(config, '/api.php/v1/products?page=1&limit=100000')
         return data.get('products', [])
 
     @staticmethod
-    async def get_projects(config) -> list:
+    def get_projects(config) -> list:
         """获取禅道项目列表"""
-        data = await ZentaoService._call_api(config, '/api.php/v1/projects?page=1&limit=100000')
+        data = ZentaoService._call_api(config, '/api.php/v1/projects?page=1&limit=100000')
         return data.get('projects', [])
 
     @staticmethod
-    async def get_product_stories(config, product_id: int) -> list:
+    def get_product_stories(config, product_id: int) -> list:
         """获取产品下的需求列表"""
-        data = await ZentaoService._call_api(
+        data = ZentaoService._call_api(
             config, f'/api.php/v1/products/{product_id}/stories?page=1&limit=10000'
         )
         return data.get('stories', [])
 
     @staticmethod
-    async def get_project_stories(config, project_id: int) -> list:
+    def get_project_stories(config, project_id: int) -> list:
         """获取项目下的需求列表"""
-        data = await ZentaoService._call_api(
+        data = ZentaoService._call_api(
             config, f'/api.php/v1/projects/{project_id}/stories?page=1&limit=10000'
         )
         return data.get('stories', [])
 
     @staticmethod
-    async def get_story_detail(config, story_id: int) -> dict:
+    def get_story_detail(config, story_id: int) -> dict:
         """获取单个需求的完整详情"""
-        return await ZentaoService._call_api(config, f'/api.php/v1/stories/{story_id}')
+        return ZentaoService._call_api(config, f'/api.php/v1/stories/{story_id}')
 
     @staticmethod
-    async def test_connection(config) -> dict:
+    def test_connection(config) -> dict:
         """测试禅道连接"""
         try:
-            token = await ZentaoService._get_token(config)
+            token = ZentaoService._get_token(config)
             return {'success': True, 'token': token[:8] + '...', 'message': '连接成功'}
         except Exception as e:
             return {'success': False, 'message': str(e)}

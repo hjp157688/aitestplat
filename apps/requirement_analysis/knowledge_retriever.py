@@ -67,19 +67,16 @@ class KnowledgeRetriever:
         """
         logger.info(f"开始检索: query='{query[:50]}...', project_id={project_id}, top_k={top_k}")
 
-        # 1. 查询向量化
+        # 1. 查询向量化（async 安全：视图在事件循环内调用，不能用同步 embed()）
         try:
-            query_embedding = self.embedding_service.embed_single(query)
+            query_embedding = await self.embedding_service.embed_single_async(query)
         except Exception as e:
             logger.error(f"查询向量化失败: {e}")
             return []
 
         # 2. ChromaDB 统一搜索（同时召回 chunk 和 entry）
-        raw_results = self.vector_store.search(
-            project_id=project_id,
-            query_embedding=query_embedding,
-            top_k=top_k * 3,  # 多召回一些，Rerank 后再截断
-        )
+        # 项目上下文合并检索：全局知识（kb_global）对所有项目生效，与项目集合一起召回
+        raw_results = self._search_all(project_id, query_embedding, top_k)
 
         if not raw_results or not raw_results.get("ids") or not raw_results["ids"][0]:
             logger.info("检索无结果")
@@ -99,6 +96,49 @@ class KnowledgeRetriever:
 
         # 5. 返回 Top-K
         return merged[:top_k]
+
+    def _search_all(
+        self,
+        project_id: Optional[int],
+        query_embedding: List[float],
+        top_k: int,
+    ) -> Dict[str, Any]:
+        """
+        从相关 collection 召回并合并原始结果
+
+        - project_id 为空：只搜全局知识（kb_global）
+        - project_id 有值：同时搜全局（kb_global）与项目（kb_project_{id}），
+          保证全局知识对所有项目生效
+
+        Returns:
+            合并后的 ChromaDB 原始查询结果（与单集合 query 结构一致）
+        """
+        merged = {"ids": [[]], "documents": [[]], "metadatas": [[]], "distances": [[]]}
+
+        # 全局知识
+        self._merge_raw_result(merged, self.vector_store.search(
+            project_id=None,
+            query_embedding=query_embedding,
+            top_k=top_k * 3,  # 多召回一些，Rerank 后再截断
+        ))
+
+        # 项目知识
+        if project_id:
+            self._merge_raw_result(merged, self.vector_store.search(
+                project_id=project_id,
+                query_embedding=query_embedding,
+                top_k=top_k * 3,
+            ))
+
+        return merged
+
+    @staticmethod
+    def _merge_raw_result(target: Dict[str, Any], source: Dict[str, Any]) -> Dict[str, Any]:
+        """将一次单集合搜索结果追加到合并结果中（逐位拼接并行数组）"""
+        for key in ("ids", "documents", "metadatas", "distances"):
+            source_items = (source or {}).get(key, [[]])[0] or []
+            target[key][0].extend(source_items)
+        return target
 
     def _parse_and_deduplicate(self, raw_results: Dict) -> List[Dict[str, Any]]:
         """解析 ChromaDB 结果并去重"""

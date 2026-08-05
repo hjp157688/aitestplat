@@ -48,11 +48,12 @@
           </el-table-column>
           <el-table-column :label="$t('project.actions')" width="180" fixed="right">
             <template #default="{ row }">
-              <el-button size="small" @click="showRecordDetail(row)">{{ $t('common.view') }}</el-button>
+              <el-button type="primary" link size="small" @click="showRecordDetail(row)">{{ $t('common.view') }}</el-button>
               <el-button
                 v-if="row.failed_count > 0"
+                type="primary"
+                link
                 size="small"
-                type="danger"
                 @click="downloadFailureReport(row)"
               >
                 {{ $t('testcase.downloadFailureReport') }}

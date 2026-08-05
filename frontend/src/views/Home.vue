@@ -129,14 +129,6 @@
           <h3>{{ $t('home.aiIntelligentMode') }}</h3>
           <p>{{ $t('home.aiIntelligentModeDesc') }}</p>
         </div>
-        <!-- AI评测师 -->
-        <div class="nav-card" @click="handleNavigate('assistant')" role="button" tabindex="0">
-          <div class="card-icon assistant-icon">
-            <el-icon><ChatDotRound /></el-icon>
-          </div>
-          <h3>{{ $t('home.aiEvaluator') }}</h3>
-          <p>{{ $t('home.aiEvaluatorDesc') }}</p>
-        </div>
         <!-- 配置中心 -->
         <div class="nav-card" @click="handleNavigate('config')" role="button" tabindex="0">
           <div class="card-icon config-icon">
@@ -180,7 +172,7 @@ import { useUserStore } from '@/stores/user'
 import { useAppStore } from '@/stores/app'
 import { track } from '@/utils/tracker'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { MagicStick, Link, Monitor, DataLine, Cpu, Setting, ChatDotRound, UserFilled, ArrowDown, Cellphone, Tickets } from '@element-plus/icons-vue'
+import { MagicStick, Link, Monitor, DataLine, Cpu, Setting, UserFilled, ArrowDown, Cellphone, Tickets } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -270,7 +262,6 @@ const handleNavigate = (type) => {
     'defects': '/defects/dashboard',
     'app': '/app-automation/dashboard',
     'ai-intelligent': '/ai-intelligent-mode/testing',
-    'assistant': '/ai-generation/assistant',
     'config': '/configuration/ai-model',
     'data': '/data-factory'
   }
@@ -531,11 +522,6 @@ const handleNavigate = (type) => {
   &.config-icon {
     background: #e6fffb;
     color: #13c2c2;
-  }
-
-  &.assistant-icon {
-    background: #fff7e6;
-    color: #fa8c16;
   }
 }
 

@@ -13,7 +13,6 @@ import apiTestingModule from './api-testing.js'
 import uiAutomationModule from './ui-automation.js'
 import appAutomationModule from './app-automation.js'
 import configurationModule from './configuration.js'
-import assistantModule from './assistant.js'
 import dataFactoryModule from './data-factory.js'
 import notificationModule from './notification.js'
 
@@ -66,9 +65,6 @@ export default {
 
   // Configuration Center Module
   configuration: configurationModule,
-
-  // AI Assistant Module
-  assistant: assistantModule,
 
   // Data Factory Module
   dataFactory: dataFactoryModule,

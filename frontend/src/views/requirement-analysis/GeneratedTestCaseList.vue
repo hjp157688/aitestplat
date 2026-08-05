@@ -82,6 +82,7 @@
           <div class="header-cell task-id-cell">{{ $t('generatedTestCases.taskId') }}</div>
           <div class="header-cell requirement-name-cell">{{ $t('generatedTestCases.requirement') }}</div>
           <div class="header-cell status-cell">{{ $t('generatedTestCases.status') }}</div>
+          <div class="header-cell option-cell">{{ $t('generatedTestCases.genOptionsLabel') }}</div>
           <div class="header-cell count-cell">{{ $t('generatedTestCases.caseCount') }}</div>
           <div class="header-cell time-cell">{{ $t('generatedTestCases.generationTime') }}</div>
           <div class="header-cell action-cell">{{ $t('generatedTestCases.actions') }}</div>
@@ -108,6 +109,15 @@
             <div class="body-cell status-cell">
               <span class="status-tag" :class="task.status">
                 {{ getStatusText(task.status) }}
+              </span>
+            </div>
+            <div class="body-cell option-cell">
+              <span class="option-chip">
+                <template v-if="task.granularity">
+                  {{ $t('generatedTestCases.genGranularity') }}：{{ task.granularity_display || task.granularity }}
+                </template>
+                <template v-if="task.case_type"><span class="option-type">{{ task.case_type }}</span></template>
+                <template v-if="!task.granularity && !task.case_type">{{ $t('generatedTestCases.genOptionsEmpty') }}</template>
               </span>
             </div>
             <div class="body-cell count-cell">
@@ -1197,7 +1207,7 @@ export default {
 
 .table-header {
   display: grid;
-  grid-template-columns: 50px 60px 180px 320px 100px 100px 180px 260px;
+  grid-template-columns: 50px 60px 180px 320px 100px 150px 100px 180px 260px;
   background: #F8FAFC;
   font-weight: 600;
   color: var(--aitest-text-2);
@@ -1205,7 +1215,7 @@ export default {
 
 .table-body .table-row {
   display: grid;
-  grid-template-columns: 50px 60px 180px 320px 100px 100px 180px 260px;
+  grid-template-columns: 50px 60px 180px 320px 100px 150px 100px 180px 260px;
   border-bottom: 1px solid var(--aitest-surface-subtle);
   transition: background 0.15s;
 }
@@ -1655,5 +1665,32 @@ export default {
   .pagination-section { flex-direction: column; gap: 15px; align-items: flex-start; }
   .pagination-controls { flex-direction: column; gap: 15px; align-items: flex-start; width: 100%; }
   .pagination-buttons { justify-content: center; width: 100%; }
+}
+
+.option-cell {
+  justify-content: center;
+  width: 150px;
+  flex-shrink: 0;
+}
+
+.option-chip {
+  font-size: 0.78rem;
+  color: var(--aitest-text-2);
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
+  border-radius: 20px;
+  padding: 2px 10px;
+  max-width: 138px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.option-type {
+  color: var(--aitest-text-3);
+  font-family: var(--aitest-font-mono);
+  font-size: 0.72rem;
 }
 </style>

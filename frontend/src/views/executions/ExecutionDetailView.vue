@@ -138,8 +138,9 @@
             <template #default="scope">
               <div class="action-buttons">
                 <el-button
-                  size="small"
                   type="primary"
+                  link
+                  size="small"
                   :icon="Check"
                   :loading="savingId === scope.row.id"
                   :disabled="!isRowDirty(scope.row)"
@@ -147,6 +148,8 @@
                   {{ $t('common.save') }}
                 </el-button>
                 <el-button
+                  type="primary"
+                  link
                   size="small"
                   :icon="Clock"
                   @click="viewCaseHistory(scope.row)">

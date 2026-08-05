@@ -23,7 +23,7 @@ class PassThroughRenderer(BaseRenderer):
         return data
 
 
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -448,6 +448,13 @@ class GeneratedTestCasePagination(PageNumberPagination):
 
 class TestCaseGenerationTaskPagination(PageNumberPagination):
     """测试用例生成任务分页器"""
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class KnowledgePagination(PageNumberPagination):
+    """业务知识库分页器（文档/条目），支持前端 page_size 参数"""
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
@@ -906,6 +913,73 @@ def analyze_text(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+def _test_ai_model_connection(config):
+    """
+    按角色测试模型连接
+
+    - tokenizer / embedding 角色：调用 /embeddings 接口（分词/向量模型通常不支持 chat）
+    - 其他角色：调用 /chat/completions 接口
+    """
+    def test_api_connection():
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                if getattr(config, 'role', '') in ('tokenizer', 'embedding'):
+                    embeddings = loop.run_until_complete(
+                        asyncio.wait_for(
+                            AIModelService.generate_embeddings(config, ['连接测试']),
+                            timeout=60.0
+                        )
+                    )
+                    dim = len(embeddings[0]) if embeddings and embeddings[0] else 0
+                    logger.info(f"Embedding 连接测试成功: URL={config.base_url}, Model={config.model_name}, 维度={dim}")
+                    return {
+                        'success': True,
+                        'message': '连接测试成功',
+                        'response': f'向量维度: {dim}',
+                    }
+                else:
+                    test_messages = [
+                        {"role": "system", "content": "你是一个AI助手"},
+                        {"role": "user", "content": "请回复'连接成功'"}
+                    ]
+                    result = loop.run_until_complete(
+                        asyncio.wait_for(
+                            AIModelService.call_openai_compatible_api(config, test_messages),
+                            timeout=60.0
+                        )
+                    )
+                    return {
+                        'success': True,
+                        'message': '连接测试成功',
+                        'response': result.get('choices', [{}])[0].get('message', {}).get('content', '')
+                    }
+            except asyncio.TimeoutError:
+                logger.error(f"AI连接测试超时 (60秒), URL: {config.base_url}, Model: {config.model_name}")
+                return {
+                    'success': False,
+                    'message': '连接测试超时: 请检查网络连接或API地址是否正确'
+                }
+            finally:
+                try:
+                    loop.run_until_complete(loop.shutdown_asyncgens())
+                except Exception:
+                    pass
+                finally:
+                    loop.close()
+        except Exception as e:
+            logger.error(f"AI连接测试异常: {repr(e)}, URL: {config.base_url}, Model: {config.model_name}")
+            import traceback
+            logger.error(f"详细错误堆栈:\n{traceback.format_exc()}")
+            return {
+                'success': False,
+                'message': f'连接测试失败: {str(e)}'
+            }
+
+    return test_api_connection()
+
+
 class AIModelConfigViewSet(viewsets.ModelViewSet):
     """AI模型配置视图集"""
     queryset = AIModelConfig.objects.all()
@@ -1052,48 +1126,9 @@ class AIModelConfigViewSet(viewsets.ModelViewSet):
             logger.info(f"模型名称: {test_config.model_name}")
             logger.info(f"API URL: {test_config.base_url}")
 
-            test_messages = [
-                {"role": "system", "content": "你是一个AI助手"},
-                {"role": "user", "content": "请回复'连接成功'"}
-            ]
+            # 按角色测试连接：分词/嵌入模型走 /embeddings，其余走 /chat/completions
+            result = _test_ai_model_connection(test_config)
 
-            def test_api_connection():
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-
-                    try:
-                        result = loop.run_until_complete(
-                            asyncio.wait_for(
-                                AIModelService.call_openai_compatible_api(test_config, test_messages),
-                                timeout=60.0
-                            )
-                        )
-                        return {
-                            'success': True,
-                            'message': '连接测试成功',
-                            'response': result.get('choices', [{}])[0].get('message', {}).get('content', '')
-                        }
-                    except asyncio.TimeoutError:
-                        return {
-                            'success': False,
-                            'message': '连接测试超时: 请检查网络连接或API地址是否正确'
-                        }
-                    finally:
-                        try:
-                            loop.run_until_complete(loop.shutdown_asyncgens())
-                        except Exception:
-                            pass
-                        finally:
-                            loop.close()
-                except Exception as e:
-                    logger.error(f"未保存配置连接测试异常: {repr(e)}")
-                    return {
-                        'success': False,
-                        'message': f'连接测试失败: {str(e)}'
-                    }
-
-            result = test_api_connection()
             return Response(
                 result,
                 status=status.HTTP_200_OK if result['success'] else status.HTTP_400_BAD_REQUEST
@@ -1118,58 +1153,8 @@ class AIModelConfigViewSet(viewsets.ModelViewSet):
             logger.info(
                 f"API Key前缀: {config.api_key[:10]}..." if len(config.api_key) > 10 else f"API Key: {config.api_key}")
 
-            # 准备测试消息
-            test_messages = [
-                {"role": "system", "content": "你是一个AI助手"},
-                {"role": "user", "content": "请回复'连接成功'"}
-            ]
-
-            # 异步测试连接 - 统一使用OpenAI兼容API
-            def test_api_connection():
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-
-                    try:
-                        logger.info("开始调用API...")
-                        # 设置60秒超时，统一使用OpenAI兼容API
-                        result = loop.run_until_complete(
-                            asyncio.wait_for(
-                                AIModelService.call_openai_compatible_api(config, test_messages),
-                                timeout=60.0
-                            )
-                        )
-
-                        logger.info(f"API调用成功: {result}")
-                        return {
-                            'success': True,
-                            'message': '连接测试成功',
-                            'response': result.get('choices', [{}])[0].get('message', {}).get('content', '')
-                        }
-                    except asyncio.TimeoutError:
-                        logger.error(f"API连接测试超时 (60秒), URL: {config.base_url}, Model: {config.model_name}")
-                        return {
-                            'success': False,
-                            'message': '连接测试超时: 请检查网络连接或API地址是否正确'
-                        }
-                    finally:
-                        try:
-                            loop.run_until_complete(loop.shutdown_asyncgens())
-                        except Exception:
-                            pass
-                        finally:
-                            loop.close()
-
-                except Exception as e:
-                    logger.error(f"API连接测试异常: {repr(e)}, URL: {config.base_url}, Model: {config.model_name}")
-                    import traceback
-                    logger.error(f"详细错误堆栈:\n{traceback.format_exc()}")
-                    return {
-                        'success': False,
-                        'message': f'连接测试失败: {str(e)}'
-                    }
-
-            result = test_api_connection()
+            # 按角色测试连接：分词/嵌入模型走 /embeddings，其余走 /chat/completions
+            result = _test_ai_model_connection(config)
 
             if result['success']:
                 return Response(result, status=status.HTTP_200_OK)
@@ -1527,6 +1512,9 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                 'writer_prompt_config': writer_prompt.id if writer_prompt else None,
                 'reviewer_prompt_config': reviewer_prompt.id if reviewer_prompt else None,
             }
+
+            task_data['case_type'] = validated_data.get('case_type', '')
+            task_data['granularity'] = validated_data.get('granularity', 'medium')
 
             # 如果请求中包含项目ID，添加到任务数据中
             if 'project' in validated_data and validated_data['project']:
@@ -3367,10 +3355,7 @@ class ZentaoConfigViewSet(viewsets.ModelViewSet):
         """测试禅道连接"""
         config = self.get_object()
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            result = loop.run_until_complete(ZentaoService.test_connection(config))
-            loop.close()
+            result = ZentaoService.test_connection(config)
             if result['success']:
                 return Response(result, status=status.HTTP_200_OK)
             else:
@@ -3521,10 +3506,7 @@ def zentao_products(request):
                 {'error': '请先在配置中心配置禅道连接信息'}, status=400
             )
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            products = loop.run_until_complete(ZentaoService.get_products(config))
-            loop.close()
+            products = ZentaoService.get_products(config)
             return JsonResponse({'products': products})
         except Exception as e:
             return JsonResponse({'error': f'获取产品列表失败: {str(e)}'}, status=400)
@@ -3541,10 +3523,7 @@ def zentao_projects(request):
                 {'error': '请先在配置中心配置禅道连接信息'}, status=400
             )
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            projects = loop.run_until_complete(ZentaoService.get_projects(config))
-            loop.close()
+            projects = ZentaoService.get_projects(config)
             return JsonResponse({'projects': projects})
         except Exception as e:
             return JsonResponse({'error': f'获取项目列表失败: {str(e)}'}, status=400)
@@ -3561,12 +3540,7 @@ def zentao_product_stories(request, product_id):
                 {'error': '请先在配置中心配置禅道连接信息'}, status=400
             )
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            stories = loop.run_until_complete(
-                ZentaoService.get_product_stories(config, product_id)
-            )
-            loop.close()
+            stories = ZentaoService.get_product_stories(config, product_id)
             return JsonResponse({'stories': stories})
         except Exception as e:
             return JsonResponse({'error': f'获取需求列表失败: {str(e)}'}, status=400)
@@ -3583,12 +3557,7 @@ def zentao_project_stories(request, project_id):
                 {'error': '请先在配置中心配置禅道连接信息'}, status=400
             )
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            stories = loop.run_until_complete(
-                ZentaoService.get_project_stories(config, project_id)
-            )
-            loop.close()
+            stories = ZentaoService.get_project_stories(config, project_id)
             return JsonResponse({'stories': stories})
         except Exception as e:
             return JsonResponse({'error': f'获取需求列表失败: {str(e)}'}, status=400)
@@ -3606,10 +3575,7 @@ def zentao_status(request):
                 'message': '未配置禅道连接信息'
             })
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            result = loop.run_until_complete(ZentaoService.test_connection(config))
-            loop.close()
+            result = ZentaoService.test_connection(config)
             return JsonResponse({
                 'configured': True,
                 'message': '已配置',
@@ -3651,12 +3617,7 @@ def zentao_sync(request):
 
         for story_id in story_ids:
             try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                story = loop.run_until_complete(
-                    ZentaoService.get_story_detail(config, story_id)
-                )
-                loop.close()
+                story = ZentaoService.get_story_detail(config, story_id)
             except Exception as e:
                 logger.warning(f"获取禅道需求 {story_id} 详情失败: {e}")
                 continue
@@ -3732,7 +3693,8 @@ class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
     """知识文档视图集"""
     queryset = KnowledgeDocument.objects.all()
     serializer_class = KnowledgeDocumentSerializer
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    pagination_class = KnowledgePagination
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -3756,6 +3718,119 @@ class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(project_id=project_id)
 
         return queryset.order_by('-created_at')
+
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """知识库概览统计（文档/条目总量）"""
+        total_documents = KnowledgeDocument.objects.count()
+        ready_documents = KnowledgeDocument.objects.filter(status='ready').count()
+        total_entries = KnowledgeEntry.objects.count()
+        llm_entries = KnowledgeEntry.objects.filter(source='llm_extract').count()
+        return Response({
+            'total_documents': total_documents,
+            'ready_documents': ready_documents,
+            'total_entries': total_entries,
+            'llm_entries': llm_entries,
+        })
+
+    @action(detail=False, methods=['post'])
+    def batch_delete(self, request):
+        """批量删除知识文档"""
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response(
+                {'error': '请选择要删除的知识文档'}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        from .vector_store import vector_store
+        deleted = 0
+        for doc in KnowledgeDocument.objects.filter(id__in=ids):
+            try:
+                vector_store.remove_by_document(doc.project_id, doc.id)
+            except Exception as e:
+                logger.warning(f"清理 ChromaDB 文档 {doc.id} 失败: {e}")
+            doc.delete()
+            deleted += 1
+
+        return Response({
+            'success': True,
+            'message': f'已删除 {deleted} 个知识文档',
+            'deleted': deleted,
+        })
+
+    @action(detail=False, methods=['get'])
+    def config_status(self, request):
+        """检查知识库分词/向量化模型配置状态
+
+        只有显式配置了 tokenizer / embedding 角色才视为「已配置」；
+        即便 writer 配置可作回退，也不满足知识库专用分词模型的要求。
+        """
+        from apps.requirement_analysis.models import AIModelConfig
+
+        config = (
+            AIModelConfig.objects.filter(role='tokenizer', is_active=True).first()
+            or AIModelConfig.objects.filter(role='embedding', is_active=True).first()
+        )
+        return Response({
+            'tokenizer_configured': config is not None,
+            'model_name': config.name if config else None,
+            'model_detail': config.model_name if config else None,
+            'role': config.role if config else None,
+        })
+
+    @action(detail=True, methods=['get'])
+    def chunks(self, request, pk=None):
+        """获取文档的全部分块（预览）"""
+        document = self.get_object()
+        try:
+            from .vector_store import vector_store
+
+            chunks = vector_store.get_chunks(document.project_id, document.id)
+            return Response({
+                'results': chunks,
+                'total': len(chunks),
+            })
+        except Exception as e:
+            logger.error(f"获取分块失败: {e}")
+            return Response(
+                {'error': f'获取分块失败: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'], url_path='update-chunk')
+    def update_chunk(self, request, pk=None):
+        """编辑单个分块并重新向量化"""
+        document = self.get_object()
+        chunk_id = request.data.get('chunk_id')
+        content = request.data.get('content')
+
+        if not chunk_id:
+            return Response({'error': '缺少 chunk_id'}, status=status.HTTP_400_BAD_REQUEST)
+        if content is None or not str(content).strip():
+            return Response({'error': '分块内容不能为空'}, status=status.HTTP_400_BAD_REQUEST)
+
+        from .embedding_service import embedding_service
+        if not embedding_service.get_embedding_config():
+            return Response(
+                {'error': '未配置分词/嵌入模型，无法重新向量化，请先在配置中心配置分词模型'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            from .vector_store import vector_store
+            vector_store.update_chunk(
+                project_id=document.project_id,
+                chunk_id=chunk_id,
+                content=content,
+                embedding_service=embedding_service,
+            )
+            return Response({'message': '分块已更新'})
+        except Exception as e:
+            logger.error(f"更新分块失败: {e}")
+            return Response(
+                {'error': f'更新分块失败: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def perform_destroy(self, instance):
         """删除文档时同步清理 ChromaDB"""
@@ -3785,6 +3860,15 @@ class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_200_OK
             )
 
+        # 前置校验：未配置分词/嵌入模型时无法分块向量化
+        from .embedding_service import embedding_service
+        embedding_config = embedding_service.get_embedding_config(refresh=True)
+        if not embedding_config:
+            return Response(
+                {'error': '未配置分词/嵌入模型，请在配置中心配置一个分词模型后再处理文档'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             # 更新状态
             document.status = 'processing'
@@ -3804,9 +3888,11 @@ class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
                     document.raw_text = raw_text
                     document.save()
 
-                    # 2. 分块
+                    # 2. 分块（使用分词模型做语义分块；模型不可用时回退段落拆分）
                     logger.info(f"开始分块文档: {document.name}")
-                    chunker = KnowledgeChunker()
+                    chunker = KnowledgeChunker(
+                        embedding_model=embedding_service.get_langchain_embedding_model()
+                    )
                     sections = chunker.chunk(raw_text)
 
                     # 3. 向量化存储
@@ -3863,6 +3949,12 @@ class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if document.is_extracting:
+            return Response(
+                {'error': '文档正在提取中，请稍后再试'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # 获取 writer 模型配置
         writer_config = AIModelConfig.objects.filter(role='writer', is_active=True).first()
         if not writer_config:
@@ -3872,7 +3964,25 @@ class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
             )
 
         try:
+            # 标记提取中（同步可见，避免重复触发）
+            document.is_extracting = True
+            document.extract_progress = 0
+            document.extract_message = '提取任务已启动'
+            document.save(update_fields=['is_extracting', 'extract_progress', 'extract_message'])
+
             # 异步提取
+            def persist_progress(pct, msg):
+                document.is_extracting = True
+                document.extract_progress = pct
+                document.extract_message = msg
+                document.save(update_fields=['is_extracting', 'extract_progress', 'extract_message'])
+
+            from asgiref.sync import sync_to_async
+            persist_progress_async = sync_to_async(persist_progress)
+
+            async def progress_callback(pct, msg):
+                await persist_progress_async(pct, msg)
+
             def run_extraction():
                 try:
                     from .knowledge_chunker import KnowledgeChunker
@@ -3893,10 +4003,17 @@ class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
                         )
 
                         entries = loop.run_until_complete(
-                            extractor.extract_from_document(document, writer_config)
+                            extractor.extract_from_document(
+                                document, writer_config,
+                                progress_callback=progress_callback,
+                            )
                         )
 
                         # 保存到数据库
+                        document.extract_progress = 98
+                        document.extract_message = '正在保存知识条目'
+                        document.save(update_fields=['extract_progress', 'extract_message'])
+
                         saved_count = 0
                         for entry_data in entries:
                             entry = KnowledgeEntry.objects.create(
@@ -3928,6 +4045,9 @@ class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
                             saved_count += 1
 
                         document.entry_count = saved_count
+                        document.extract_progress = 100
+                        document.extract_message = '提取完成'
+                        document.is_extracting = False
                         document.save()
 
                         logger.info(f"LLM 提取完成: {document.name}, 提取 {saved_count} 条")
@@ -3937,6 +4057,10 @@ class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
 
                 except Exception as e:
                     logger.error(f"LLM 提取失败: {e}")
+                    document.is_extracting = False
+                    document.extract_message = f'提取失败: {e}'
+                    document.error_message = str(e)
+                    document.save()
 
             import threading
             thread = threading.Thread(target=run_extraction, daemon=True)
@@ -3958,6 +4082,7 @@ class KnowledgeEntryViewSet(viewsets.ModelViewSet):
     """知识条目视图集"""
     queryset = KnowledgeEntry.objects.all()
     serializer_class = KnowledgeEntrySerializer
+    pagination_class = KnowledgePagination
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -4000,6 +4125,31 @@ class KnowledgeEntryViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.warning(f"清理 ChromaDB 条目 {instance.id} 失败: {e}")
         instance.delete()
+
+    @action(detail=False, methods=['post'])
+    def batch_delete(self, request):
+        """批量删除知识条目"""
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response(
+                {'error': '请选择要删除的知识条目'}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        from .vector_store import vector_store
+        deleted = 0
+        for entry in KnowledgeEntry.objects.filter(id__in=ids):
+            try:
+                vector_store.remove_entry(entry.id)
+            except Exception as e:
+                logger.warning(f"清理 ChromaDB 条目 {entry.id} 失败: {e}")
+            entry.delete()
+            deleted += 1
+
+        return Response({
+            'success': True,
+            'message': f'已删除 {deleted} 条知识条目',
+            'deleted': deleted,
+        })
 
     def _sync_to_chromadb(self, instance, is_update=False):
         """同步条目到 ChromaDB"""

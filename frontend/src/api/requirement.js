@@ -254,6 +254,26 @@ export function getKnowledgeDocuments(params) {
 }
 
 /**
+ * 获取知识库概览统计
+ */
+export function getKnowledgeStats() {
+  return request({
+    url: '/requirement-analysis/knowledge-documents/stats/',
+    method: 'get'
+  })
+}
+
+/**
+ * 检查知识库分词/向量化模型配置状态
+ */
+export function getKnowledgeConfigStatus() {
+  return request({
+    url: '/requirement-analysis/knowledge-documents/config_status/',
+    method: 'get'
+  })
+}
+
+/**
  * 上传知识文档
  */
 export function uploadKnowledgeDocument(data) {
@@ -262,6 +282,17 @@ export function uploadKnowledgeDocument(data) {
     method: 'post',
     data,
     headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+/**
+ * 批量删除知识文档
+ */
+export function batchDeleteKnowledgeDocuments(ids) {
+  return request({
+    url: '/requirement-analysis/knowledge-documents/batch_delete/',
+    method: 'post',
+    data: { ids }
   })
 }
 
@@ -282,6 +313,27 @@ export function processKnowledgeDocument(id) {
   return request({
     url: `/requirement-analysis/knowledge-documents/${id}/process/`,
     method: 'post'
+  })
+}
+
+/**
+ * 获取文档分块（预览）
+ */
+export function getKnowledgeDocumentChunks(id) {
+  return request({
+    url: `/requirement-analysis/knowledge-documents/${id}/chunks/`,
+    method: 'get'
+  })
+}
+
+/**
+ * 编辑单个分块（重新向量化）
+ */
+export function updateKnowledgeDocumentChunk(id, data) {
+  return request({
+    url: `/requirement-analysis/knowledge-documents/${id}/update-chunk/`,
+    method: 'post',
+    data
   })
 }
 
@@ -325,6 +377,17 @@ export function updateKnowledgeEntry(id, data) {
     url: `/requirement-analysis/knowledge-entries/${id}/`,
     method: 'put',
     data
+  })
+}
+
+/**
+ * 批量删除知识条目
+ */
+export function batchDeleteKnowledgeEntries(ids) {
+  return request({
+    url: '/requirement-analysis/knowledge-entries/batch_delete/',
+    method: 'post',
+    data: { ids }
   })
 }
 

@@ -102,8 +102,8 @@
         </el-table-column>
         <el-table-column :label="$t('project.actions')" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="editVersion(row)">{{ $t('common.edit') }}</el-button>
-            <el-button size="small" type="danger" @click="deleteVersion(row)">{{ $t('common.delete') }}</el-button>
+            <el-button type="primary" link size="small" @click="editVersion(row)">{{ $t('common.edit') }}</el-button>
+            <el-button type="danger" link size="small" @click="deleteVersion(row)">{{ $t('common.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>

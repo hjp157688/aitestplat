@@ -940,6 +940,11 @@ export default {
     negative: 'Negative',
     boundary: 'Boundary',
     generating: 'Generating test cases...',
+    progressPreparing: 'Preparing request data...',
+    progressLoadingConfig: 'Loading AI configuration...',
+    progressGenerating: 'AI is generating test cases, please wait...',
+    progressFinishing: 'Finalizing results...',
+    progressWithElapsed: '{stage} (progress {progress}% · {elapsed}s elapsed)',
     completed: 'Generation Complete',
     totalCases: '{count} test cases total',
     cases: 'cases',
@@ -951,6 +956,8 @@ export default {
     save: 'Save Selected Cases',
     saving: 'Saving...',
     error: 'Generation Failed',
+    emptyResult: 'AI returned no usable test cases. Click "Retry" or check the AI configuration.',
+    retry: 'Retry',
     suiteNamePlaceholder: 'Enter test suite name (optional)'
   }
 }

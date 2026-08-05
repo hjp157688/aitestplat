@@ -272,10 +272,6 @@
               <el-icon><Timer /></el-icon>
               <span>{{ $t('menu.scheduledTaskConfig') }}</span>
             </el-menu-item>
-            <el-menu-item index="/configuration/dify">
-              <el-icon><ChatDotRound /></el-icon>
-              <span>{{ $t('menu.difyConfig') }}</span>
-            </el-menu-item>
             <el-menu-item index="/configuration/zentao">
               <el-icon><Connection /></el-icon>
               <span>{{ $t('menu.zentaoConfig') }}</span>
@@ -352,7 +348,7 @@ import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import {
   Monitor, Folder, Document, Check, Collection, VideoPlay,
-  DataAnalysis, ChatDotRound, DocumentCopy, Link, MagicStick,
+  DataAnalysis, DocumentCopy, Link, MagicStick,
   Odometer, Timer, Setting, AlarmClock, Bell, Aim, Edit, Cpu, ArrowDown, Cellphone, Connection, FolderOpened, Tickets, Plus, Operation
 } from '@element-plus/icons-vue'
 import logoSvg from '@/assets/images/logo.svg'
@@ -473,7 +469,6 @@ const breadcrumbTitle = computed(() => {
     '/configuration/ui-env': t('menu.uiEnvConfig'),
     '/configuration/ai-mode': t('menu.aiModeConfig'),
     '/configuration/scheduled-task': t('menu.scheduledTaskConfig'),
-    '/configuration/dify': t('menu.difyConfig'),
     '/configuration/zentao': t('menu.zentaoConfig'),
 
     '/profile': t('nav.profile')

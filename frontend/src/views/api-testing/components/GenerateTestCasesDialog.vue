@@ -158,6 +158,12 @@
         {{ $t('apiTesting.generateTestCases.generate') }}
       </el-button>
       <el-button
+        v-if="generationStarted && generationError"
+        @click="retryGeneration"
+      >
+        {{ $t('apiTesting.generateTestCases.retry') }}
+      </el-button>
+      <el-button
         v-if="generationCompleted"
         type="primary"
         @click="saveCases"
@@ -173,6 +179,7 @@
 <script setup>
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import api from '@/utils/api'
 
 const props = defineProps({
@@ -182,6 +189,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'saved'])
+
+const { t } = useI18n()
 
 const visible = computed({
   get: () => props.modelValue,
@@ -198,6 +207,8 @@ const generationCompleted = ref(false)
 const generationError = ref('')
 const progress = ref(0)
 const progressText = ref('')
+const elapsedSeconds = ref(0)
+let startTime = null
 const taskId = ref('')
 let pollingTimer = null
 
@@ -253,11 +264,21 @@ async function loadAiConfigs() {
   }
 }
 
+function progressStageLabel(p) {
+  if (p < 10) return t('apiTesting.generateTestCases.generating')
+  if (p < 30) return t('apiTesting.generateTestCases.progressPreparing')
+  if (p < 50) return t('apiTesting.generateTestCases.progressLoadingConfig')
+  if (p < 90) return t('apiTesting.generateTestCases.progressGenerating')
+  return t('apiTesting.generateTestCases.progressFinishing')
+}
+
 async function startGeneration() {
   generationStarted.value = true
   generating.value = true
   progress.value = 0
-  progressText.value = '正在初始化...'
+  elapsedSeconds.value = 0
+  startTime = Date.now()
+  progressText.value = progressStageLabel(0)
   generationError.value = ''
 
   try {
@@ -282,7 +303,13 @@ function startPolling() {
 
       const data = res.data
       progress.value = data.progress || 0
-      progressText.value = `进度: ${progress.value}%`
+      elapsedSeconds.value = startTime ? Math.round((Date.now() - startTime) / 1000) : 0
+      const stage = progressStageLabel(progress.value)
+      progressText.value = t('apiTesting.generateTestCases.progressWithElapsed', {
+        stage,
+        progress: progress.value,
+        elapsed: elapsedSeconds.value,
+      })
 
       if (data.status === 'completed') {
         clearInterval(pollingTimer)
@@ -292,7 +319,7 @@ function startPolling() {
       } else if (data.status === 'failed') {
         clearInterval(pollingTimer)
         generating.value = false
-        generationError.value = data.error || '生成失败'
+        generationError.value = data.error || t('apiTesting.generateTestCases.error')
       }
     } catch (e) {
       // 继续轮询
@@ -302,7 +329,8 @@ function startPolling() {
 
 function processResult(result) {
   if (!result || !result.test_cases) {
-    caseGroups.value = []
+    generationCompleted.value = false
+    generationError.value = t('apiTesting.generateTestCases.emptyResult')
     return
   }
 
@@ -320,6 +348,12 @@ function processResult(result) {
       // 默认全选
       selectedCases.value[requestId] = Array.from({ length: (Array.isArray(cases) ? cases : []).length }, (_, i) => i)
     }
+  }
+
+  if (groups.length === 0) {
+    generationCompleted.value = false
+    generationError.value = t('apiTesting.generateTestCases.emptyResult')
+    return
   }
 
   caseGroups.value = groups
@@ -422,6 +456,9 @@ function resetState() {
   generationError.value = ''
   generating.value = false
   progress.value = 0
+  progressText.value = ''
+  elapsedSeconds.value = 0
+  startTime = null
   caseGroups.value = []
   selectedCases.value = {}
   expandedCases.value = {}
@@ -431,6 +468,12 @@ function resetState() {
     clearInterval(pollingTimer)
     pollingTimer = null
   }
+}
+
+function retryGeneration() {
+  generationError.value = ''
+  generationStarted.value = false
+  startGeneration()
 }
 
 watch(visible, (val) => {

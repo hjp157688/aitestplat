@@ -71,7 +71,6 @@ export default {
     uiEnvConfig: 'UI环境配置',
     aiModeConfig: 'AI智能模式配置',
     scheduledTaskConfig: '定时任务配置',
-    difyConfig: 'AI评测师配置',
     zentaoConfig: '禅道配置'
   }
 }

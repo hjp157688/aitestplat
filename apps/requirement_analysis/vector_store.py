@@ -223,6 +223,96 @@ class VectorStoreService:
         except Exception as e:
             logger.warning(f"清理 ChromaDB 文档 {document_id} 时出错: {e}")
 
+    def get_chunks(
+        self,
+        project_id: Optional[int],
+        document_id: int,
+    ) -> List[Dict[str, Any]]:
+        """
+        获取文档的所有分块（按段落顺序）
+
+        Args:
+            project_id: 项目ID
+            document_id: 文档数据库ID
+
+        Returns:
+            分块列表，每项含 id / content / section_title / paragraph_index
+        """
+        collection = self.get_or_create_collection(project_id)
+        result = collection.get(
+            where={"document_id": document_id},
+            include=["documents", "metadatas"],
+        )
+
+        chunks = []
+        ids = result.get("ids") or []
+        documents = result.get("documents") or []
+        metadatas = result.get("metadatas") or []
+
+        for i, chunk_id in enumerate(ids):
+            meta = metadatas[i] if i < len(metadatas) else {}
+            chunks.append({
+                "id": chunk_id,
+                "content": documents[i] if i < len(documents) else "",
+                "section_title": meta.get("section_title", ""),
+                "paragraph_index": meta.get("paragraph_index", 0),
+                "header_level": meta.get("header_level", 0),
+            })
+
+        chunks.sort(key=lambda c: c.get("paragraph_index", 0))
+        logger.info(f"获取文档 {document_id} 的分块: {len(chunks)} 个")
+        return chunks
+
+    def update_chunk(
+        self,
+        project_id: Optional[int],
+        chunk_id: str,
+        content: str,
+        embedding_service,
+    ) -> bool:
+        """
+        更新单个分块内容并重新向量化
+
+        同时同步刷新父级章节全文（Small-to-Big），保证检索返回最新文本。
+
+        Args:
+            project_id: 项目ID
+            chunk_id: ChromaDB chunk id
+            content: 更新后的分块内容
+            embedding_service: 向量化服务实例
+
+        Returns:
+            bool 是否成功
+        """
+        collection = self.get_or_create_collection(project_id)
+
+        existing = collection.get(
+            ids=[chunk_id],
+            include=["documents", "metadatas"],
+        )
+        old_content = (existing.get("documents") or [None])[0]
+        old_meta = (existing.get("metadatas") or [{}])[0] or {}
+
+        # 若该段落文本仍包含在父级章节中，替换为编辑后的文本
+        section_content = old_meta.get("section_content", "") or ""
+        if old_content and old_content in section_content:
+            section_content = section_content.replace(old_content, content, 1)
+
+        # 重新向量化
+        embedding = embedding_service.embed_single(content)
+
+        new_meta = dict(old_meta)
+        new_meta["section_content"] = section_content
+
+        collection.update(
+            ids=[chunk_id],
+            documents=[content],
+            embeddings=[embedding],
+            metadatas=[new_meta],
+        )
+        logger.info(f"更新分块 {chunk_id} 完成")
+        return True
+
     def search(
         self,
         project_id: Optional[int],

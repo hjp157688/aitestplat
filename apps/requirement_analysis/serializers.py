@@ -253,6 +253,7 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
     reviewer_model_name = serializers.CharField(source='reviewer_model_config.name', read_only=True)
     writer_prompt_name = serializers.CharField(source='writer_prompt_config.name', read_only=True)
     reviewer_prompt_name = serializers.CharField(source='reviewer_prompt_config.name', read_only=True)
+    granularity_display = serializers.CharField(source='get_granularity_display', read_only=True)
     
     class Meta:
         model = TestCaseGenerationTask
@@ -261,7 +262,8 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
                  'reviewer_model_config', 'reviewer_model_name', 'writer_prompt_config', 'writer_prompt_name',
                  'reviewer_prompt_config', 'reviewer_prompt_name', 'generated_test_cases',
                  'review_feedback', 'final_test_cases', 'generation_log', 'error_message',
-                 'created_by', 'created_by_name', 'created_at', 'updated_at', 'completed_at']
+                 'created_by', 'created_by_name', 'created_at', 'updated_at', 'completed_at',
+                 'case_type', 'granularity', 'granularity_display']
         read_only_fields = ['task_id', 'status', 'progress', 'generated_test_cases', 
                           'review_feedback', 'final_test_cases', 'generation_log', 
                           'error_message', 'created_by', 'completed_at']
@@ -296,6 +298,12 @@ class TestCaseGenerationRequestSerializer(serializers.Serializer):
         default=list,
         help_text="用户选择的业务知识列表"
     )
+    case_type = serializers.CharField(
+        max_length=200, required=False, allow_blank=True, default='',
+        help_text='用例类型补充指令（自由文本）')
+    granularity = serializers.ChoiceField(
+        choices=['coarse', 'medium', 'fine'], required=False, default='medium',
+        help_text='颗粒度')
 
 
 class GenerationConfigSerializer(serializers.ModelSerializer):
@@ -418,11 +426,13 @@ class KnowledgeDocumentSerializer(serializers.ModelSerializer):
             'id', 'name', 'file', 'file_url', 'file_type', 'knowledge_level',
             'knowledge_level_display', 'project', 'project_name', 'status',
             'status_display', 'raw_text', 'chunk_count', 'entry_count',
+            'is_extracting', 'extract_progress', 'extract_message',
             'error_message', 'is_active', 'created_by', 'created_by_name',
             'created_at', 'updated_at',
         ]
         read_only_fields = [
             'file_type', 'status', 'raw_text', 'chunk_count', 'entry_count',
+            'is_extracting', 'extract_progress', 'extract_message',
             'error_message', 'created_by', 'created_at', 'updated_at',
         ]
 

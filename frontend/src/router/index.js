@@ -59,12 +59,6 @@ const routes = [
         meta: { requiresGuest: true }
     },
     {
-        path: '/ai-generation/assistant',
-        name: 'Assistant',
-        component: () => import('@/views/assistant/AssistantView.vue'),
-        meta: { requiresAuth: true }
-    },
-    {
         path: '/ai-generation',
         component: Layout,
         meta: { requiresAuth: true },
@@ -442,11 +436,6 @@ const routes = [
                         path: 'scheduled-task',
                         name: 'ConfigScheduledTask',
                         component: () => import('@/views/ui-automation/notification/NotificationConfigs.vue')
-                    },
-                    {
-                        path: 'dify',
-                        name: 'DifyConfig',
-                        component: () => import('@/views/configuration/DifyConfig.vue')
                     },
                     {
                         path: 'zentao',

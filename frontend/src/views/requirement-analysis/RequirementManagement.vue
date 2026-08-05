@@ -90,8 +90,6 @@
       v-loading="loading"
       @selection-change="handleSelectionChange"
       style="width: 100%"
-      stripe
-      border
     >
       <el-table-column type="selection" width="45" />
       <el-table-column
@@ -1112,5 +1110,11 @@ onMounted(() => {
   overflow: auto;
   border: 1px solid var(--aitest-border);
   color: var(--aitest-text-2);
+}
+
+.detail-spec :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
 }
 </style>

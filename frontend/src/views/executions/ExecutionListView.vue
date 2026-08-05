@@ -80,15 +80,16 @@
       </el-table-column>
       <el-table-column :label="$t('execution.actions')" width="220" fixed="right" class-name="action-col">
         <template #default="scope">
-          <el-button size="small" type="primary" @click="viewPlan(scope.row.id)">
+          <el-button type="primary" link size="small" @click="viewPlan(scope.row.id)">
             {{ $t('execution.viewExecution') }}
           </el-button>
-          <el-button size="small" type="warning" @click="editPlan(scope.row)">
+          <el-button type="primary" link size="small" @click="editPlan(scope.row)">
             {{ $t('common.edit') }}
           </el-button>
           <el-button
+            type="primary"
+            link
             size="small"
-            :type="scope.row.is_active ? 'danger' : 'success'"
             @click="togglePlanStatus(scope.row)">
             {{ scope.row.is_active ? $t('execution.closePlan') : $t('execution.activatePlan') }}
           </el-button>

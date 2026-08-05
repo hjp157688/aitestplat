@@ -85,7 +85,7 @@ class KnowledgeExtractor:
         self.chunker = chunker
 
     async def extract_from_document(
-        self, document, writer_config
+        self, document, writer_config, progress_callback=None
     ) -> List[Dict[str, Any]]:
         """
         从文档中提取知识条目
@@ -93,19 +93,30 @@ class KnowledgeExtractor:
         Args:
             document: KnowledgeDocument 实例
             writer_config: AIModelConfig 实例（用于 LLM 调用）
+            progress_callback: 异步进度回调 `async def cb(percent:int, message:str)`（可选）
 
         Returns:
             提取的知识条目列表
         """
+        async def _report(percent: int, message: str):
+            if progress_callback:
+                try:
+                    await progress_callback(percent, message)
+                except Exception as e:
+                    logger.warning(f"进度回调失败: {e}")
+
         raw_text = document.raw_text
         if not raw_text or not raw_text.strip():
             logger.warning(f"文档 {document.name} 没有文本内容，跳过提取")
+            await _report(100, "文档无内容，跳过提取")
             return []
 
         # === 阶段 1：结构分析 ===
         logger.info(f"阶段 1: 分析文档结构 - {document.name}")
+        await _report(5, "正在分析文档结构")
         structure_text = raw_text[:8000]  # 前 8000 字用于分析结构
         structure = await self._analyze_structure(structure_text, writer_config)
+        await _report(10, "结构分析完成")
 
         # === 阶段 2：逐章提取 ===
         logger.info(f"阶段 2: 逐章提取知识条目 - {document.name}")
@@ -118,16 +129,20 @@ class KnowledgeExtractor:
                 'content': raw_text,
             })()]
 
+        total = len(sections)
         all_entries = []
         existing_summary = "暂无"
 
         for i, section in enumerate(sections):
-            logger.info(f"  提取章节 [{i+1}/{len(sections)}]: {section.title}")
+            logger.info(f"  提取章节 [{i+1}/{total}]: {section.title}")
 
             # 章节内容限制 6000 字
             section_content = section.content[:6000]
             if len(section.content) > 6000:
                 section_content += "\n...(内容过长，已截断)"
+
+            percent = 10 + int(i / total * 80)
+            await _report(percent, f"正在提取章节 {i+1}/{total}：{section.title}")
 
             entries = await self._extract_from_section(
                 document_type=structure.get("document_type", "未知"),
@@ -147,6 +162,7 @@ class KnowledgeExtractor:
 
             logger.info(f"  章节 [{i+1}] 提取 {len(entries)} 条，去重后累计 {len(all_entries)} 条")
 
+        await _report(95, "正在合并去重，整理知识条目")
         logger.info(f"阶段 2 完成: 共提取 {len(all_entries)} 条知识条目")
         return all_entries
 
@@ -165,18 +181,19 @@ class KnowledgeExtractor:
             )
             result_text = response['choices'][0]['message']['content']
 
-            # 清理 JSON
-            result_text = self._clean_json(result_text)
-            return json.loads(result_text)
+            result = self._parse_json(result_text)
+            if isinstance(result, dict):
+                return result
 
         except (json.JSONDecodeError, KeyError, Exception) as e:
             logger.error(f"结构分析失败: {e}")
-            return {
-                "document_type": "未知",
-                "summary": "无法分析文档结构",
-                "sections": [],
-                "global_knowledge": [],
-            }
+
+        return {
+            "document_type": "未知",
+            "summary": "无法分析文档结构",
+            "sections": [],
+            "global_knowledge": [],
+        }
 
     async def _extract_from_section(
         self,
@@ -198,6 +215,10 @@ class KnowledgeExtractor:
             existing_entries_summary=existing_entries_summary,
         )
 
+        # 输出预算：至少 8192（避免大章节 JSON 输出被截断），上限 16384
+        # （不超主流模型输出上限；若模型上限较低，可在配置中心调小该模型的「最大Token数」）
+        max_tokens = min(max(writer_config.max_tokens or 8192, 8192), 16384)
+
         try:
             response = await self.llm_service.call_openai_compatible_api(
                 writer_config,
@@ -205,18 +226,45 @@ class KnowledgeExtractor:
                     {"role": "system", "content": "你是一个业务知识提取专家，请严格按 JSON 格式输出。"},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=3000,
+                max_tokens=max_tokens,
             )
             result_text = response['choices'][0]['message']['content']
 
-            # 清理 JSON
-            result_text = self._clean_json(result_text)
-            result = json.loads(result_text)
-            return result.get("entries", [])
+            result = self._parse_json(result_text)
+
+            if isinstance(result, dict):
+                return result.get("entries", [])
+            if isinstance(result, list):
+                # 直接返回对象列表（可能是截断后恢复的部分条目）
+                return [e for e in result if isinstance(e, dict)]
 
         except (json.JSONDecodeError, KeyError, Exception) as e:
             logger.error(f"章节提取失败 [{section_title}]: {e}")
-            return []
+
+        return []
+
+    def _parse_json(self, text: str):
+        """
+        解析 LLM 返回的 JSON
+
+        先清理 markdown 代码块，再用标准库 json 解析；
+        失败时交给 json_repair 修复（处理截断、缺引号、缺括号等常见问题）。
+        """
+        text = self._clean_json(text)
+
+        try:
+            return json.loads(text)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+        try:
+            import json_repair
+            result = json_repair.loads(text)
+            logger.info("使用 json_repair 解析成功")
+            return result
+        except Exception as e:
+            logger.warning(f"json_repair 解析失败: {e}")
+            return None
 
     async def _deduplicate(
         self,
