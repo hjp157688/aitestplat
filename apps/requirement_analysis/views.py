@@ -2111,17 +2111,21 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
 
                     adopted_count = 0
                     for test_case in test_cases:
+                        import json as _json
+                        parsed_steps = test_case.get('steps', [])
+                        if not isinstance(parsed_steps, list):
+                            parsed_steps = [{'desc': str(parsed_steps), 'expect': ''}]
                         TestCase.objects.create(
                             project=project,
                             author=task.created_by,
-                            title=test_case.get('scenario', '测试用例'),
-                            description=test_case.get('scenario', ''),
+                            title=test_case.get('title') or test_case.get('scenario', '测试用例'),
+                            description=test_case.get('title') or test_case.get('scenario', ''),
                             preconditions=test_case.get('precondition', ''),
-                            steps=test_case.get('steps', ''),
-                            expected_result=test_case.get('expected', ''),
+                            steps=_json.dumps(parsed_steps, ensure_ascii=False),
                             priority=self._map_priority(test_case.get('priority', '中')),
                             test_type='functional',
-                            status='draft'
+                            status='draft',
+                            requirement=task.requirement,
                         )
                         adopted_count += 1
 
@@ -2562,157 +2566,95 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
             )
 
     def _parse_test_cases_content(self, content):
-        """解析测试用例内容 - 支持多种格式"""
+        """解析测试用例内容 - JSONL 优先，兼容旧表格回退"""
+        import json
         if not content:
             return []
 
-        # 去除markdown加粗标记，保留纯净文本
-        import re
-        clean_content = re.sub(r'\*\*([^*]+)\*\*', r'\1', content)
+        content = content.strip()
+        cases = []
 
-        logger.info(f"开始解析测试用例内容，内容长度: {len(clean_content)}")
-        logger.info(f"内容前200字符: {clean_content[:200]}")
+        # 优先尝试 JSONL（每行一个独立 JSON）
+        for line in content.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+                # 规整字段名：JSONL 用 title,precondition,steps,priority,test_type,module
+                # 返回 dict 供下游（采纳等）使用
+                steps = obj.get('steps', [])
+                if not isinstance(steps, list):
+                    steps = []
+                case = {
+                    'caseId': obj.get('case_id', ''),
+                    'scenario': obj.get('title', ''),
+                    'title': obj.get('title', ''),
+                    'precondition': obj.get('precondition', ''),
+                    'steps': steps,
+                    'expected': '',  # 不再有独立预期，steps 内含 expect
+                    'priority': obj.get('priority', ''),
+                    'test_type': obj.get('test_type', ''),
+                    'module': obj.get('module', ''),
+                }
+                cases.append(case)
+            except (json.JSONDecodeError, ValueError):
+                continue
 
-        # 尝试表格格式解析
-        if '|' in clean_content:
-            return self._parse_table_format(clean_content)
+        if cases:
+            return cases
 
-        # 尝试结构化文本格式解析
-        return self._parse_text_format(clean_content)
+        # 回退：旧表格格式
+        if '|' in content:
+            return self._parse_table_format_legacy(content)
+        return []
 
-    def _parse_table_format(self, content):
-        """解析表格格式的测试用例"""
+    def _parse_table_format_legacy(self, content):
+        """解析旧表格格式的测试用例（兼容回退）"""
         lines = [line.strip() for line in content.split('\n') if line.strip()]
         test_cases = []
         table_data = []
 
-        # 提取表格数据
         for line in lines:
             if '|' in line and not line.startswith('|-'):
-                # 针对内容中可能包含转义后的 \| 进行预处理
-                # 先把 \| 替换为一个临时占位符，分割完后再替换回来
                 temp_placeholder = "___PIPE___"
                 processed_line = line.replace(r'\|', temp_placeholder)
-
-                # 移除首尾的 |
                 if processed_line.startswith('|'):
                     processed_line = processed_line[1:]
                 if processed_line.endswith('|'):
                     processed_line = processed_line[:-1]
-
                 cells = []
                 for cell in processed_line.split('|'):
-                    # 恢复原来的转义管道符，并清理空格
                     cell_content = cell.replace(temp_placeholder, '|').replace('&#124;', '|').strip()
                     cells.append(cell_content)
-
                 if len(cells) > 1:
                     table_data.append(cells)
 
         if len(table_data) < 2:
             return []
 
-        # 解析表头和数据
         headers = [h.lower() for h in table_data[0]]
-        logger.debug(f"表格标题: {headers}")
-
         for row in table_data[1:]:
             if len(row) < len(headers):
                 continue
-
             test_case = {}
             for i, header in enumerate(headers):
                 value = row[i] if i < len(row) else ''
-
-                if any(keyword in header for keyword in ['编号', 'id', '序号', '用例id']):
+                if any(k in header for k in ['编号', 'id', '序号', '用例id']):
                     test_case['caseId'] = value
-                elif any(keyword in header for keyword in ['场景', '标题', '名称', 'title', 'scenario', '测试目标']):
+                elif any(k in header for k in ['场景', '标题', '名称', 'title', 'scenario', '测试目标']):
                     test_case['scenario'] = value
-                elif any(keyword in header for keyword in ['前置', '前提', 'precondition']):
+                elif any(k in header for k in ['前置', '前提', 'precondition']):
                     test_case['precondition'] = value
-                elif any(keyword in header for keyword in ['步骤', 'step', '测试步骤', '操作步骤']):
+                elif any(k in header for k in ['步骤', 'step', '测试步骤', '操作步骤']):
                     test_case['steps'] = value
-                elif any(keyword in header for keyword in ['预期', '结果', 'expected', 'result']):
+                elif any(k in header for k in ['预期', '结果', 'expected', 'result']):
                     test_case['expected'] = value
-                elif any(keyword in header for keyword in ['优先级', 'priority']):
+                elif any(k in header for k in ['优先级', 'priority']):
                     test_case['priority'] = value
-
             if test_case.get('scenario') or test_case.get('steps'):
                 test_cases.append(test_case)
-                logger.debug(f"解析出表格测试用例: {test_case}")
-
         return test_cases
-
-    def _parse_text_format(self, content):
-        """解析文本格式的测试用例"""
-        lines = content.split('\n')
-        test_cases = []
-        current_case = {}
-
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-
-            logger.debug(f"处理行: {line}")
-
-            # 检测测试用例开始
-            is_case_start = (
-                    '测试用例' in line or
-                    'Test Case' in line or
-                    line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.', '10.')) or
-                    line.startswith(('一、', '二、', '三、', '四、', '五、')) or
-                    bool(re.match(r'^\d+[\.\)、]', line))
-            )
-
-            if is_case_start:
-                if current_case:
-                    logger.debug(f"添加测试用例: {current_case}")
-                    test_cases.append(current_case)
-
-                # 清理标题
-                scenario = line
-                scenario = scenario.replace('测试用例', '').replace('Test Case', '')
-                scenario = scenario.replace(':', '').replace('：', '')
-                scenario = re.sub(r'^\d+[\.\)、]\s*', '', scenario)
-                scenario = scenario.strip()
-
-                current_case = {'scenario': scenario}
-
-            elif current_case:  # 只有在已经开始一个测试用例后才处理字段
-                # 检测各个字段
-                if any(keyword in line for keyword in ['前置条件', '前提条件', '前置', '前提']):
-                    current_case['precondition'] = self._extract_field_value(line)
-                elif any(keyword in line for keyword in ['测试步骤', '操作步骤', '执行步骤', '步骤']):
-                    current_case['steps'] = self._extract_field_value(line)
-                elif any(keyword in line for keyword in ['预期结果', '期望结果', '预期']):
-                    current_case['expected'] = self._extract_field_value(line)
-                elif '优先级' in line:
-                    current_case['priority'] = self._extract_field_value(line)
-
-        if current_case:
-            logger.debug(f"添加最后一个测试用例: {current_case}")
-            test_cases.append(current_case)
-
-        logger.info(f"解析完成，共解析出 {len(test_cases)} 个测试用例")
-        for i, case in enumerate(test_cases):
-            logger.debug(f"测试用例 {i + 1}: {case}")
-
-        return test_cases
-
-    def _extract_field_value(self, line):
-        """提取字段值"""
-        # 尝试多种分隔符
-        for sep in [':', '：', '】', '】:', '】：']:
-            if sep in line:
-                return line.split(sep, 1)[-1].strip()
-
-        # 如果没有分隔符，移除常见的前缀
-        for prefix in ['前置条件', '测试步骤', '操作步骤', '预期结果', '优先级']:
-            if line.startswith(prefix):
-                return line[len(prefix):].strip()
-
-        return line.strip()
 
     def _reconstruct_test_cases_content(self, test_cases):
         """重新构建测试用例内容 - 保持原有格式和编号"""
