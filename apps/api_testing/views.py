@@ -619,6 +619,62 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
             logger.exception("Failed to save test cases")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['post'], url_path='batch-delete')
+    def batch_delete(self, request):
+        """批量删除集合与接口（混合删除，级联删除子树与生成用例）"""
+        collection_ids = request.data.get('collection_ids', []) or []
+        request_ids = request.data.get('request_ids', []) or []
+        if not collection_ids and not request_ids:
+            return Response(
+                {'error': '请提供要删除的集合或接口ID'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = request.user
+        accessible_projects = ApiProject.objects.filter(
+            models.Q(owner=user) | models.Q(members=user)
+        )
+
+        with transaction.atomic():
+            # 1) 有权限的集合（先取名字用于日志）
+            collections = list(ApiCollection.objects.filter(
+                id__in=collection_ids, project__in=accessible_projects
+            ))
+            collection_names = [(c.id, c.name) for c in collections]
+
+            # 2) 有权限的请求，排除落入被删集合内的（级联已删，避免重复处理）
+            valid_requests = list(ApiRequest.objects.filter(
+                id__in=request_ids
+            ).filter(
+                models.Q(collection__project__in=accessible_projects)
+                | models.Q(collection__isnull=True, created_by=user)
+            ).exclude(collection_id__in=[c.id for c in collections]))
+            request_names = [(r.id, r.name) for r in valid_requests]
+
+            # 3) 先删集合（级联删其下所有子集合/请求/生成用例）
+            ApiCollection.objects.filter(id__in=[c.id for c in collections]).delete()
+            # 4) 再删请求（级联删其下生成用例与套件关联）
+            ApiRequest.objects.filter(id__in=[r.id for r in valid_requests]).delete()
+
+            # 5) 日志
+            for cid, cname in collection_names:
+                log_operation(
+                    operation_type='delete', resource_type='collection',
+                    resource_id=cid, resource_name=cname, user=user,
+                )
+            for rid, rname in request_names:
+                log_operation(
+                    operation_type='delete', resource_type='request',
+                    resource_id=rid, resource_name=rname, user=user,
+                )
+
+        return Response({
+            'deleted_collections': len(collection_names),
+            'deleted_requests': len(request_names),
+            'rejected_collections': len(collection_ids) - len(collection_names),
+            'rejected_requests': len(request_ids) - len(request_names),
+        })
+
 
 class EnvironmentViewSet(viewsets.ModelViewSet):
     queryset = Environment.objects.all()

@@ -49,3 +49,104 @@ class GenerateCapTests(TestCase):
             )
         self.assertEqual(resp.status_code, 201)
         mock_gen.assert_called_once()
+
+
+class BatchDeleteBase(TestCase):
+    """通用 setUp：用户/项目/集合/请求"""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username='bop', password='x12345')
+        self.other = User.objects.create_user(username='other', password='x12345')
+        self.project = ApiProject.objects.create(
+            name='P', owner=self.user, project_type='HTTP', status='NOT_STARTED')
+        self.other_project = ApiProject.objects.create(
+            name='Other', owner=self.other, project_type='HTTP', status='NOT_STARTED')
+
+        self.collection = ApiCollection.objects.create(
+            name='C', project=self.project, order=1)
+        self.sub_collection = ApiCollection.objects.create(
+            name='Sub', project=self.project, parent=self.collection, order=1)
+
+        self.request_a = ApiRequest.objects.create(
+            collection=self.collection, name='A', method='GET', url='/a',
+            created_by=self.user)
+        self.request_b = ApiRequest.objects.create(
+            collection=self.sub_collection, name='B', method='POST', url='/b',
+            created_by=self.user)
+        # 生成用例（父请求的子节点）
+        self.case_a = ApiRequest.objects.create(
+            collection=self.collection, parent_request=self.request_a,
+            name='A-case', method='GET', url='/a', created_by=self.user)
+        # 他人项目下的请求（本用户无权）
+        self.other_request = ApiRequest.objects.create(
+            collection=None, name='OtherReq', method='GET', url='/other',
+            created_by=self.other)
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def _batch_delete(self, **kwargs):
+        return self.client.post(
+            '/api/api-testing/requests/batch-delete/', kwargs, format='json')
+
+
+class BatchDeleteTests(BatchDeleteBase):
+
+    def test_mixed_delete_counts_and_cascade(self):
+        resp = self._batch_delete(
+            collection_ids=[self.collection.id],
+            request_ids=[self.request_b.id],
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data['deleted_collections'], 1)
+        self.assertEqual(data['deleted_requests'], 1)
+        # 级联：父集合 + 子集合 + 其中请求 + 生成用例全部消失
+        self.assertFalse(ApiCollection.objects.filter(id=self.collection.id).exists())
+        self.assertFalse(ApiCollection.objects.filter(id=self.sub_collection.id).exists())
+        self.assertFalse(ApiRequest.objects.filter(id=self.request_a.id).exists())
+        self.assertFalse(ApiRequest.objects.filter(id=self.case_a.id).exists())
+        self.assertFalse(ApiRequest.objects.filter(id=self.request_b.id).exists())
+
+    def test_delete_request_cascades_generated_cases(self):
+        resp = self._batch_delete(request_ids=[self.request_a.id])
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(ApiRequest.objects.filter(id=self.case_a.id).exists())
+        self.assertTrue(ApiRequest.objects.filter(id=self.request_b.id).exists())
+
+    def test_unauthorized_requests_excluded(self):
+        resp = self._batch_delete(request_ids=[self.other_request.id])
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data['deleted_requests'], 0)
+        self.assertEqual(data['rejected_requests'], 1)
+        self.assertTrue(ApiRequest.objects.filter(id=self.other_request.id).exists())
+
+    def test_requests_under_deleted_collection_deduped(self):
+        resp = self._batch_delete(
+            collection_ids=[self.collection.id],
+            request_ids=[self.request_a.id],
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data['deleted_requests'], 0)
+        self.assertFalse(ApiRequest.objects.filter(id=self.request_a.id).exists())
+
+    def test_empty_body_rejected(self):
+        resp = self._batch_delete()
+        self.assertEqual(resp.status_code, 400)
+
+    def test_deleted_logs_written_only_for_permitted(self):
+        self._batch_delete(
+            collection_ids=[self.collection.id],
+            request_ids=[self.other_request.id],
+        )
+        self.assertEqual(
+            OperationLog.objects.filter(
+                resource_type='collection', resource_id=self.collection.id,
+                operation_type='delete').count(), 1)
+        self.assertEqual(
+            OperationLog.objects.filter(
+                resource_type='request', resource_id=self.other_request.id,
+                operation_type='delete').count(), 0)
