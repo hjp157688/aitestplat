@@ -671,12 +671,13 @@ class AIRequirementParser:
     @staticmethod
     def parse_from_text(content: str) -> Dict[str, Any]:
         """使用AI解析文本中的需求项"""
-        from .models import AIModelConfig, AIModelService
+        from .models import AIModelService
+        from apps.ai.resolver import ConfigResolver
+        from apps.ai.prompt_registry import get_prompt_content_raw
+        from apps.ai import observability
 
-        # 获取活跃的编写模型配置
-        writer_config = AIModelConfig.get_active_config(
-            model_type=None, role='writer'
-        )
+        # 获取活跃的编写模型配置（model_type=None 表示任意提供商，统一走 resolver）
+        writer_config = ConfigResolver.active(role='writer')
         if not writer_config:
             return {
                 'success': False,
@@ -684,7 +685,10 @@ class AIRequirementParser:
                 'error': '未找到活跃的AI模型配置，请先在配置中心配置AI模型'
             }
 
-        prompt = AIRequirementParser.PARSE_PROMPT.replace('{content}', content)
+        # 提示词从注册表取（未 seed 时回退代码默认）
+        prompt_template = get_prompt_content_raw(
+            'requirement_parse', default=AIRequirementParser.PARSE_PROMPT)
+        prompt = prompt_template.replace('{content}', content)
         messages = [
             {'role': 'system', 'content': '你是一个需求分析专家，请严格按照JSON格式输出。'},
             {'role': 'user', 'content': prompt}
@@ -693,9 +697,13 @@ class AIRequirementParser:
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            response = loop.run_until_complete(
-                AIModelService.call_openai_compatible_api(writer_config, messages, max_tokens=4096)
-            )
+            token = observability.set_scenario('requirement_parse')
+            try:
+                response = loop.run_until_complete(
+                    AIModelService.call_openai_compatible_api(writer_config, messages, max_tokens=4096)
+                )
+            finally:
+                observability.reset_scenario(token)
             loop.close()
 
             response_text = response['choices'][0]['message']['content']

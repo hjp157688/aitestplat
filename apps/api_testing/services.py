@@ -8,14 +8,12 @@ import threading
 import uuid
 from typing import Optional, Callable
 
-import requests
 import yaml
 from django.conf import settings
 from django.db import transaction
 
 from apps.api_testing.models import (
-    ApiCollection, ApiDocument, ApiRequest, ApiProject, AIServiceConfig, TestSuite,
-    ApiPromptConfig,
+    ApiCollection, ApiDocument, ApiRequest, ApiProject, TestSuite,
 )
 
 logger = logging.getLogger(__name__)
@@ -529,47 +527,13 @@ class ApiTestCaseGenerator:
 
     @staticmethod
     def build_prompt(requests_data: list[dict]) -> str:
-        """构建 AI prompt"""
+        """构建 AI prompt（system prompt 从 Prompt 注册表取，未 seed 时回退代码默认）"""
         requests_json = json.dumps(requests_data, ensure_ascii=False, indent=2)
 
-        system_prompt = """你是一个专业的API接口测试专家。你的任务是根据给定的API接口定义，生成多种场景的测试用例。
-
-对每个接口，你需要生成以下类型的测试用例：
-1. **正向用例**：使用合法的参数值，验证接口正常返回（期望200/201等成功状态码）
-2. **异常用例**：使用缺失必填参数、错误类型等，验证接口返回错误（期望400/404等）
-3. **边界值用例**：使用空值、超长字符串、特殊字符等边界值，验证接口的健壮性
-
-请严格按以下JSON格式输出，每个接口对应一个数组：
-
-```json
-{
-  "test_cases": {
-    "<request_id>": [
-      {
-        "name": "用例名称（描述场景，如：创建用户-正向验证）",
-        "params_override": {"key": "value"},
-        "body_override": {"key": "value"},
-        "assertions": [
-          {"type": "status_code", "operator": "equals", "expected": 200},
-          {"type": "json_path", "operator": "exists", "path": "$.id"},
-          {"type": "json_path", "operator": "equals", "path": "$.name", "expected": "Buddy"}
-        ]
-      }
-    ]
-  }
-}
-```
-
-断言类型说明：
-- type: "status_code" - 验证HTTP状态码
-- type: "json_path" - 验证JSON响应体中的字段
-- operator: "equals", "not_equals", "contains", "exists", "not_exists", "greater_than", "less_than"
-- path: JSONPath表达式（如 $.data.id, $.code）
-
-注意：
-- params_override 和 body_override 只需要包含需要覆盖的字段，未覆盖的字段保持原样
-- 每个接口至少生成3条用例（正向、异常、边界值各至少1条）
-- 断言必须具体、可验证"""
+        from apps.ai.prompt_registry import get_prompt_content_raw
+        from apps.ai.prompt_seeds import API_TESTCASE_GENERATOR_PROMPT
+        system_prompt = get_prompt_content_raw(
+            'api_testcase_generator', default=API_TESTCASE_GENERATOR_PROMPT)
 
         user_message = f"""请为以下API接口生成测试用例：
 
@@ -581,46 +545,27 @@ class ApiTestCaseGenerator:
 
     @staticmethod
     def _call_ai(system_prompt: str, user_message: str, config) -> dict:
-        """调用 AI 服务（非流式），config 可以是 AIModelConfig 或 AIServiceConfig"""
-        headers = {
-            'Authorization': f'Bearer {config.api_key}',
-            'Content-Type': 'application/json',
-        }
+        """调用 AI 服务（非流式），统一走 apps.ai.AIClient.chat_sync（daemon 线程安全）。
+
+        config 为 requirement_analysis.AIModelConfig。
+        """
+        from apps.ai.client import AIClient
 
         messages = [
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': user_message},
         ]
 
-        payload = {
-            'model': config.model_name,
-            'messages': messages,
-            'max_tokens': config.max_tokens,
-            'temperature': config.temperature,
-        }
+        # AIClient 内部完成鉴权/URL/可观测（含失败落库），并抛出用户可读的中文异常
+        result = AIClient.chat_sync(config, messages, scenario='api_testcase_generator')
 
-        try:
-            base_url = config.base_url.rstrip('/')
-            response = requests.post(
-                f'{base_url}/chat/completions',
-                json=payload,
-                headers=headers,
-                timeout=120,
-            )
-            response.raise_for_status()
-            result = response.json()
-            content = result['choices'][0]['message']['content']
+        content = result['choices'][0]['message']['content']
 
-            parsed = _safe_json_loads(content)
-            if parsed is None:
-                logger.warning(f"Failed to parse AI response as JSON: {content[:300]}")
-                raise Exception('AI 返回内容无法解析为测试用例 JSON，请重试（或增大 max_tokens 后重试）')
-            return parsed
-
-        except requests.exceptions.Timeout:
-            raise Exception('AI 服务请求超时')
-        except requests.exceptions.RequestException as e:
-            raise Exception(f'AI 服务请求失败: {str(e)}')
+        parsed = _safe_json_loads(content)
+        if parsed is None:
+            logger.warning(f"Failed to parse AI response as JSON: {content[:300]}")
+            raise Exception('AI 返回内容无法解析为测试用例 JSON，请重试（或增大 max_tokens 后重试）')
+        return parsed
 
     @staticmethod
     def generate(request_ids: list[int], config_id: int, user) -> str:
@@ -669,15 +614,13 @@ class ApiTestCaseGenerator:
 
             _generation_tasks[task_id]['progress'] = 30
 
-            # 获取 AI 配置（从 requirement_analysis.AIModelConfig 查找）
+            # 获取 AI 配置（从 requirement_analysis.AIModelConfig 查找，统一走 resolver）
             if config_id:
                 from apps.requirement_analysis.models import AIModelConfig
                 config = AIModelConfig.objects.get(id=config_id)
             else:
-                from apps.requirement_analysis.models import AIModelConfig
-                config = AIModelConfig.objects.filter(
-                    role='api_testcase_generator', is_active=True
-                ).first()
+                from apps.ai.resolver import ConfigResolver
+                config = ConfigResolver.active(role='api_testcase_generator')
                 if not config:
                     raise Exception('未找到可用的 AI 配置（role=api_testcase_generator, is_active=True）')
 

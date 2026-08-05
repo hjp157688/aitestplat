@@ -69,6 +69,7 @@ export default {
     aiModelConfig: 'AI Test Case Model Config',
     generationConfig: 'Generation Behavior Config',
     uiEnvConfig: 'UI Environment Configuration',
+    aiCallRecords: 'AI Call Records',
     aiModeConfig: 'AI Mode Configuration',
     scheduledTaskConfig: 'Scheduled Task Configuration',
     zentaoConfig: 'Zentao Configuration'

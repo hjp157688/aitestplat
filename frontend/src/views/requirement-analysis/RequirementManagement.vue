@@ -49,6 +49,14 @@
       <div class="toolbar-right">
         <el-button
           v-if="selectedIds.length > 0"
+          type="primary"
+          @click="openAiGenerate"
+        >
+          <el-icon><MagicStick /></el-icon>
+          {{ $t('requirementManagement.aiGenerate') }} ({{ selectedIds.length }})
+        </el-button>
+        <el-button
+          v-if="selectedIds.length > 0"
           type="danger"
           @click="handleBatchDelete"
           :loading="deleting"
@@ -412,6 +420,133 @@
       </div>
     </el-dialog>
 
+    <!-- AI生成用例弹窗 -->
+    <el-dialog
+      v-model="aiGenVisible"
+      :title="$t('requirementManagement.aiGenerateTitle')"
+      width="620px"
+      :close-on-click-modal="false"
+    >
+      <div class="ai-gen-selection">
+        <div class="ai-gen-selected-label">
+          {{ $t('requirementManagement.aiGenerateSelected', { count: selectedIds.length }) }}
+        </div>
+        <div class="ai-gen-tags">
+          <el-tag
+            v-for="r in selectedRows"
+            :key="r.id"
+            type="info"
+            effect="plain"
+            size="small"
+            class="ai-gen-tag"
+          >{{ r.title }}</el-tag>
+        </div>
+        <p class="ai-gen-hint">{{ $t('requirementManagement.aiGenerateHint') }}</p>
+      </div>
+
+      <!-- 业务知识检索（按需求逐个检索，各需求独立选择上下文） -->
+      <div class="knowledge-section">
+        <div class="knowledge-toolbar">
+          <el-button size="small" @click="retrieveAllKnowledge" :loading="isRetrievingAll">
+            <el-icon><Search /></el-icon>
+            {{ isRetrievingAll ? $t('requirementManagement.knowledgeRetrieving') : $t('requirementManagement.retrieveKnowledge') }}
+          </el-button>
+          <span class="knowledge-toolbar-hint">{{ $t('requirementManagement.perReqKnowledgeHint') }}</span>
+        </div>
+
+        <div class="per-req-knowledge">
+          <div v-for="r in selectedRows" :key="r.id" class="req-knowledge-block">
+            <div class="req-knowledge-head">
+              <span class="req-knowledge-title" :title="r.title">{{ r.title }}</span>
+              <span v-if="isRetrievingReq[r.id]" class="req-knowledge-status">
+                {{ $t('requirementManagement.knowledgeRetrieving') }}
+              </span>
+              <el-button v-else size="small" text type="primary" @click="retrieveOneKnowledge(r)">
+                {{ $t('requirementManagement.reRetrieve') }}
+              </el-button>
+              <span v-if="(selectedKnowledgeMap[r.id] || []).length" class="req-knowledge-count">
+                {{ $t('requirementManagement.selectedKnowledgeCount', { count: selectedKnowledgeMap[r.id].length }) }}
+              </span>
+            </div>
+
+            <div v-if="(selectedKnowledgeMap[r.id] || []).length" class="selected-knowledge-tags">
+              <el-tag
+                v-for="k in selectedKnowledgeMap[r.id].slice(0, 3)"
+                :key="k.id"
+                size="small"
+                type="info"
+                effect="plain"
+                closable
+                @close="removeSelectedKnowledge(r, k)"
+              >{{ k.name }}</el-tag>
+              <el-tag v-if="selectedKnowledgeMap[r.id].length > 3" size="small" type="info" effect="plain">
+                +{{ selectedKnowledgeMap[r.id].length - 3 }}
+              </el-tag>
+            </div>
+
+            <div v-if="knowledgeResultsMap[r.id] !== undefined" class="knowledge-panel">
+              <div class="knowledge-panel-header">
+                <span>{{ $t('requirementAnalysis.retrieveResults') }}</span>
+                <span class="knowledge-count">{{ $t('requirementAnalysis.resultCount', { count: knowledgeResultsMap[r.id].length }) }}</span>
+              </div>
+              <div class="knowledge-panel-body">
+                <div v-if="knowledgeResultsMap[r.id].length === 0" class="knowledge-empty">
+                  {{ $t('requirementManagement.noKnowledge') }}
+                </div>
+                <label
+                  v-for="k in knowledgeResultsMap[r.id]"
+                  :key="k.id"
+                  class="knowledge-item"
+                  :class="{ selected: isKnowledgeSelected(r, k) }"
+                >
+                  <input type="checkbox" :checked="isKnowledgeSelected(r, k)" @change="toggleKnowledge(r, k)" />
+                  <span class="knowledge-item-type" :class="k.type">
+                    {{ k.type === 'chunk' ? '📄' : '🏷' }} {{ k.type === 'chunk' ? $t('requirementAnalysis.knowledgeChunk') : $t('requirementAnalysis.knowledgeEntry') }}
+                  </span>
+                  <span class="knowledge-item-name">{{ k.name }}</span>
+                  <span class="knowledge-item-score" :class="{ high: k.score >= 7, low: k.score < 6 }">
+                    {{ k.score.toFixed(1) }}
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <el-form label-width="96px" class="ai-gen-form">
+        <el-form-item :label="$t('requirementManagement.outputMode')">
+          <el-radio-group v-model="aiGenForm.output_mode">
+            <el-radio value="stream">{{ $t('requirementManagement.outputModeStream') }}</el-radio>
+            <el-radio value="complete">{{ $t('requirementManagement.outputModeComplete') }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item :label="$t('requirementManagement.granularity')">
+          <el-radio-group v-model="aiGenForm.granularity">
+            <el-radio value="coarse">{{ $t('requirementManagement.granularityCoarse') }}</el-radio>
+            <el-radio value="medium">{{ $t('requirementManagement.granularityMedium') }}</el-radio>
+            <el-radio value="fine">{{ $t('requirementManagement.granularityFine') }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item :label="$t('requirementManagement.caseType')">
+          <el-input
+            v-model="aiGenForm.case_type"
+            :placeholder="$t('requirementManagement.caseTypePlaceholder')"
+            maxlength="120"
+          />
+        </el-form-item>
+        <el-form-item :label="$t('requirementManagement.useReviewer')">
+          <el-switch v-model="aiGenForm.use_reviewer_model" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="aiGenVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleAiGenerate" :loading="aiGenerating">
+          {{ $t('requirementManagement.aiGenerateStart') }}
+        </el-button>
+      </template>
+    </el-dialog>
+
     <!-- 禅道同步弹窗 -->
     <el-dialog
       v-model="syncVisible"
@@ -537,9 +672,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Plus, ArrowDown, Edit, Upload, Connection, UploadFilled, Loading } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, ArrowDown, Edit, Upload, Connection, UploadFilled, Loading, MagicStick } from '@element-plus/icons-vue'
 import {
   getRequirements,
   getRequirement,
@@ -553,9 +689,13 @@ import {
   getZentaoProjects,
   getZentaoProductStories,
   getZentaoProjectStories,
-  syncZentaoRequirements
+  syncZentaoRequirements,
+  generateTestCasesForRequirements,
+  retrieveKnowledge
 } from '@/api/requirement'
 import api from '@/utils/api'
+
+const router = useRouter()
 
 // ============ 列表数据 ============
 const requirements = ref([])
@@ -567,8 +707,24 @@ const searchKeyword = ref('')
 const filterProject = ref(null)
 const filterSourceType = ref('')
 const selectedIds = ref([])
+const selectedRows = ref([])
 const deleting = ref(false)
 const projects = ref([])
+
+// ============ AI生成用例 ============
+const aiGenVisible = ref(false)
+const aiGenerating = ref(false)
+const aiGenForm = reactive({
+  output_mode: 'stream',
+  granularity: 'medium',
+  case_type: '',
+  use_reviewer_model: true
+})
+
+// ============ 业务知识检索（按需求逐个检索，分组上下文） ============
+const isRetrievingReq = reactive({})       // { [requirementId]: true }
+const knowledgeResultsMap = reactive({})   // { [requirementId]: [检索结果] }
+const selectedKnowledgeMap = reactive({})  // { [requirementId]: [{id,type,name,content}] }
 
 // ============ 手动创建/编辑 ============
 const createVisible = ref(false)
@@ -701,6 +857,121 @@ function handleSearch() {
 
 function handleSelectionChange(selection) {
   selectedIds.value = selection.map(r => r.id)
+  selectedRows.value = selection
+}
+
+// ============ AI生成用例 ============
+function openAiGenerate() {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先勾选需要生成用例的需求')
+    return
+  }
+  aiGenVisible.value = true
+}
+
+async function handleAiGenerate() {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先勾选需要生成用例的需求')
+    return
+  }
+  aiGenerating.value = true
+  try {
+    // 组装的按需求ID分组的业务知识（每条需求只带自己选中的知识）
+    const knowledgeMap = {}
+    for (const r of selectedRows.value) {
+      const list = selectedKnowledgeMap[r.id]
+      if (list && list.length) {
+        knowledgeMap[r.id] = list
+      }
+    }
+    const res = await generateTestCasesForRequirements(selectedIds.value, {
+      output_mode: aiGenForm.output_mode,
+      granularity: aiGenForm.granularity,
+      case_type: aiGenForm.case_type,
+      use_reviewer_model: aiGenForm.use_reviewer_model,
+      selected_knowledge: knowledgeMap
+    })
+    ElMessage.success(res.data?.message || `已创建 ${res.data?.created || 0} 条生成任务`)
+    const failedCount = (res.data?.failed || []).length
+    aiGenVisible.value = false
+    try {
+      await ElMessageBox.confirm(
+        failedCount > 0
+          ? `已为 ${res.data?.created || 0} 条需求创建生成任务，${failedCount} 条失败（${res.data.failed.join('、')}）。是否前往查看「AI用例生成记录」？`
+          : `生成任务已创建，生成过程中可在「AI用例生成记录」中实时查看进度与结果。是否前往查看？`,
+        '查看生成进度',
+        { confirmButtonText: '前往查看', cancelButtonText: '留在本页', type: 'info' }
+      )
+      router.push('/ai-generation/generated-testcases')
+    } catch (e) {
+      /* 用户选择留在本页 */
+    }
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || 'AI生成任务创建失败')
+  } finally {
+    aiGenerating.value = false
+  }
+}
+
+// ============ 业务知识检索（按需求逐个，各需求独立选择上下文） ============
+const isRetrievingAll = computed(() => Object.values(isRetrievingReq).some(Boolean))
+
+async function fetchKnowledgeForRequirement(r) {
+  if (!r) return
+  isRetrievingReq[r.id] = true
+  try {
+    const res = await retrieveKnowledge({
+      requirement_text: `需求标题: ${r.title}\n\n需求描述:\n${(r.spec || '').slice(0, 2000)}`,
+      project_id: r.project || null,
+      top_k: 10
+    })
+    knowledgeResultsMap[r.id] = res.data.results || []
+    // 默认勾选高分结果（score >= 6），与单需求生成页保持一致
+    selectedKnowledgeMap[r.id] = knowledgeResultsMap[r.id]
+      .filter(k => k.score >= 6)
+      .map(k => ({ id: k.id, type: k.type, name: k.name, content: k.content }))
+  } catch (e) {
+    knowledgeResultsMap[r.id] = []
+    ElMessage.error(`「${r.title}」业务知识检索失败：` + (e.response?.data?.error || e.message))
+  } finally {
+    isRetrievingReq[r.id] = false
+  }
+}
+
+// 一键为所有选中的需求逐个检索（并发）
+async function retrieveAllKnowledge() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先勾选需求')
+    return
+  }
+  await Promise.all(selectedRows.value.map(r => fetchKnowledgeForRequirement(r)))
+}
+
+// 单独重搜某条需求
+async function retrieveOneKnowledge(r) {
+  await fetchKnowledgeForRequirement(r)
+}
+
+function toggleKnowledge(r, k) {
+  const list = selectedKnowledgeMap[r.id] || (selectedKnowledgeMap[r.id] = [])
+  const idx = list.findIndex(x => x.id === k.id)
+  if (idx >= 0) {
+    list.splice(idx, 1)
+  } else {
+    list.push({ id: k.id, type: k.type, name: k.name, content: k.content })
+  }
+}
+
+function isKnowledgeSelected(r, k) {
+  return (selectedKnowledgeMap[r.id] || []).some(x => x.id === k.id)
+}
+
+function removeSelectedKnowledge(r, k) {
+  const list = selectedKnowledgeMap[r.id] || []
+  const idx = list.findIndex(x => x.id === k.id)
+  if (idx >= 0) {
+    list.splice(idx, 1)
+  }
 }
 
 async function handleBatchDelete() {
@@ -1069,6 +1340,225 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-top: 16px;
+}
+
+.ai-gen-selection {
+  background: #F8FAFC;
+  border: 1px solid var(--aitest-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.ai-gen-selected-label {
+  font-weight: 600;
+  color: #0F172A;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.ai-gen-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 120px;
+  overflow: auto;
+}
+
+.ai-gen-tag {
+  max-width: 320px;
+}
+
+.ai-gen-hint {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: var(--aitest-text-3);
+  line-height: 1.6;
+}
+
+.ai-gen-form .el-radio-group {
+  flex-wrap: wrap;
+}
+
+/* ---------- 业务知识检索 ---------- */
+.knowledge-section {
+  margin-bottom: 20px;
+}
+
+.knowledge-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.selected-knowledge-count {
+  color: var(--aitest-text-2);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.knowledge-toolbar-hint {
+  color: var(--aitest-text-3);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.per-req-knowledge {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.req-knowledge-block {
+  border: 1px solid var(--aitest-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.req-knowledge-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.req-knowledge-title {
+  flex: 1;
+  font-weight: 600;
+  color: #0F172A;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.req-knowledge-status {
+  font-size: 0.78rem;
+  color: var(--aitest-text-3);
+}
+
+.req-knowledge-count {
+  font-size: 0.78rem;
+  color: var(--aitest-primary);
+  font-weight: 600;
+  background: var(--aitest-primary-subtle);
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+.selected-knowledge-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.knowledge-panel {
+  border: 1px solid var(--aitest-border);
+  border-radius: 8px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.knowledge-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--aitest-border);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--aitest-text-2);
+}
+
+.knowledge-count {
+  color: var(--aitest-text-3);
+  font-family: var(--aitest-font-mono);
+}
+
+.knowledge-panel-body {
+  max-height: 240px;
+  overflow: auto;
+}
+
+.knowledge-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--aitest-text-3);
+  font-size: 0.85rem;
+}
+
+.knowledge-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--aitest-surface-subtle);
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+
+.knowledge-item:hover {
+  background: var(--aitest-surface-subtle);
+}
+
+.knowledge-item.selected {
+  background: var(--aitest-primary-subtle);
+}
+
+.knowledge-item input[type="checkbox"] {
+  accent-color: var(--aitest-primary);
+  flex-shrink: 0;
+}
+
+.knowledge-item-type {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--aitest-surface-subtle);
+  color: var(--aitest-text-3);
+  border: 1px solid var(--aitest-border);
+}
+
+.knowledge-item-name {
+  flex: 1;
+  color: var(--aitest-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knowledge-item-score {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--aitest-text-3);
+}
+
+.knowledge-item-score.high {
+  color: var(--aitest-success);
+}
+
+.knowledge-item-score.low {
+  color: var(--aitest-warning);
+}
+
+.knowledge-panel-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-top: 1px solid var(--aitest-border);
+  background: #F8FAFC;
+  font-size: 0.82rem;
+  color: var(--aitest-text-2);
 }
 
 .sync-tabs {

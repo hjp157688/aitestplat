@@ -264,9 +264,9 @@
               <el-icon><Cellphone /></el-icon>
               <span>APP环境配置</span>
             </el-menu-item>
-            <el-menu-item index="/configuration/ai-mode">
-              <el-icon><MagicStick /></el-icon>
-              <span>{{ $t('menu.aiModeConfig') }}</span>
+            <el-menu-item index="/configuration/ai-call-records">
+              <el-icon><DataLine /></el-icon>
+              <span>{{ $t('menu.aiCallRecords') }}</span>
             </el-menu-item>
             <el-menu-item index="/configuration/scheduled-task">
               <el-icon><Timer /></el-icon>
@@ -349,7 +349,7 @@ import { useI18n } from 'vue-i18n'
 import {
   Monitor, Folder, Document, Check, Collection, VideoPlay,
   DataAnalysis, DocumentCopy, Link, MagicStick,
-  Odometer, Timer, Setting, AlarmClock, Bell, Aim, Edit, Cpu, ArrowDown, Cellphone, Connection, FolderOpened, Tickets, Plus, Operation
+  Odometer, Timer, Setting, AlarmClock, Bell, Aim, Edit, Cpu, ArrowDown, Cellphone, Connection, FolderOpened, Tickets, Plus, Operation, DataLine
 } from '@element-plus/icons-vue'
 import logoSvg from '@/assets/images/logo.svg'
 
@@ -467,7 +467,7 @@ const breadcrumbTitle = computed(() => {
     '/configuration/prompt-config': t('menu.promptConfig'),
     '/configuration/generation-config': t('menu.generationConfig'),
     '/configuration/ui-env': t('menu.uiEnvConfig'),
-    '/configuration/ai-mode': t('menu.aiModeConfig'),
+    '/configuration/ai-call-records': t('menu.aiCallRecords'),
     '/configuration/scheduled-task': t('menu.scheduledTaskConfig'),
     '/configuration/zentao': t('menu.zentaoConfig'),
 

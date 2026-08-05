@@ -37,17 +37,10 @@ class EmbeddingService:
         Returns:
             AIModelConfig 实例
         """
-        from apps.requirement_analysis.models import AIModelConfig
-
         if self._embedding_config is None or refresh:
-            config = None
-            # 按优先级查找分词/嵌入模型配置
-            for role in EMBEDDING_ROLE_PRIORITY:
-                config = AIModelConfig.objects.filter(
-                    role=role, is_active=True
-                ).first()
-                if config:
-                    break
+            from apps.ai.resolver import ConfigResolver
+            # 按优先级查找分词/嵌入模型配置（统一走 resolver）
+            config = ConfigResolver.active_by_priority(EMBEDDING_ROLE_PRIORITY)
 
             if config:
                 logger.info(f"使用分词模型: {config.name} ({config.model_name}, role={config.role})")

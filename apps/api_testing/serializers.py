@@ -16,8 +16,7 @@ from .models import (
     ApiProject, ApiCollection, ApiRequest, Environment,
     RequestHistory, TestSuite, TestExecution, TestSuiteRequest,
     ScheduledTask, TaskExecutionLog, NotificationLog,
-    TaskNotificationSetting, OperationLog, AIServiceConfig, ApiDocument,
-    ApiPromptConfig,
+    TaskNotificationSetting, OperationLog, ApiDocument,
 )
 
 User = get_user_model()
@@ -820,27 +819,6 @@ class OperationLogSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at']
 
 
-class AIServiceConfigSerializer(serializers.ModelSerializer):
-    """AI服务配置序列化器"""
-    service_type_display = serializers.CharField(source='get_service_type_display', read_only=True)
-    role_display = serializers.CharField(source='get_role_display', read_only=True)
-    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
-
-    class Meta:
-        model = AIServiceConfig
-        fields = [
-            'id', 'name', 'service_type', 'service_type_display',
-            'role', 'role_display', 'api_key', 'base_url', 'model_name',
-            'max_tokens', 'temperature', 'is_active', 'created_by',
-            'created_by_name', 'created_at', 'updated_at'
-        ]
-        read_only_fields = ['created_at', 'updated_at', 'created_by']
-
-    def create(self, validated_data):
-        validated_data['created_by'] = self.context['request'].user
-        return super().create(validated_data)
-
-
 # ==================== OpenAPI 文档导入相关序列化器 ====================
 
 class ApiDocumentUploadSerializer(serializers.ModelSerializer):
@@ -925,37 +903,3 @@ class TestCaseSaveRequestSerializer(serializers.Serializer):
     suite_name = serializers.CharField(required=False, allow_blank=True)
     collection_id = serializers.IntegerField(required=False, allow_null=True)
     project_id = serializers.IntegerField(required=False, allow_null=True)
-
-
-class ApiPromptConfigSerializer(serializers.ModelSerializer):
-    """提示词配置序列化器"""
-    prompt_type_display = serializers.CharField(source='get_prompt_type_display', read_only=True)
-    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
-
-    class Meta:
-        model = ApiPromptConfig
-        fields = [
-            'id', 'name', 'prompt_type', 'prompt_type_display', 'content',
-            'is_active', 'created_by', 'created_by_name', 'created_at', 'updated_at'
-        ]
-        read_only_fields = ['created_by', 'created_by_name']
-
-    def validate(self, attrs):
-        prompt_type = attrs.get('prompt_type')
-        if prompt_type is None and self.instance:
-            prompt_type = self.instance.prompt_type
-
-        if prompt_type and attrs.get('is_active', True):
-            queryset = ApiPromptConfig.objects.filter(prompt_type=prompt_type)
-            if self.instance:
-                queryset = queryset.exclude(pk=self.instance.pk)
-            if queryset.filter(is_active=True).exists():
-                raise serializers.ValidationError({
-                    'is_active': f'已存在活跃的"{prompt_type}"类型提示词，请先停用旧的配置'
-                })
-
-        return attrs
-
-    def create(self, validated_data):
-        validated_data['created_by'] = self.context['request'].user
-        return super().create(validated_data)

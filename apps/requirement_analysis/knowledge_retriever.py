@@ -206,8 +206,13 @@ class KnowledgeRetriever:
             )
 
         candidates_text = "\n\n---\n\n".join(candidate_lines)
-        prompt = RERANK_PROMPT.format(query=query, candidates_text=candidates_text)
+        from apps.ai.prompt_registry import get_prompt_content_async
+        from apps.ai import observability
+        prompt = await get_prompt_content_async(
+            'knowledge_rerank', default=RERANK_PROMPT,
+            query=query, candidates_text=candidates_text)
 
+        token = observability.set_scenario('knowledge_rerank')
         try:
             response = await self.llm_service.call_openai_compatible_api(
                 config,
@@ -256,5 +261,7 @@ class KnowledgeRetriever:
         except (json.JSONDecodeError, KeyError, Exception) as e:
             logger.error(f"Rerank 解析失败: {e}")
             # 保持原始排序
+        finally:
+            observability.reset_scenario(token)
 
         return candidates

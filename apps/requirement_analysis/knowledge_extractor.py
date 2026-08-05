@@ -168,8 +168,12 @@ class KnowledgeExtractor:
 
     async def _analyze_structure(self, text: str, config) -> Dict[str, Any]:
         """阶段 1：分析文档结构"""
-        prompt = STRUCTURE_ANALYSIS_PROMPT.format(document_text=text)
-
+        from apps.ai.prompt_registry import get_prompt_content_async
+        from apps.ai import observability
+        prompt = await get_prompt_content_async(
+            'knowledge_structure', default=STRUCTURE_ANALYSIS_PROMPT,
+            document_text=text)
+        token = observability.set_scenario('knowledge_structure')
         try:
             response = await self.llm_service.call_openai_compatible_api(
                 config,
@@ -187,6 +191,8 @@ class KnowledgeExtractor:
 
         except (json.JSONDecodeError, KeyError, Exception) as e:
             logger.error(f"结构分析失败: {e}")
+        finally:
+            observability.reset_scenario(token)
 
         return {
             "document_type": "未知",
@@ -206,7 +212,10 @@ class KnowledgeExtractor:
         writer_config,
     ) -> List[Dict[str, Any]]:
         """阶段 2：从章节中提取知识条目"""
-        prompt = SECTION_EXTRACT_PROMPT.format(
+        from apps.ai.prompt_registry import get_prompt_content_async
+        from apps.ai import observability
+        prompt = await get_prompt_content_async(
+            'knowledge_section', default=SECTION_EXTRACT_PROMPT,
             document_type=document_type,
             summary=summary,
             global_knowledge="\n".join(f"- {k}" for k in global_knowledge) if global_knowledge else "无",
@@ -219,6 +228,7 @@ class KnowledgeExtractor:
         # （不超主流模型输出上限；若模型上限较低，可在配置中心调小该模型的「最大Token数」）
         max_tokens = min(max(writer_config.max_tokens or 8192, 8192), 16384)
 
+        token = observability.set_scenario('knowledge_section')
         try:
             response = await self.llm_service.call_openai_compatible_api(
                 writer_config,
@@ -240,6 +250,8 @@ class KnowledgeExtractor:
 
         except (json.JSONDecodeError, KeyError, Exception) as e:
             logger.error(f"章节提取失败 [{section_title}]: {e}")
+        finally:
+            observability.reset_scenario(token)
 
         return []
 

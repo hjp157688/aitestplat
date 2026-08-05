@@ -135,6 +135,10 @@
                 <option value="zhipu">{{ $t('configuration.aiModel.modelTypes.zhipu') }}</option>
                 <option value="xiaomi">{{ $t('configuration.aiModel.modelTypes.xiaomi') }}</option>
                 <option value="xiaomi_coding_plan">{{ $t('configuration.aiModel.modelTypes.xiaomi_coding_plan') }}</option>
+                <option value="openai">{{ $t('configuration.aiModel.modelTypes.openai') }}</option>
+                <option value="azure_openai">{{ $t('configuration.aiModel.modelTypes.azure_openai') }}</option>
+                <option value="anthropic">{{ $t('configuration.aiModel.modelTypes.anthropic') }}</option>
+                <option value="google_gemini">{{ $t('configuration.aiModel.modelTypes.google_gemini') }}</option>
                 <option value="other">{{ $t('configuration.aiModel.modelTypes.other') }}</option>
               </select>
             </div>
@@ -150,6 +154,8 @@
                 <option value="writer">{{ $t('configuration.aiModel.roles.writer') }}</option>
                 <option value="reviewer">{{ $t('configuration.aiModel.roles.reviewer') }}</option>
                 <option value="tokenizer">{{ $t('configuration.aiModel.roles.tokenizer') }}</option>
+                <option value="embedding">{{ $t('configuration.aiModel.roles.embedding') }}</option>
+                <option value="browser_use_text">{{ $t('configuration.aiModel.roles.browser_use_text') }}</option>
                 <option value="api_testcase_generator">{{ $t('configuration.aiModel.roles.api_testcase_generator') }}</option>              </select>
             </div>
 
@@ -176,6 +182,18 @@
                 required>
               <small class="form-hint">
                 {{ $t('configuration.aiModel.baseUrlHint') }}
+              </small>
+            </div>
+
+            <div v-if="configForm.model_type === 'azure_openai'" class="form-group">
+              <label>{{ $t('configuration.aiModel.azureApiVersion') }}</label>
+              <input
+                v-model="configForm.provider_extra.api_version"
+                type="text"
+                class="form-input"
+                :placeholder="$t('configuration.aiModel.azureApiVersionPlaceholder')">
+              <small class="form-hint">
+                {{ $t('configuration.aiModel.azureApiVersionHint') }}
               </small>
             </div>
 
@@ -365,9 +383,10 @@ export default {
         max_tokens: 4096,
         temperature: 0.7,
         top_p: 0.9,
-        is_active: true
+        is_active: true,
+        provider_extra: {}
       },
-      // 模型类型与API Base URL的映射关系
+      // 模型类型与API Base URL的映射关系（与后端 apps.ai.providers 保持一致）
       modelBaseUrlMap: {
         deepseek: 'https://api.deepseek.com',
         qwen: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
@@ -375,6 +394,10 @@ export default {
         zhipu: 'https://open.bigmodel.cn/api/paas/v4',
         xiaomi: 'https://api.xiaomimimo.com/v1',
         xiaomi_coding_plan: 'https://token-plan-cn.xiaomimimo.com/v1',
+        openai: 'https://api.openai.com/v1',
+        azure_openai: '',
+        anthropic: 'https://api.anthropic.com/v1',
+        google_gemini: 'https://generativelanguage.googleapis.com/v1beta/openai',
         other: ''
       },
       testResult: {
@@ -529,7 +552,8 @@ export default {
         max_tokens: 4096,
         temperature: 0.7,
         top_p: 0.9,
-        is_active: true
+        is_active: true,
+        provider_extra: {}
       })
       this.availableModels = []
       this.showAvailableModelsPanel = false
@@ -549,7 +573,8 @@ export default {
         max_tokens: config.max_tokens,
         temperature: config.temperature,
         top_p: config.top_p,
-        is_active: config.is_active
+        is_active: config.is_active,
+        provider_extra: config.provider_extra || {}
       }
       this.availableModels = []
       this.showAvailableModelsPanel = false

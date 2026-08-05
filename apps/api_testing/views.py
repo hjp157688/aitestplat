@@ -25,8 +25,7 @@ from .models import (
     ApiProject, ApiCollection, ApiRequest, Environment,
     RequestHistory, TestSuite, TestExecution, TestSuiteRequest,
     ScheduledTask, TaskExecutionLog, NotificationLog,
-    TaskNotificationSetting, OperationLog, AIServiceConfig, ApiDocument,
-    ApiPromptConfig,
+    TaskNotificationSetting, OperationLog, ApiDocument,
 )
 
 from .serializers import (
@@ -39,7 +38,6 @@ from .serializers import (
     TaskNotificationSettingDetailSerializer, OperationLogSerializer,
     ApiDocumentUploadSerializer, ApiDocumentSerializer, ApiDocumentImportSerializer,
     TestCaseGenerationRequestSerializer, TestCaseSaveRequestSerializer,
-    ApiPromptConfigSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -47,13 +45,6 @@ logger = logging.getLogger(__name__)
 from .utils import execute_assertions
 from .operation_logger import log_operation
 from .variable_resolver import VariableResolver
-from .serializers import (
-    ApiProjectSerializer, ApiCollectionSerializer, ApiRequestSerializer,
-    EnvironmentSerializer, RequestHistorySerializer, TestSuiteSerializer,
-    TestSuiteRequestSerializer, TestExecutionSerializer, UserSerializer,
-    ScheduledTaskSerializer, ScheduledTaskSerializer,
-    AIServiceConfigSerializer
-)
 
 User = get_user_model()
 
@@ -618,7 +609,6 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.exception("Failed to save test cases")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 class EnvironmentViewSet(viewsets.ModelViewSet):
@@ -2324,8 +2314,6 @@ class TaskExecutionLogViewSet(viewsets.ReadOnlyModelViewSet):
         ).select_related('task', 'executed_by')
 
 
-
-
 # ================ 通知管理相关视图集 ================
 
 
@@ -2402,8 +2390,6 @@ class TaskNotificationSettingViewSet(viewsets.ModelViewSet):
 # ================ 通知管理相关模型 ================
 
 
-
-
 class OperationLogViewSet(viewsets.ReadOnlyModelViewSet):
     """操作日志视图集"""
     queryset = OperationLog.objects.all()
@@ -2459,68 +2445,6 @@ class ApiDashboardViewSet(viewsets.ViewSet):
             'suite_count': suite_count,
             'history_count': history_count
         })
-
-
-class AIServiceConfigViewSet(viewsets.ModelViewSet):
-    """AI服务配置视图集"""
-    queryset = AIServiceConfig.objects.all()
-    serializer_class = AIServiceConfigSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['service_type', 'role', 'is_active']
-    search_fields = ['name', 'model_name']
-    ordering_fields = ['created_at', 'name']
-    ordering = ['-created_at']
-
-    def get_queryset(self):
-        user = self.request.user
-        return AIServiceConfig.objects.filter(created_by=user)
-
-    @action(detail=False, methods=['post'])
-    def test_connection(self, request):
-        """测试AI服务连接"""
-        config_id = request.data.get('config_id')
-        if not config_id:
-            return Response({'error': '请提供配置ID'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            config = AIServiceConfig.objects.get(id=config_id, created_by=request.user)
-        except AIServiceConfig.DoesNotExist:
-            return Response({'error': '配置不存在'}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            headers = {
-                'Authorization': f'Bearer {config.api_key}',
-                'Content-Type': 'application/json'
-            }
-
-            test_data = {
-                'model': config.model_name,
-                'messages': [{'role': 'user', 'content': 'Hello'}],
-                'max_tokens': 10
-            }
-
-            response = requests.post(
-                f"{config.base_url}/chat/completions",
-                headers=headers,
-                json=test_data,
-                timeout=10
-            )
-
-            if response.status_code == 200:
-                return Response({'message': '连接测试成功', 'status': 'success'})
-            else:
-                return Response({
-                    'error': f'连接测试失败: {response.status_code}',
-                    'details': response.text
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-        except requests.exceptions.Timeout:
-            return Response({'error': '连接超时'}, status=status.HTTP_408_REQUEST_TIMEOUT)
-        except requests.exceptions.RequestException as e:
-            return Response({'error': f'连接失败: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        except Exception as e:
-            return Response({'error': f'未知错误: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ==================== OpenAPI 文档导入 ViewSet ====================
@@ -2639,71 +2563,3 @@ class ApiDocumentViewSet(viewsets.ModelViewSet):
             return Response({'error': f'导入失败: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ApiPromptConfigViewSet(viewsets.ModelViewSet):
-    """提示词配置视图集"""
-    queryset = ApiPromptConfig.objects.all()
-    serializer_class = ApiPromptConfigSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['prompt_type', 'is_active']
-    ordering_fields = ['created_at', 'updated_at']
-    ordering = ['-created_at']
-
-    @action(detail=False, methods=['get'], url_path='load-defaults')
-    def load_defaults(self, request):
-        """加载默认提示词"""
-        prompt_type = request.query_params.get('prompt_type', 'api_testcase_generator')
-
-        defaults = {
-            'api_testcase_generator': {
-                'name': '默认接口测试用例生成提示词',
-                'prompt_type': 'api_testcase_generator',
-                'content': DEFAULT_API_TESTCASE_PROMPT,
-            },
-        }
-
-        default = defaults.get(prompt_type)
-        if not default:
-            return Response({'error': '未知的提示词类型'}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(default)
-
-
-DEFAULT_API_TESTCASE_PROMPT = """你是一个专业的API接口测试专家。你的任务是根据给定的API接口定义，生成多种场景的测试用例。
-
-对每个接口，你需要生成以下类型的测试用例：
-1. **正向用例**：使用合法的参数值，验证接口正常返回（期望200/201等成功状态码）
-2. **异常用例**：使用缺失必填参数、错误类型等，验证接口返回错误（期望400/404等）
-3. **边界值用例**：使用空值、超长字符串、特殊字符等边界值，验证接口的健壮性
-
-请严格按以下JSON格式输出，每个接口对应一个数组：
-
-```json
-{
-  "test_cases": {
-    "<request_id>": [
-      {
-        "name": "用例名称（描述场景，如：创建用户-正向验证）",
-        "params_override": {"key": "value"},
-        "body_override": {"key": "value"},
-        "assertions": [
-          {"type": "status_code", "operator": "equals", "expected": 200},
-          {"type": "json_path", "operator": "exists", "path": "$.id"},
-          {"type": "json_path", "operator": "equals", "path": "$.name", "expected": "Buddy"}
-        ]
-      }
-    ]
-  }
-}
-```
-
-断言类型说明：
-- type: "status_code" - 验证HTTP状态码
-- type: "json_path" - 验证JSON响应体中的字段
-- operator: "equals", "not_equals", "contains", "exists", "not_exists", "greater_than", "less_than"
-- path: JSONPath表达式（如 $.data.id, $.code）
-
-注意：
-- params_override 和 body_override 只需要包含需要覆盖的字段，未覆盖的字段保持原样
-- 每个接口至少生成3条用例（正向、异常、边界值各至少1条）
-- 断言必须具体、可验证"""

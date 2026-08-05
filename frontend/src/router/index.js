@@ -17,7 +17,6 @@ import ApiRequestHistory from '@/views/api-testing/RequestHistory.vue'
 import ApiEnvironmentManagement from '@/views/api-testing/EnvironmentManagement.vue'
 import ApiReportView from '@/views/api-testing/ReportView.vue'
 import ApiScheduledTasks from '@/views/api-testing/ScheduledTasks.vue'
-import ApiAIServiceConfig from '@/views/api-testing/AIServiceConfig.vue'
 import NotificationLogs from '@/views/notification/NotificationLogs.vue'
 import UiDashboard from '@/views/ui-automation/dashboard/Dashboard.vue'
 import UiProjectList from '@/views/ui-automation/projects/ProjectList.vue'
@@ -234,11 +233,6 @@ const routes = [
                 component: ApiScheduledTasks
             },
             {
-                path: 'ai-service-config',
-                name: 'ApiAIServiceConfig',
-                component: ApiAIServiceConfig
-            },
-            {
                 path: 'notification-logs',
                 name: 'ApiNotificationLogs',
                 component: NotificationLogs
@@ -408,6 +402,11 @@ const routes = [
                         component: () => import('@/views/requirement-analysis/AIModelConfig.vue')
                     },
                     {
+                        path: 'ai-call-records',
+                        name: 'ConfigAiCallRecords',
+                        component: () => import('@/views/configuration/AiCallRecords.vue')
+                    },
+                    {
                         path: 'prompt-config',
                         name: 'ConfigPromptConfig',
                         component: () => import('@/views/requirement-analysis/PromptConfig.vue')
@@ -426,11 +425,6 @@ const routes = [
                         path: 'app-env',
                         name: 'ConfigAppEnv',
                         component: () => import('@/views/app-automation/settings/AppSettings.vue')
-                    },
-                    {
-                        path: 'ai-mode',
-                        name: 'ConfigAIMode',
-                        component: () => import('@/views/configuration/AIIntelligentModeConfig.vue')
                     },
                     {
                         path: 'scheduled-task',

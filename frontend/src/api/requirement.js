@@ -67,6 +67,19 @@ export function batchDeleteRequirements(ids) {
 }
 
 /**
+ * 为选中的需求批量AI生成测试用例
+ * @param {number[]} ids 选中的需求ID列表
+ * @param {Object} options 生成选项 { output_mode, case_type, granularity, use_reviewer_model }
+ */
+export function generateTestCasesForRequirements(ids, options = {}) {
+  return request({
+    url: '/requirement-analysis/requirements-manage/generate_test_cases/',
+    method: 'post',
+    data: { ids, ...options }
+  })
+}
+
+/**
  * AI解析需求文本
  */
 export function aiParseRequirements(projectId, content) {

@@ -8,8 +8,7 @@ from .views import (
     TestSuiteRequestViewSet, TestExecutionViewSet, UserViewSet,
     ScheduledTaskViewSet, TaskExecutionLogViewSet, NotificationLogViewSet,
     TaskNotificationSettingViewSet, OperationLogViewSet,
-    ApiDashboardViewSet, AIServiceConfigViewSet, ApiDocumentViewSet,
-    ApiPromptConfigViewSet
+    ApiDashboardViewSet, ApiDocumentViewSet,
 )
 
 router = DefaultRouter()
@@ -28,9 +27,7 @@ router.register(r'task-execution-logs', TaskExecutionLogViewSet, basename='taske
 router.register(r'notification-logs', NotificationLogViewSet)
 router.register(r'task-notification-settings', TaskNotificationSettingViewSet)
 router.register(r'operation-logs', OperationLogViewSet)
-router.register(r'ai-service-configs', AIServiceConfigViewSet, basename='aiserviceconfig')
 router.register(r'api-docs', ApiDocumentViewSet, basename='api-docs')
-router.register(r'prompt-configs', ApiPromptConfigViewSet, basename='prompt-configs')
 
 urlpatterns = [
     path('api-testing/', include(router.urls)),

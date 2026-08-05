@@ -238,6 +238,8 @@ try:
     async def _patched_get_model_output(self, input_messages):
         """修补后的 get_model_output，直接从 response.content 解析 JSON"""
         # logger.info("🔧 _patched_get_model_output called")
+        import time as _time
+        from apps.ai import observability
 
         if hasattr(self, '_task_was_done') and self._task_was_done:
             logger.info("🔧 Task was marked as done, stopping LLM interaction")
@@ -249,6 +251,7 @@ try:
         max_retries = 2  # 重试次数为2次
         last_exception = None
         response = None
+        _call_start = _time.monotonic()
         for attempt in range(max_retries):
             try:
                 # 添加超时控制，设置为60秒（支持硅基流动等大模型API的响应时间）
@@ -269,7 +272,36 @@ try:
                     await asyncio.sleep(0.5)  # 重试间隔0.5秒
         else:
             logger.error(f"❌ LLM invocation failed after {max_retries} attempts.")
+            try:
+                await observability.emit_async(
+                    provider=getattr(self, '_ai_provider', 'other'),
+                    model_name=getattr(self, 'model_name', ''),
+                    role='browser_use_text', status='failed',
+                    latency_ms=int((_time.monotonic() - _call_start) * 1000),
+                    scenario='browser_use_task',
+                    config_id=getattr(self, '_ai_config_id', None),
+                    error_message=str(last_exception),
+                )
+            except Exception:
+                pass
             raise last_exception
+
+        # 可观测：每次 LLM 步调用成功后落一条记录（含 token usage）
+        try:
+            _usage = getattr(response, 'usage_metadata', None) or {}
+            _in_tok = _usage.get('input_tokens') if isinstance(_usage, dict) else None
+            _out_tok = _usage.get('output_tokens') if isinstance(_usage, dict) else None
+            await observability.emit_async(
+                provider=getattr(self, '_ai_provider', 'other'),
+                model_name=response.model or getattr(self, 'model_name', ''),
+                role='browser_use_text', status='success',
+                latency_ms=int((_time.monotonic() - _call_start) * 1000),
+                scenario='browser_use_task',
+                prompt_tokens=_in_tok, completion_tokens=_out_tok,
+                config_id=getattr(self, '_ai_config_id', None),
+            )
+        except Exception:
+            pass
 
         # 检查响应是否为空或无效
         if not response or not hasattr(response, 'content'):
@@ -940,12 +972,17 @@ class BaseBrowserAgent:
         self.enable_gif = enable_gif  # GIF录制开关
         self.case_name = case_name or "Adhoc Task"  # 用例名称
 
-        # Load Config from DB
-        from apps.requirement_analysis.models import AIModelConfig
+        # Load Config from DB（统一走 apps.ai.ConfigResolver，按 role='browser_use_text' 取活跃配置）
+        from apps.ai.resolver import ConfigResolver
 
         # Select Config (always use text mode config)
         role_name = 'browser_use_text'
-        config_obj = AIModelConfig.objects.filter(role=role_name, is_active=True).first()
+        config_obj = ConfigResolver.active(role=role_name)
+
+        # 供可观测记录使用（apps.ai.observability.emit）
+        self._ai_provider = config_obj.model_type if config_obj else 'other'
+        self._ai_config_id = config_obj.id if config_obj else None
+        self._ai_model_name = config_obj.model_name if config_obj else ''
 
         model_config = {}
         if config_obj:
@@ -1302,7 +1339,29 @@ class BaseBrowserAgent:
                 f"Task:\n{task_description}"
             )
 
-        response = await self.llm.ainvoke(prompt)
+        import time as _time
+        from apps.ai import observability
+        _call_start = _time.monotonic()
+        try:
+            response = await self.llm.ainvoke(prompt)
+        except Exception:
+            await observability.emit_async(
+                provider=getattr(self, '_ai_provider', 'other'),
+                model_name=getattr(self, 'model_name', ''),
+                role='browser_use_text', status='failed',
+                latency_ms=int((_time.monotonic() - _call_start) * 1000),
+                scenario='browser_use_breakdown',
+                config_id=getattr(self, '_ai_config_id', None),
+            )
+            raise
+        await observability.emit_async(
+            provider=getattr(self, '_ai_provider', 'other'),
+            model_name=getattr(self, 'model_name', ''),
+            role='browser_use_text', status='success',
+            latency_ms=int((_time.monotonic() - _call_start) * 1000),
+            scenario='browser_use_breakdown',
+            config_id=getattr(self, '_ai_config_id', None),
+        )
         content = response.content.strip() if hasattr(response, 'content') else str(response)
 
         steps = []

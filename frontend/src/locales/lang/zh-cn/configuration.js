@@ -160,8 +160,15 @@ export default {
       zhipu: '智谱',
       xiaomi: '小米',
       xiaomi_coding_plan: '小米coding plan',
+      openai: 'OpenAI',
+      azure_openai: 'Azure OpenAI',
+      anthropic: 'Anthropic',
+      google_gemini: 'Google Gemini',
       other: '其他'
     },
+    azureApiVersion: 'API 版本 (api-version)',
+    azureApiVersionPlaceholder: '如 2024-02-15-preview',
+    azureApiVersionHint: 'Azure OpenAI 需要在请求 URL 携带 api-version 参数，请在此填写',
     roles: {
       writer: '测试用例编写专家',
       reviewer: '测试评审专家',
@@ -199,5 +206,35 @@ export default {
       saveFailedDetail: '保存失败: {error}',
       deleteFailedDetail: '删除失败: {error}'
     }
+  },
+
+  // AI 调用记录（可观测）
+  aiCallRecords: {
+    title: 'AI调用记录',
+    description: '查看全平台所有 AI 模型调用的状态、耗时、Token 与预估成本',
+    statTotal: '总调用',
+    statSuccess: '成功',
+    statFailed: '失败',
+    statRate: '成功率',
+    statAvgLatency: '平均耗时',
+    statToday: '今日调用',
+    filterStatus: '状态',
+    filterProvider: '提供商',
+    filterRole: '角色',
+    filterScenario: '场景',
+    statusSuccess: '成功',
+    statusFailed: '失败',
+    refresh: '刷新',
+    colTime: '时间',
+    colProvider: '提供商',
+    colModel: '模型',
+    colRole: '角色',
+    colScenario: '场景',
+    colStatus: '状态',
+    colLatency: '耗时',
+    colTokens: 'Token数',
+    colCost: '预估成本',
+    colError: '错误信息',
+    loadFailed: '加载调用记录失败: {error}'
   }
 }

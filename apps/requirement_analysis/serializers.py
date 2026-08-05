@@ -157,22 +157,24 @@ class TestCaseReviewRequestSerializer(serializers.Serializer):
 
 
 class AIModelConfigSerializer(serializers.ModelSerializer):
-    """AI模型配置序列化器"""
+    """AI模型配置序列化器（全平台统一配置表）"""
     model_type_display = serializers.CharField(source='get_model_type_display', read_only=True)
     role_display = serializers.CharField(source='get_role_display', read_only=True)
     created_by_name = serializers.CharField(source='created_by.username', read_only=True)
     api_key_masked = serializers.SerializerMethodField(read_only=True)
-    
+
     class Meta:
         model = AIModelConfig
         fields = ['id', 'name', 'model_type', 'model_type_display', 'role', 'role_display',
-                 'api_key', 'api_key_masked', 'base_url', 'model_name', 'max_tokens', 'temperature', 'top_p', 
-                 'is_active', 'created_by', 'created_by_name', 'created_at', 'updated_at']
+                  'api_key', 'api_key_masked', 'base_url', 'model_name', 'max_tokens', 'temperature', 'top_p',
+                  'is_active', 'scope', 'provider_extra',
+                  'created_by', 'created_by_name', 'created_at', 'updated_at']
         read_only_fields = ['created_by', 'created_by_name']
         extra_kwargs = {
-            'api_key': {'write_only': True}  # API Key只用于写入，不在响应中返回
+            'api_key': {'write_only': True},  # API Key只用于写入，不在响应中返回
+            'provider_extra': {'required': False},
         }
-    
+
     def get_api_key_masked(self, obj):
         """返回掩码版本的API Key"""
         if obj.api_key:
@@ -182,7 +184,24 @@ class AIModelConfigSerializer(serializers.ModelSerializer):
             else:
                 return '*' * len(obj.api_key)
         return ''
-    
+
+    def validate(self, attrs):
+        """同一 (role, scope) 只能有一个活跃配置（应用层单 active 约束）。"""
+        role = attrs.get('role') or (self.instance.role if self.instance else None)
+        scope = attrs.get('scope') or (self.instance.scope if self.instance else 'global')
+        is_active = attrs.get('is_active', self.instance.is_active if self.instance else True)
+
+        if role and is_active:
+            queryset = AIModelConfig.objects.filter(role=role, scope=scope, is_active=True)
+            if self.instance:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            if queryset.exists():
+                raise serializers.ValidationError(
+                    f'已存在活跃的 "{role}" 配置（作用域 {scope}），请先停用旧的配置再启用新的')
+
+        # azure_openai 建议带 api-version，但允许为空（由用户决定）
+        return attrs
+
     def create(self, validated_data):
         # 自动设置创建者
         user = self.context['request'].user
@@ -195,46 +214,49 @@ class AIModelConfigSerializer(serializers.ModelSerializer):
             if not default_user:
                 default_user = User.objects.first()
             validated_data['created_by'] = default_user
-        
+
         return super().create(validated_data)
 
 
 class PromptConfigSerializer(serializers.ModelSerializer):
-    """提示词配置序列化器"""
+    """提示词配置序列化器（v2：版本化，同一类型允许多版本，惟一一活跃）"""
     prompt_type_display = serializers.CharField(source='get_prompt_type_display', read_only=True)
     created_by_name = serializers.CharField(source='created_by.username', read_only=True)
-    
+
     class Meta:
         model = PromptConfig
         fields = ['id', 'name', 'prompt_type', 'prompt_type_display', 'content', 'is_active',
-                 'created_by', 'created_by_name', 'created_at', 'updated_at']
-        read_only_fields = ['created_by', 'created_by_name']
+                  'version', 'version_note', 'is_seeded', 'seed_hash',
+                  'created_by', 'created_by_name', 'created_at', 'updated_at']
+        read_only_fields = ['created_by', 'created_by_name', 'is_seeded', 'seed_hash']
 
     def validate(self, attrs):
-        prompt_type = attrs.get('prompt_type')
-        if prompt_type is None and self.instance:
-            prompt_type = self.instance.prompt_type
-
-        if prompt_type:
-            queryset = PromptConfig.objects.filter(prompt_type=prompt_type)
-            if self.instance:
-                queryset = queryset.exclude(pk=self.instance.pk)
-
-            if queryset.exists():
-                prompt_display = dict(PromptConfig.PROMPT_CHOICES).get(prompt_type, prompt_type)
-                raise serializers.ValidationError({
-                    'prompt_type': f'{prompt_display}已存在，请勿重复添加'
-                })
-
+        is_active = attrs.get('is_active', self.instance.is_active if self.instance else True)
+        if is_active:
+            prompt_type = attrs.get('prompt_type') or (self.instance.prompt_type if self.instance else None)
+            if prompt_type:
+                queryset = PromptConfig.objects.filter(prompt_type=prompt_type, is_active=True)
+                if self.instance:
+                    queryset = queryset.exclude(pk=self.instance.pk)
+                if queryset.exists():
+                    display = dict(PromptConfig.PROMPT_CHOICES).get(prompt_type, prompt_type)
+                    raise serializers.ValidationError({
+                        'is_active': f'{display} 已有活跃版本，请先停用旧的再启用新的'
+                    })
         return attrs
-    
+
     def create(self, validated_data):
+        # 同一类型自动推进版本号
+        prompt_type = validated_data.get('prompt_type')
+        if prompt_type:
+            latest = PromptConfig.objects.filter(prompt_type=prompt_type).order_by('-version').first()
+            validated_data['version'] = (latest.version or 1) + 1 if latest else 1
+            validated_data['version_note'] = validated_data.get('version_note') or f'v{validated_data["version"]}'
         # 自动设置创建者
         user = self.context['request'].user
         if user.is_authenticated:
             validated_data['created_by'] = user
         else:
-            # 如果是匿名用户，使用第一个超级用户作为默认用户
             from apps.users.models import User
             default_user = User.objects.filter(is_superuser=True).first()
             if not default_user:
@@ -258,7 +280,7 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestCaseGenerationTask
         fields = ['id', 'task_id', 'title', 'requirement_text', 'status', 'status_display',
-                 'progress', 'project', 'project_name', 'writer_model_config', 'writer_model_name', 
+                 'progress', 'output_mode', 'project', 'project_name', 'writer_model_config', 'writer_model_name',
                  'reviewer_model_config', 'reviewer_model_name', 'writer_prompt_config', 'writer_prompt_name',
                  'reviewer_prompt_config', 'reviewer_prompt_name', 'generated_test_cases',
                  'review_feedback', 'final_test_cases', 'generation_log', 'error_message',
@@ -398,6 +420,31 @@ class AIRequirementImportRequestSerializer(serializers.Serializer):
     requirements = serializers.ListField(
         child=serializers.DictField(),
         help_text="AI解析出的需求项列表"
+    )
+
+
+class RequirementGenerateTestCasesRequestSerializer(serializers.Serializer):
+    """从需求管理批量AI生成测试用例请求"""
+    ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        help_text="选中的需求ID列表"
+    )
+    output_mode = serializers.ChoiceField(
+        choices=['stream', 'complete'], required=False, default=None,
+        help_text='输出模式（默认使用生成行为配置）')
+    case_type = serializers.CharField(
+        max_length=200, required=False, allow_blank=True, default='',
+        help_text='用例类型补充指令（自由文本）')
+    granularity = serializers.ChoiceField(
+        choices=['coarse', 'medium', 'fine'], required=False, default='medium',
+        help_text='颗粒度')
+    use_reviewer_model = serializers.BooleanField(
+        default=True, required=False, help_text='是否使用评审模型')
+    selected_knowledge = serializers.DictField(
+        required=False,
+        default=dict,
+        help_text="按需求ID分组的业务知识列表，如 {<requirement_id>: [{id, type, name, content}]}。"
+                  "每条需求只使用其对应 ID 的知识作为生成上下文。"
     )
 
 

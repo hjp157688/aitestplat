@@ -8,6 +8,10 @@ import asyncio
 from typing import Dict, Any, List, AsyncIterator
 import logging
 
+from apps.ai.client import AIClient
+from apps.ai import observability
+from apps.ai.providers import MODEL_CHOICES as providers_MODEL_CHOICES
+
 logger = logging.getLogger(__name__)
 
 
@@ -197,16 +201,10 @@ class AnalysisTask(models.Model):
 
 
 class AIModelConfig(models.Model):
-    """AI模型配置模型"""
-    MODEL_CHOICES = [
-        ('deepseek', 'DeepSeek'),
-        ('qwen', '通义千问'),
-        ('siliconflow', '硅基流动'),
-        ('zhipu', '智谱'),
-        ('xiaomi', '小米'),
-        ('xiaomi_coding_plan', '小米coding plan'),
-        ('other', '其他'),
-    ]
+    """AI模型配置模型（全平台唯一配置表，提供商枚举收敛于 apps.ai.providers）"""
+
+    # 提供商枚举唯一来源：apps.ai.providers（合并自 api_testing.AIServiceConfig 的 openai/azure/anthropic 等）
+    MODEL_CHOICES = providers_MODEL_CHOICES
 
     ROLE_CHOICES = [
         ('writer', '测试用例编写专家'),
@@ -215,18 +213,34 @@ class AIModelConfig(models.Model):
         ('embedding', '嵌入模型'),
         ('tokenizer', '分词模型'),
         ('api_testcase_generator', '接口测试用例生成'),
+        # 合并自 api_testing.AIServiceConfig 的旧角色（保数据完整，无运行时消费方，UI 不展示）
+        ('doc_extractor', 'API文档提取'),
+        ('naming', '参数命名规范化'),
+        ('mock_data', '模拟数据生成'),
+        ('description', '参数描述补全'),
     ]
 
-    name = models.CharField(max_length=100, verbose_name='配置名称')
+    SCOPE_CHOICES = [
+        ('global', '全局'),
+        ('user', '用户'),
+    ]
+
+    name = models.CharField(max_length=200, verbose_name='配置名称')
     model_type = models.CharField(max_length=20, choices=MODEL_CHOICES, verbose_name='模型类型')
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, verbose_name='角色')
-    api_key = models.CharField(max_length=200, verbose_name='API Key', blank=True, null=True)
-    base_url = models.URLField(verbose_name='API Base URL')
-    model_name = models.CharField(max_length=100, verbose_name='模型名称')
+    api_key = models.CharField(max_length=500, verbose_name='API Key', blank=True, null=True)
+    base_url = models.CharField(max_length=500, verbose_name='API Base URL')
+    model_name = models.CharField(max_length=200, verbose_name='模型名称')
     max_tokens = models.IntegerField(default=4096, verbose_name='最大Token数')
     temperature = models.FloatField(default=0.7, verbose_name='温度参数')
     top_p = models.FloatField(default=0.9, verbose_name='Top P参数')
     is_active = models.BooleanField(default=True, verbose_name='是否启用')
+    scope = models.CharField(
+        max_length=10, choices=SCOPE_CHOICES, default='global', verbose_name='作用域',
+        help_text='global=全局配置；user=用户私有配置（合并自 api_testing.AIServiceConfig）',
+    )
+    provider_extra = models.JSONField(default=dict, blank=True, verbose_name='提供商扩展参数',
+                                      help_text='如 Azure OpenAI 的 api_version 等')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
@@ -243,26 +257,40 @@ class AIModelConfig(models.Model):
 
     @classmethod
     def get_active_config(cls, model_type: str, role: str):
-        """获取活跃的配置"""
-        return cls.objects.filter(
-            model_type=model_type,
-            role=role,
-            is_active=True
-        ).first()
+        """获取活跃的配置。
+
+        model_type 传 None 表示任意提供商（修正旧实现 model_type=None
+        被译为 `IS NULL` 永远匹配不到的 bug），统一走 apps.ai.ConfigResolver。
+        """
+        from apps.ai.resolver import ConfigResolver
+        return ConfigResolver.active(role=role, model_type=model_type)
 
 
 class PromptConfig(models.Model):
-    """提示词配置模型"""
+    """提示词配置模型（v2：全类型注册 + 版本化，种子来源见 apps.ai.prompt_seeds）"""
     PROMPT_CHOICES = [
         ('writer', '用例编写提示词'),
         ('reviewer', '用例评审提示词'),
+        ('requirement_parse', '需求解析提示词'),
+        ('api_testcase_generator', '接口测试用例生成'),
+        ('knowledge_structure', '知识库-结构分析'),
+        ('knowledge_section', '知识库-章节提取'),
+        ('knowledge_rerank', '知识库-相关性重排'),
+        ('browser_use_task', 'Browser Use-执行任务'),
+        ('browser_use_breakdown', 'Browser Use-任务拆分'),
     ]
 
     name = models.CharField(max_length=100, verbose_name='配置名称')
-    prompt_type = models.CharField(max_length=20, choices=PROMPT_CHOICES, verbose_name='提示词类型')
+    prompt_type = models.CharField(max_length=30, choices=PROMPT_CHOICES, verbose_name='提示词类型')
     content = models.TextField(verbose_name='提示词内容')
     is_active = models.BooleanField(default=True, verbose_name='是否启用')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')
+    version = models.PositiveIntegerField(default=1, verbose_name='版本号')
+    version_note = models.CharField(max_length=200, blank=True, default='', verbose_name='版本说明')
+    seed_hash = models.CharField(max_length=64, blank=True, default='', verbose_name='种子内容指纹')
+    is_seeded = models.BooleanField(default=False, verbose_name='是否来自种子')
+    # 种子行（系统数据）无属主；用户自建的提示词由 serializer 写入 created_by
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
+                                   verbose_name='创建者')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
 
@@ -270,17 +298,16 @@ class PromptConfig(models.Model):
         db_table = 'prompt_config'
         verbose_name = '提示词配置'
         verbose_name_plural = '提示词配置'
+        ordering = ['prompt_type', '-version']
 
     def __str__(self):
-        return f"{self.get_prompt_type_display()} - {self.name}"
+        return f"{self.get_prompt_type_display()} - {self.name} (v{self.version})"
 
     @classmethod
     def get_active_config(cls, prompt_type: str):
-        """获取活跃的提示词配置"""
-        return cls.objects.filter(
-            prompt_type=prompt_type,
-            is_active=True
-        ).first()
+        """获取活跃的提示词配置（统一走 apps.ai.prompt_registry，最新版本优先）"""
+        from apps.ai.prompt_registry import get_prompt
+        return get_prompt(prompt_type)
 
 
 class GenerationConfig(models.Model):
@@ -676,121 +703,13 @@ class AIModelService:
         Returns:
             API响应字典
         """
-        headers = AIModelService.get_openai_compatible_headers(config.api_key)
-
-        # 使用传入的max_tokens或默认使用config.max_tokens
-        actual_max_tokens = max_tokens if max_tokens is not None else config.max_tokens
-
-        data = {
-            'model': config.model_name,
-            'messages': messages,
-            'max_tokens': actual_max_tokens,
-            'temperature': config.temperature,
-            'top_p': config.top_p,
-            'stream': False
-        }
-
-        url = AIModelService.build_openai_compatible_url(config.base_url, '/chat/completions')
-
-        logger.info(f"=== API调用详情 ===")
-        logger.info(f"原始base_url: {config.base_url}")
-        logger.info(f"最终请求URL: {url}")
-        logger.info(f"模型名称: {config.model_name}")
-        logger.info(f"请求参数: max_tokens={actual_max_tokens}, temperature={config.temperature}, top_p={config.top_p}")
-
-        try:
-            # 增加HTTP超时时间到900秒（15分钟），支持大文档生成
-            # 禁用HTTP/2，使用HTTP/1.1以提高兼容性
-            # 显式设置所有超时参数，避免默认的连接超时导致请求失败
-            timeout_config = httpx.Timeout(
-                connect=60.0,  # 连接超时：60秒
-                read=900.0,  # 读取超时：900秒（15分钟）
-                write=60.0,  # 写入超时：60秒
-                pool=60.0  # 连接池超时：60秒
-            )
-            async with httpx.AsyncClient(timeout=timeout_config, http2=False) as client:
-                logger.info(f"发送POST请求到: {url}")
-                response = await client.post(
-                    url,
-                    headers=headers,
-                    json=data
-                )
-
-                logger.info(f"收到响应: status_code={response.status_code}")
-
-                if response.status_code != 200:
-                    error_detail = response.text
-                    logger.error(f"API调用返回错误: Status={response.status_code}, Body={error_detail}")
-
-                response.raise_for_status()
-                result = response.json()
-                logger.info(f"API调用成功，响应内容: {str(result)[:200]}...")
-                return result
-        except httpx.HTTPStatusError as e:
-            provider_name = config.get_model_type_display()
-            error_msg = f"{provider_name} API返回错误 {e.response.status_code}: {e.response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        except httpx.TimeoutException as e:
-            provider_name = config.get_model_type_display()
-            logger.error(f"{provider_name} API请求超时: {repr(e)}")
-            raise Exception(f"{provider_name} API请求超时，请稍后再试或检查网络连接")
-        except Exception as e:
-            provider_name = config.get_model_type_display()
-            # Use repr(e) to capture the full exception type and message, especially if str(e) is empty
-            logger.error(f"{provider_name} API调用失败: {repr(e)}")
-            raise Exception(f"{provider_name} API调用失败: {str(e) or repr(e)}")
+        # 统一走 apps.ai.AIClient（鉴权/URL/可观测均收敛于此）
+        return await AIClient.chat(config, messages, max_tokens=max_tokens)
 
     @staticmethod
     async def list_available_models(config: AIModelConfig) -> List[str]:
         """获取当前配置下可用的模型列表。"""
-        headers = AIModelService.get_openai_compatible_headers(config.api_key)
-        url = AIModelService.build_openai_compatible_url(config.base_url, '/models')
-
-        timeout_config = httpx.Timeout(
-            connect=30.0,
-            read=60.0,
-            write=30.0,
-            pool=30.0
-        )
-
-        try:
-            async with httpx.AsyncClient(timeout=timeout_config, http2=False) as client:
-                logger.info(f"获取模型列表，URL: {url}")
-                response = await client.get(url, headers=headers)
-
-                if response.status_code != 200:
-                    error_detail = response.text
-                    logger.error(f"获取模型列表失败: Status={response.status_code}, Body={error_detail}")
-
-                response.raise_for_status()
-                payload = response.json()
-                raw_models = payload.get('data', []) if isinstance(payload, dict) else payload
-
-                model_ids = []
-                for item in raw_models or []:
-                    if isinstance(item, dict):
-                        model_id = item.get('id') or item.get('model') or item.get('name')
-                        if model_id:
-                            model_ids.append(str(model_id))
-                    elif isinstance(item, str):
-                        model_ids.append(item)
-
-                # 去重并保留原始顺序
-                unique_model_ids = list(dict.fromkeys(model_ids))
-                logger.info(f"获取模型列表成功，共{len(unique_model_ids)}个模型")
-                return unique_model_ids
-        except httpx.HTTPStatusError as e:
-            provider_name = config.get_model_type_display()
-            raise Exception(f"{provider_name} 获取模型列表失败 {e.response.status_code}: {e.response.text}")
-        except httpx.TimeoutException as e:
-            provider_name = config.get_model_type_display()
-            logger.error(f"{provider_name} 获取模型列表超时: {repr(e)}")
-            raise Exception(f"{provider_name} 获取模型列表超时，请检查网络连接或API地址是否正确")
-        except Exception as e:
-            provider_name = config.get_model_type_display()
-            logger.error(f"{provider_name} 获取模型列表失败: {repr(e)}")
-            raise Exception(f"{provider_name} 获取模型列表失败: {str(e) or repr(e)}")
+        return await AIClient.list_models(config)
 
     @staticmethod
     async def call_deepseek_api(config: AIModelConfig, messages: List[Dict[str, str]]) -> Dict[str, Any]:
@@ -817,49 +736,7 @@ class AIModelService:
         Returns:
             embedding 向量列表
         """
-        headers = AIModelService.get_openai_compatible_headers(config.api_key)
-        url = AIModelService.build_openai_compatible_url(config.base_url, '/embeddings')
-
-        data = {
-            'model': config.model_name,
-            'input': texts,
-        }
-
-        timeout_config = httpx.Timeout(
-            connect=60.0,
-            read=300.0,
-            write=60.0,
-            pool=60.0
-        )
-
-        try:
-            async with httpx.AsyncClient(timeout=timeout_config, http2=False) as client:
-                logger.info(f"调用 embedding API: {url}, 模型: {config.model_name}, 文本数: {len(texts)}")
-                response = await client.post(url, headers=headers, json=data)
-
-                if response.status_code != 200:
-                    error_detail = response.text
-                    logger.error(f"Embedding API 返回错误: Status={response.status_code}, Body={error_detail}")
-                    response.raise_for_status()
-
-                result = response.json()
-                embeddings = [item['embedding'] for item in result.get('data', [])]
-                logger.info(f"Embedding API 调用成功，返回 {len(embeddings)} 个向量")
-                return embeddings
-
-        except httpx.HTTPStatusError as e:
-            provider_name = config.get_model_type_display()
-            error_msg = f"{provider_name} Embedding API 返回错误 {e.response.status_code}: {e.response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        except httpx.TimeoutException as e:
-            provider_name = config.get_model_type_display()
-            logger.error(f"{provider_name} Embedding API 请求超时: {repr(e)}")
-            raise Exception(f"{provider_name} Embedding API 请求超时")
-        except Exception as e:
-            provider_name = config.get_model_type_display()
-            logger.error(f"{provider_name} Embedding API 调用失败: {repr(e)}")
-            raise Exception(f"{provider_name} Embedding API 调用失败: {str(e) or repr(e)}")
+        return await AIClient.embeddings(config, texts)
 
     @staticmethod
     async def call_openai_compatible_api_stream(
@@ -869,128 +746,10 @@ class AIModelService:
             max_tokens: int = None
     ) -> AsyncIterator[str]:
         """
-        流式调用OpenAI兼容格式的API，支持自动续写
+        流式调用OpenAI兼容格式的API，支持自动续写（统一走 apps.ai.AIClient）。
         """
-        headers = {
-            'Authorization': f'Bearer {config.api_key}',
-            'Content-Type': 'application/json'
-        }
-
-        # 使用传入的max_tokens或默认使用config.max_tokens
-        actual_max_tokens = max_tokens if max_tokens is not None else config.max_tokens
-
-        # 确保base_url不以/结尾
-        base_url = config.base_url.rstrip('/')
-        if not base_url.endswith('/chat/completions'):
-            # 检查是否已经包含版本号（如v1, v4等）
-            import re
-            version_match = re.search(r'/v(\d+)/?$', base_url)
-            if version_match:
-                # 如果已经以版本号结尾（如/v1, /v4），直接添加/chat/completions
-                url = f"{base_url}/chat/completions"
-            else:
-                # 默认假设是根路径，尝试添加 v1/chat/completions
-                url = f"{base_url}/v1/chat/completions"
-        else:
-            url = base_url
-
-        # 续写控制
-        current_messages = list(messages)  # 浅拷贝
-        continuation_count = 0
-        MAX_CONTINUATIONS = 5  # 最大续写次数，防止死循环
-
-        while continuation_count <= MAX_CONTINUATIONS:
-            data = {
-                'model': config.model_name,
-                'messages': current_messages,
-                'max_tokens': actual_max_tokens,
-                'temperature': config.temperature,
-                'top_p': config.top_p,
-                'stream': True
-            }
-
-            logger.info(f"发起流式请求 (第{continuation_count + 1}次), messages数量: {len(current_messages)}")
-
-            chunk_content_buffer = ""  # 本次请求生成的完整内容缓存
-            finish_reason = None
-
-            try:
-                # 显式设置所有超时参数
-                timeout_config = httpx.Timeout(
-                    connect=60.0,  # 连接超时：60秒
-                    read=900.0,  # 读取超时：900秒（15分钟）
-                    write=60.0,  # 写入超时：60秒
-                    pool=60.0  # 连接池超时：60秒
-                )
-                async with httpx.AsyncClient(timeout=timeout_config, http2=False) as client:
-                    async with client.stream('POST', url, headers=headers, json=data) as response:
-                        if response.status_code != 200:
-                            error_detail = await response.aread()
-                            error_msg = error_detail.decode('utf-8')
-                            logger.error(f"流式API调用返回错误: Status={response.status_code}, Body={error_msg}")
-                            response.raise_for_status()
-
-                        async for line in response.aiter_lines():
-                            if not line.strip():
-                                continue
-
-                            if line.startswith('data: '):
-                                data_str = line[6:]
-                                if data_str.strip() == '[DONE]':
-                                    break
-
-                                try:
-                                    chunk_data = json.loads(data_str)
-                                    if 'choices' in chunk_data and len(chunk_data['choices']) > 0:
-                                        choice = chunk_data['choices'][0]
-                                        delta = choice.get('delta', {})
-                                        finish_reason = choice.get('finish_reason', None)
-                                        content = delta.get('content', '')
-
-                                        if content:
-                                            chunk_content_buffer += content
-                                            if callback:
-                                                await callback(content)
-                                            yield content
-
-                                        # 如果在中途就收到了finish_reason（有些流式实现会在最后一条数据带上finish_reason）
-                                        if finish_reason:
-                                            pass
-
-                                except json.JSONDecodeError:
-                                    continue
-
-                # 本次请求结束
-                # 检查 finish_reason
-                if finish_reason == 'length':
-                    logger.warning(
-                        f"检测到生成被截断 (finish_reason='length')，准备自动续写。当前已续写 {continuation_count} 次。")
-                    continuation_count += 1
-
-                    # 将本次生成的内容作为 assistant 回复加入历史
-                    # 注意：如果之前已经有assistant消息，需要追加内容而不是新增消息
-                    if current_messages[-1]['role'] == 'assistant':
-                        current_messages[-1]['content'] += chunk_content_buffer
-                    else:
-                        current_messages.append({"role": "assistant", "content": chunk_content_buffer})
-
-                    # 只有当上一条不是user的续写指令时，才添加新的user指令
-                    # 防止多次续写时堆叠重复的 user 指令
-                    if current_messages[-1]['role'] != 'user':
-                        current_messages.append(
-                            {"role": "user", "content": "请继续输出剩余的内容，不要重复已输出的部分，紧接着上文继续。"})
-
-                    # 发送换行符以分隔续写内容（可选，视模型而定，通常不需要，但为了保险）
-                    # yield "\n"
-                    continue
-                else:
-                    logger.info(f"流式生成正常结束 (finish_reason={finish_reason})")
-                    break
-
-            except Exception as e:
-                logger.error(f"流式请求异常: {e}")
-                # 如果是超时或其他网络错误，可能需要重试机制，这里暂时直接抛出
-                raise e
+        async for chunk in AIClient.chat_stream(config, messages, callback=callback, max_tokens=max_tokens):
+            yield chunk
 
     @staticmethod
     def _build_knowledge_section(selected_knowledge: list = None) -> str:

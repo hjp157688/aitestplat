@@ -160,8 +160,15 @@ export default {
       zhipu: 'Zhipu AI',
       xiaomi: 'Xiaomi',
       xiaomi_coding_plan: 'Xiaomi Coding Plan',
+      openai: 'OpenAI',
+      azure_openai: 'Azure OpenAI',
+      anthropic: 'Anthropic',
+      google_gemini: 'Google Gemini',
       other: 'Other'
     },
+    azureApiVersion: 'API version (api-version)',
+    azureApiVersionPlaceholder: 'e.g. 2024-02-15-preview',
+    azureApiVersionHint: 'Azure OpenAI requires the api-version query parameter on every request',
     roles: {
       writer: 'Test Case Writer',
       reviewer: 'Test Reviewer',
@@ -199,5 +206,35 @@ export default {
       saveFailedDetail: 'Failed to save: {error}',
       deleteFailedDetail: 'Failed to delete: {error}'
     }
+  },
+
+  // AI call records (observability)
+  aiCallRecords: {
+    title: 'AI Call Records',
+    description: 'Status, latency, token usage and cost estimates for every AI model call',
+    statTotal: 'Total',
+    statSuccess: 'Success',
+    statFailed: 'Failed',
+    statRate: 'Success rate',
+    statAvgLatency: 'Avg latency',
+    statToday: 'Today',
+    filterStatus: 'Status',
+    filterProvider: 'Provider',
+    filterRole: 'Role',
+    filterScenario: 'Scenario',
+    statusSuccess: 'Success',
+    statusFailed: 'Failed',
+    refresh: 'Refresh',
+    colTime: 'Time',
+    colProvider: 'Provider',
+    colModel: 'Model',
+    colRole: 'Role',
+    colScenario: 'Scenario',
+    colStatus: 'Status',
+    colLatency: 'Latency',
+    colTokens: 'Tokens',
+    colCost: 'Est. cost',
+    colError: 'Error',
+    loadFailed: 'Failed to load call records: {error}'
   }
 }
