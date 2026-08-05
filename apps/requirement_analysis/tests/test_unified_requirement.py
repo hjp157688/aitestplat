@@ -92,3 +92,37 @@ class BusinessRequirementMigrationTests(TestCase):
         self.assertEqual(r.requirement_level, 'high')
         self.assertEqual(r.acceptance_criteria, '能登录')
         self.assertEqual(r.analysis_id, analysis.id)
+
+    def test_migrate_parent_requirement(self):
+        doc = self._make_requirement_document()
+        analysis = RequirementAnalysis.objects.create(
+            document=doc, analysis_report='', requirements_count=2
+        )
+        parent = BusinessRequirement.objects.create(
+            analysis=analysis, requirement_id='REQ-PARENT',
+            requirement_name='父需求', requirement_type='functional',
+            module='公共模块', requirement_level='high',
+            description='父需求描述', acceptance_criteria='父验收',
+        )
+        child = BusinessRequirement.objects.create(
+            analysis=analysis, requirement_id='REQ-CHILD',
+            requirement_name='子需求', requirement_type='functional',
+            module='公共模块', requirement_level='medium',
+            description='子需求描述', acceptance_criteria='子验收',
+            parent_requirement=parent,
+        )
+        from django.apps import apps as django_apps
+        from apps.requirement_analysis.migrations._0012_helpers import migrate_business_requirements
+        migrate_business_requirements(django_apps, None)
+
+        migrated_parent = Requirement.objects.get(requirement_id='REQ-PARENT', source_type='ai_import')
+        migrated_child = Requirement.objects.get(requirement_id='REQ-CHILD', source_type='ai_import')
+        self.assertEqual(migrated_child.parent_requirement_id, migrated_parent.id)
+
+    def test_migrate_empty_br_table(self):
+        from django.apps import apps as django_apps
+        from apps.requirement_analysis.migrations._0012_helpers import migrate_business_requirements
+        migrate_business_requirements(django_apps, None)
+
+        count = Requirement.objects.filter(source_type='ai_import').count()
+        self.assertEqual(count, 0)
