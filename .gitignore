@@ -123,3 +123,6 @@ apps/app_automation/Template/**
 
 # ----- 静态资源 -----
 static_files/img/
+
+# ----- superpowers 本地 worktree (不入库) -----
+.worktrees/
