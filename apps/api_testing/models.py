@@ -94,6 +94,7 @@ class ApiRequest(models.Model):
     pre_request_script = models.TextField(blank=True, verbose_name='请求前脚本')
     post_request_script = models.TextField(blank=True, verbose_name='请求后脚本')
     assertions = models.JSONField(default=list, verbose_name='断言规则')
+    variables = models.JSONField(default=dict, verbose_name='用例级变量')
     auth_spec = models.JSONField(default=dict, verbose_name='认证配置')
     request_schema = models.JSONField(default=dict, verbose_name='请求体Schema')
     response_schemas = models.JSONField(default=dict, verbose_name='响应Schema')
@@ -644,5 +645,26 @@ class ApiDocument(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.get_status_display()}"
+
+
+class ApiKnownData(models.Model):
+    """手动登记的已知测试数据（项目维度）"""
+    project = models.ForeignKey(ApiProject, on_delete=models.CASCADE,
+                                related_name='known_data', verbose_name='所属项目')
+    name = models.CharField(max_length=200, verbose_name='变量名')
+    value = models.TextField(verbose_name='值')
+    description = models.TextField(blank=True, verbose_name='说明')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        db_table = 'api_known_data'
+        verbose_name = '已知测试数据'
+        verbose_name_plural = '已知测试数据'
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name}={self.value}"
 
 

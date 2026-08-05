@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     ApiProject, ApiCollection, ApiRequest, Environment, RequestHistory,
-    TestSuite, TestExecution, ScheduledTask, TaskExecutionLog
+    TestSuite, TestExecution, ScheduledTask, TaskExecutionLog, ApiKnownData
 )
 
 
@@ -83,3 +83,10 @@ class TaskExecutionLogAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return qs
         return qs.filter(task__created_by=request.user)
+
+
+@admin.register(ApiKnownData)
+class ApiKnownDataAdmin(admin.ModelAdmin):
+    list_display = ('name', 'value', 'project', 'created_by', 'created_at')
+    search_fields = ('name', 'value')
+    list_filter = ('project',)
