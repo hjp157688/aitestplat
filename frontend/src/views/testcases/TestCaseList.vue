@@ -415,6 +415,19 @@ const convertBrToNewline = (text) => {
   return text.replace(/<br\s*\/?>/gi, '\n')
 }
 
+// 将结构化 steps JSON 格式化为 Excel 文本：每步一行 "n. desc | 预期: expect"
+const formatStepsForExcel = (stepsRaw) => {
+  if (!stepsRaw) return ''
+  let steps = []
+  try {
+    const arr = JSON.parse(stepsRaw)
+    steps = Array.isArray(arr) ? arr : []
+  } catch (e) {
+    return stepsRaw
+  }
+  return steps.map((s, i) => `${i + 1}. ${s.desc || ''} | 预期: ${s.expect || ''}`).join('\n')
+}
+
 const exportToExcel = async () => {
   try {
     loading.value = true
@@ -469,7 +482,7 @@ const exportToExcel = async () => {
 
     // 准备Excel数据
     const worksheetData = [
-      [t('testcase.excelNumber'), t('testcase.excelTitle'), t('testcase.excelProject'), t('testcase.excelVersions'), t('testcase.excelPreconditions'), t('testcase.excelSteps'), t('testcase.excelExpectedResult'), t('testcase.excelPriority'), t('testcase.excelTestType'), t('testcase.excelAuthor'), t('testcase.excelCreatedAt')]
+      [t('testcase.excelNumber'), t('testcase.excelTitle'), t('testcase.excelProject'), t('testcase.excelVersions'), t('testcase.excelPreconditions'), t('testcase.excelSteps'), t('testcase.excelPriority'), t('testcase.excelTestType'), t('testcase.excelAuthor'), t('testcase.excelCreatedAt')]
     ]
 
     testCasesToExport.forEach((testcase, index) => {
@@ -483,18 +496,17 @@ const exportToExcel = async () => {
         testcase.project?.name || '',
         versions,
         convertBrToNewline(testcase.preconditions || ''),
-        convertBrToNewline(testcase.steps || ''),
-        convertBrToNewline(testcase.expected_result || ''),
+        formatStepsForExcel(testcase.steps),
         getPriorityText(testcase.priority),
         getTypeText(testcase.test_type),
         testcase.author?.username || '',
         formatDate(testcase.created_at)
       ])
     })
-    
+
     // 创建工作表
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-    
+
     // 设置列宽
     const colWidths = [
       { wch: 15 }, // Test case number
@@ -503,7 +515,6 @@ const exportToExcel = async () => {
       { wch: 25 }, // Related versions
       { wch: 30 }, // Preconditions
       { wch: 40 }, // Steps
-      { wch: 30 }, // Expected result
       { wch: 10 }, // Priority
       { wch: 15 }, // Test type
       { wch: 15 }, // Author

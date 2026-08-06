@@ -93,24 +93,21 @@
           />
         </el-form-item>
 
-        <el-form-item :label="$t('testcase.steps')" prop="steps">
-          <el-input
-            v-model="form.steps"
-            type="textarea"
-            :rows="6"
-            maxlength="1000"
-            show-word-limit
-            :placeholder="$t('testcase.stepsPlaceholder')"
-          />
-        </el-form-item>
-
-        <el-form-item :label="$t('testcase.expectedResult')" prop="expected_result">
-          <el-input
-            v-model="form.expected_result"
-            type="textarea"
-            :rows="3"
-            :placeholder="$t('testcase.expectedResultPlaceholder')"
-          />
+        <el-form-item :label="$t('testcase.steps')" prop="stepsList">
+          <div class="steps-editor">
+            <div v-for="(step, idx) in form.stepsList" :key="idx" class="step-row">
+              <span class="step-index">{{ idx + 1 }}</span>
+              <el-input v-model="step.desc" :placeholder="$t('testcase.stepDescPlaceholder')" />
+              <el-input v-model="step.expect" :placeholder="$t('testcase.stepExpectPlaceholder')" />
+              <el-button type="danger" link @click="form.stepsList.splice(idx, 1)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+            <el-button type="primary" link @click="form.stepsList.push({ desc: '', expect: '' })">
+              <el-icon><Plus /></el-icon>
+              {{ $t('testcase.addStep') }}
+            </el-button>
+          </div>
         </el-form-item>
 
         <el-form-item>
@@ -129,6 +126,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
+import { Delete, Plus } from '@element-plus/icons-vue'
 import api from '@/utils/api'
 
 const { t } = useI18n()
@@ -145,8 +143,7 @@ const form = reactive({
   priority: 'medium',
   test_type: 'functional',
   preconditions: '',
-  steps: '',
-  expected_result: '',
+  stepsList: [{ desc: '', expect: '' }],
   version_ids: []
 })
 
@@ -155,11 +152,18 @@ const rules = {
     { required: true, message: computed(() => t('testcase.titleRequired')), trigger: 'blur' },
     { min: 5, max: 500, message: computed(() => t('testcase.titleLength')), trigger: 'blur' }
   ],
-  expected_result: [
-    { required: true, message: computed(() => t('testcase.expectedResultRequired')), trigger: 'blur' }
-  ],
-  steps: [
-    { max: 1000, message: computed(() => t('testcase.stepsMaxLength')), trigger: 'blur' }
+  stepsList: [
+    {
+      validator: (_rule, value, callback) => {
+        const validSteps = (value || []).filter(s => s.desc.trim() || s.expect.trim())
+        if (validSteps.length === 0) {
+          callback(new Error(t('testcase.stepsRequired')))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change'
+    }
   ]
 }
 
@@ -204,7 +208,12 @@ const handleSubmit = async () => {
     if (valid) {
       submitting.value = true
       try {
-        await api.post('/testcases/', form)
+        const payload = {
+          ...form,
+          steps: JSON.stringify(form.stepsList.filter(s => s.desc.trim() || s.expect.trim()))
+        }
+        delete payload.stepsList
+        await api.post('/testcases/', payload)
         ElMessage.success(t('testcase.createSuccess'))
         router.push('/ai-generation/testcases')
       } catch (error) {
@@ -221,3 +230,22 @@ onMounted(() => {
   fetchProjects()
 })
 </script>
+<style lang="scss" scoped>
+.steps-editor {
+  width: 100%;
+
+  .step-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    .step-index {
+      width: 24px;
+      text-align: center;
+      color: var(--aitest-text-2);
+      flex-shrink: 0;
+    }
+  }
+}
+</style>

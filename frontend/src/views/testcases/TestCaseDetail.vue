@@ -37,10 +37,16 @@
           <div v-html="testcase.preconditions || $t('testcase.none')"></div>
         </el-descriptions-item>
         <el-descriptions-item :label="$t('testcase.steps')" :span="2">
-          <div class="steps-content" v-html="testcase.steps || $t('testcase.none')"></div>
-        </el-descriptions-item>
-        <el-descriptions-item :label="$t('testcase.expectedResult')" :span="2">
-          <div v-html="testcase.expected_result || $t('testcase.none')"></div>
+          <div v-if="parsedSteps.length" class="steps-display">
+            <div v-for="(step, idx) in parsedSteps" :key="idx" class="step-item">
+              <span class="step-num">{{ idx + 1 }}.</span>
+              <div class="step-body">
+                <div class="step-desc">{{ step.desc }}</div>
+                <div v-if="step.expect" class="step-expect">{{ $t('testcase.expectPrefix') }}: {{ step.expect }}</div>
+              </div>
+            </div>
+          </div>
+          <span v-else>{{ $t('testcase.none') }}</span>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -48,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
@@ -59,6 +65,17 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const testcase = ref(null)
+
+// 解析结构化步骤 [{desc, expect}]
+const parsedSteps = computed(() => {
+  if (!testcase.value?.steps) return []
+  try {
+    const arr = JSON.parse(testcase.value.steps)
+    return Array.isArray(arr) ? arr : []
+  } catch (e) {
+    return [{ desc: testcase.value.steps, expect: '' }]
+  }
+})
 
 const fetchTestCase = async () => {
   try {
@@ -105,6 +122,36 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.steps-display {
+  width: 100%;
+
+  .step-item {
+    display: flex;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--aitest-border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      color: var(--aitest-text-2);
+      font-weight: 600;
+    }
+
+    .step-body {
+      flex: 1;
+
+      .step-expect {
+        color: var(--aitest-text-2);
+        margin-top: 2px;
+      }
+    }
+  }
+}
+
 .priority-tag {
   &.low { color: #67c23a; }
   &.medium { color: #e6a23c; }
