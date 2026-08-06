@@ -993,6 +993,25 @@ export default {
     error: '生成失败',
     emptyResult: 'AI 未返回可用的测试用例，请点击"重试"或检查 AI 配置',
     retry: '重试',
-    suiteNamePlaceholder: '输入测试套件名称（可选）'
+    suiteNamePlaceholder: '输入测试套件名称（可选）',
+    pendingVariables: '待填充变量',
+    noPendingVariables: '本批用例全部使用已知数据，无待填充变量',
+    variableHint: '提示：生成的用例参数以 {{变量名}} 引用保存，执行时自动取对应环境/用例变量'
+  },
+
+  // 已知测试数据
+  knownData: {
+    title: '已知测试数据',
+    add: '新增数据',
+    edit: '编辑',
+    delete: '删除',
+    name: '变量名',
+    value: '值',
+    description: '说明',
+    projectRequired: '请先选择项目',
+    confirmDelete: '确定删除该条已知数据？',
+    nameValueRequired: '变量名与值必填',
+    saved: '已保存',
+    deleted: '已删除'
   }
 }

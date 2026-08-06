@@ -983,6 +983,25 @@ export default {
     error: 'Generation Failed',
     emptyResult: 'AI returned no usable test cases. Click "Retry" or check the AI configuration.',
     retry: 'Retry',
-    suiteNamePlaceholder: 'Enter test suite name (optional)'
+    suiteNamePlaceholder: 'Enter test suite name (optional)',
+    pendingVariables: 'Pending Variables',
+    noPendingVariables: 'All test cases in this batch use known data, no pending variables',
+    variableHint: 'Tip: Generated test case parameters are saved as {{variable_name}} references and resolved at runtime from environment/test case variables'
+  },
+
+  // Known Test Data
+  knownData: {
+    title: 'Known Test Data',
+    add: 'Add Data',
+    edit: 'Edit',
+    delete: 'Delete',
+    name: 'Variable Name',
+    value: 'Value',
+    description: 'Description',
+    projectRequired: 'Please select a project first',
+    confirmDelete: 'Are you sure you want to delete this known data?',
+    nameValueRequired: 'Variable name and value are required',
+    saved: 'Saved',
+    deleted: 'Deleted'
   }
 }

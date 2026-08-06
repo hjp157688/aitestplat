@@ -242,6 +242,10 @@
                 <el-button size="small" type="warning" @click="openGenerateTestCases" :disabled="!selectedRequest">
                   {{ $t('apiTesting.generateTestCases.generate') }}
                 </el-button>
+                <el-button size="small" type="info" plain @click="showKnownDataDialog = true"
+                           :disabled="!selectedProject">
+                  {{ $t('apiTesting.knownData.title') }}
+                </el-button>
                 <el-dropdown split-button type="default" size="small" @click="generateCode('javascript')">
                   {{ $t('apiTesting.interface.generateCode') }}
                   <template #dropdown>
@@ -1078,6 +1082,9 @@
       @saved="onTestCasesSaved"
     />
 
+    <!-- 已知测试数据对话框 -->
+    <KnownDataDialog v-model="showKnownDataDialog" :project-id="selectedProject" />
+
     <!-- 创建测试套件对话框 -->
     <CreateSuiteDialog
       v-model="showCreateSuiteDialog"
@@ -1101,6 +1108,7 @@ import { RequestModelParser } from '@/utils/requestModel'
 import ImportOpenApiDialog from './components/ImportOpenApiDialog.vue'
 import GenerateTestCasesDialog from './components/GenerateTestCasesDialog.vue'
 import CreateSuiteDialog from './components/CreateSuiteDialog.vue'
+import KnownDataDialog from './components/KnownDataDialog.vue'
 import { batchDeleteRequests } from '@/api/api-testing'
 import { getVariableFunctions } from '@/api/data-factory'
 import { CodeGenerator } from '@/utils/codeGenerator'
@@ -1188,6 +1196,7 @@ const showImportOpenApiDialog = ref(false)
 
 // 测试用例生成相关
 const showGenerateTestCasesDialog = ref(false)
+const showKnownDataDialog = ref(false)
 const showCreateSuiteDialog = ref(false)
 const selectedRequestsForGeneration = ref([])
 
