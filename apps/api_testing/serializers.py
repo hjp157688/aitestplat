@@ -893,6 +893,7 @@ class TestCaseGenerationRequestSerializer(serializers.Serializer):
         min_length=1
     )
     ai_config_id = serializers.IntegerField(required=False, allow_null=True)
+    environment_id = serializers.IntegerField(required=False, allow_null=True)
 
 
 class TestCaseSaveRequestSerializer(serializers.Serializer):

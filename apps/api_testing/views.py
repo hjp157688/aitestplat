@@ -563,10 +563,12 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         ai_config_id = serializer.validated_data.get('ai_config_id')
+        environment_id = serializer.validated_data.get('environment_id')
 
         try:
             from .services import ApiTestCaseGenerator
-            task_id = ApiTestCaseGenerator.generate(request_ids, ai_config_id, request.user)
+            task_id = ApiTestCaseGenerator.generate(request_ids, ai_config_id, request.user,
+                                                    environment_id=environment_id)
             return Response({
                 'task_id': task_id,
                 'status': 'generating',

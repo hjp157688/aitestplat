@@ -570,7 +570,7 @@ class ApiTestCaseGenerator:
         return parsed
 
     @staticmethod
-    def generate(request_ids: list[int], config_id: int, user) -> str:
+    def generate(request_ids: list[int], config_id: int, user, environment_id: int = None) -> str:
         """启动生成任务，返回 task_id"""
         task_id = f"APITASK_{uuid.uuid4().hex[:8].upper()}"
 
@@ -580,12 +580,13 @@ class ApiTestCaseGenerator:
             'progress': 0,
             'result': None,
             'error': None,
+            'known_data': None,
         }
 
         # 启动后台线程
         thread = threading.Thread(
             target=ApiTestCaseGenerator._run_generation,
-            args=(task_id, request_ids, config_id, user),
+            args=(task_id, request_ids, config_id, user, environment_id),
             daemon=True,
         )
         thread.start()
@@ -593,7 +594,7 @@ class ApiTestCaseGenerator:
         return task_id
 
     @staticmethod
-    def _run_generation(task_id: str, request_ids: list[int], config_id: int, user):
+    def _run_generation(task_id: str, request_ids: list[int], config_id: int, user, environment_id: int = None):
         """后台执行生成任务"""
         try:
             _generation_tasks[task_id]['status'] = 'generating'
@@ -614,6 +615,15 @@ class ApiTestCaseGenerator:
                     'description': req.description,
                 })
 
+            # 采集项目已知数据（环境变量 / 手动登记 / 历史记录）
+            project_id = None
+            first = requests_qs.first()
+            if first and first.collection and first.collection.project_id:
+                project_id = first.collection.project_id
+            from .known_data import collect_known_data
+            known_data = collect_known_data(project_id, environment_id)
+            _generation_tasks[task_id]['known_data'] = known_data
+
             _generation_tasks[task_id]['progress'] = 30
 
             # 获取 AI 配置（从 requirement_analysis.AIModelConfig 查找，统一走 resolver）
@@ -629,7 +639,7 @@ class ApiTestCaseGenerator:
             _generation_tasks[task_id]['progress'] = 50
 
             # 构建 prompt 并调用 AI
-            system_prompt, user_message = ApiTestCaseGenerator.build_prompt(requests_data)
+            system_prompt, user_message = ApiTestCaseGenerator.build_prompt(requests_data, known_data=known_data)
             result = ApiTestCaseGenerator._call_ai(system_prompt, user_message, config)
 
             test_cases = result.get('test_cases') if isinstance(result, dict) else None
