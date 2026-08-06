@@ -42,6 +42,9 @@
             <el-button size="small" type="danger" @click="batchDelete">
               {{ $t('apiTesting.interface.batchActions.batchDelete') }}
             </el-button>
+            <el-button size="small" type="warning" @click="openBatchGenerateTestCases" :disabled="checkedRequests.length === 0">
+              {{ $t('apiTesting.interface.batchActions.batchGenerate') }}
+            </el-button>
             <el-button size="small" text @click="clearChecked">{{ $t('apiTesting.interface.batchActions.clear') }}</el-button>
           </div>
         </div>
@@ -2471,8 +2474,26 @@ const openGenerateTestCases = () => {
   showGenerateTestCasesDialog.value = true
 }
 
+const MAX_BATCH_GENERATE = 20
+
+// 批量生成用例（顶部操作栏入口）
+const openBatchGenerateTestCases = () => {
+  const requests = checkedRequests.value
+  if (requests.length === 0) {
+    ElMessage.warning(t('apiTesting.interface.batchActions.noRequestSelected'))
+    return
+  }
+  if (requests.length > MAX_BATCH_GENERATE) {
+    ElMessage.warning(t('apiTesting.interface.batchActions.exceedLimit', { max: MAX_BATCH_GENERATE }))
+    return
+  }
+  selectedRequestsForGeneration.value = requests
+  showGenerateTestCasesDialog.value = true
+}
+
 const onTestCasesSaved = () => {
   ElMessage.success('测试用例保存成功')
+  clearChecked()
   loadCollections(selectedProject.value)
 }
 
