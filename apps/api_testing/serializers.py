@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.db import models
 from datetime import datetime
 
 
@@ -179,6 +180,15 @@ class ApiKnownDataSerializer(serializers.ModelSerializer):
         fields = ['id', 'project', 'project_name', 'name', 'value', 'description',
                   'created_by', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            user = request.user
+            self.fields['project'].queryset = ApiProject.objects.filter(
+                models.Q(owner=user) | models.Q(members=user)
+            ).distinct()
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user

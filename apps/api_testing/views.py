@@ -2736,7 +2736,11 @@ class ApiKnownDataViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = ApiKnownData.objects.all()
+        user = self.request.user
+        accessible_projects = ApiProject.objects.filter(
+            models.Q(owner=user) | models.Q(members=user)
+        )
+        qs = ApiKnownData.objects.filter(project__in=accessible_projects)
         project_id = self.request.query_params.get('project')
         if project_id:
             qs = qs.filter(project_id=project_id)
