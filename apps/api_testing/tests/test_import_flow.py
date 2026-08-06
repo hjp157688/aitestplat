@@ -48,5 +48,5 @@ class ImportFlowTests(TestCase):
             for r in requests
         ) or any(r.request_schema for r in requests))
         self.assertTrue(any(r.response_schemas for r in requests))
-        # URL 使用 baseUrl 模板
-        self.assertTrue(all(r.url.startswith('{{baseUrl}}') for r in requests))
+        # URL 使用 base_url 模板（统一 snake_case，与环境变量 key 一致）
+        self.assertTrue(all(r.url.startswith('{{base_url}}') for r in requests))

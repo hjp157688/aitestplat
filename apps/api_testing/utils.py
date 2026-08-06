@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from django.utils import timezone
 from .models import RequestHistory
@@ -10,6 +11,56 @@ def merge_variables(env_variables, case_variables):
     env = dict(env_variables) if env_variables else {}
     case = dict(case_variables) if case_variables else {}
     return {**env, **case}
+
+
+def _base_url_from_variables(variables) -> str:
+    """大小写不敏感地取环境变量里的 base URL（base_url / baseUrl / Base-Url 等）。"""
+    for key, value in (variables or {}).items():
+        norm = re.sub(r'[^a-z0-9]', '', str(key).lower())
+        if norm == 'baseurl':
+            return str(value) if value is not None else ''
+    return ''
+
+
+def normalize_base_url(url, variables) -> str:
+    """URL 规范化：去掉可能残留的 {{baseurl}} 占位（任意大小写），缺 scheme 时用环境 base 补齐。
+
+    若 URL 仍无 scheme 且环境没有 base → 抛中文可读异常（替代 requests 的
+    MissingSchema，让"请求没发出去"的原因一目了然）。
+    """
+    if url is None:
+        url = ''
+    url = str(url)
+    base = _base_url_from_variables(variables)
+    # 老数据可能存了 {{baseUrl}}，_replace_variables 按 key 精确匹配不会替换，
+    # 这里先剥掉大小写不敏感的 {{baseurl}} 占位
+    cleaned = re.sub(r'\{\{\s*baseurl\s*\}\}', '', url, flags=re.IGNORECASE)
+    if '://' in cleaned:
+        return cleaned
+    if base:
+        return f"{base.rstrip('/')}/{cleaned.lstrip('/')}"
+    raise Exception(
+        '请求 URL 缺少协议(http/https)且未配置 base_url 环境变量，无法发送。'
+        '请在所选环境中配置 base_url，或在请求 URL 里填写完整地址（如 https://host/path）。')
+
+
+def request_body_kwargs(body_type, body_content) -> dict:
+    """把解析后的 body 组装成 requests.request 的发送参数。
+
+    - x-www-form-urlencoded：列表 → data dict（requests 会按 urlencoded 编码）
+    - form-data：列表 → files（multipart 文本字段）
+    - raw：字符串原样 → data
+    - 其余（json 等）：→ json
+    """
+    if body_type == 'x-www-form-urlencoded':
+        enabled = [it for it in (body_content or []) if it.get('enabled', True) and it.get('key')]
+        return {'data': {it['key']: it.get('value') or '' for it in enabled}}
+    if body_type == 'form-data':
+        enabled = [it for it in (body_content or []) if it.get('enabled', True) and it.get('key')]
+        return {'files': {it['key']: (None, it.get('value') or '') for it in enabled}}
+    if body_type == 'raw':
+        return {'data': body_content}
+    return {'json': body_content}
 
 
 def execute_assertions(response, assertions):
@@ -156,6 +207,8 @@ def execute_test_suite(test_suite, environment, executed_by):
                 # 替换URL中的变量（先解析动态函数，再替换环境变量）
                 url = _replace_variables(api_request.url, variables)
                 url = resolver.resolve(url)
+                # 缺 scheme 时自动用环境 base_url 补齐；仍无 base 则抛出清晰错误
+                url = normalize_base_url(url, variables)
                 
                 # 准备请求头
                 headers = {}
@@ -178,23 +231,43 @@ def execute_test_suite(test_suite, environment, executed_by):
                     params[key] = _replace_variables(str(value), variables)
                     params[key] = resolver.resolve(params[key])
                 
-                # 准备请求体
+                # 准备请求体（按 body type 正确处理 urlencoded/form-data/raw/json）
                 body_data = None
+                body_type = 'none'
                 if api_request.body and api_request.method in ['POST', 'PUT', 'PATCH']:
-                    if api_request.body.get('type') == 'json':
-                        body_data = api_request.body.get('data', {})
-                        body_data = _replace_variables_in_dict(body_data, variables)
-                        body_data = _resolve_variables_in_dict(body_data, resolver)
-                
+                    body_type = api_request.body.get('type', 'none')
+                    body_content = api_request.body.get('data')
+                    if body_type == 'json':
+                        if isinstance(body_content, dict):
+                            body_data = _replace_variables_in_dict(body_content, variables)
+                            body_data = _resolve_variables_in_dict(body_data, resolver)
+                        else:
+                            body_data = body_content
+                    elif body_type == 'raw':
+                        if isinstance(body_content, str):
+                            body_data = _replace_variables(body_content, variables)
+                            body_data = resolver.resolve(body_data)
+                        else:
+                            body_data = body_content
+                    elif body_type in ('form-data', 'x-www-form-urlencoded'):
+                        if isinstance(body_content, list):
+                            body_data = _replace_variables_in_dict(body_content, variables)
+                            body_data = _resolve_variables_in_dict(body_data, resolver)
+                        else:
+                            body_data = body_content
+                    else:
+                        body_data = body_content
+
                 # 执行请求
                 start_time = time.time()
+                send_kwargs = request_body_kwargs(body_type, body_data)
                 response = requests.request(
                     method=api_request.method,
                     url=url,
                     headers=headers,
                     params=params,
-                    json=body_data,
-                    timeout=30
+                    timeout=30,
+                    **send_kwargs
                 )
                 end_time = time.time()
                 response_time = (end_time - start_time) * 1000

@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 # 批量生成用例单次上限
 MAX_BATCH_GENERATE = 20
 
-from .utils import execute_assertions, merge_variables
+from .utils import execute_assertions, merge_variables, normalize_base_url, request_body_kwargs
 from .operation_logger import log_operation
 from .variable_resolver import VariableResolver
 
@@ -380,6 +380,8 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
             # 替换URL中的变量（先解析动态函数，再替换环境变量）
             url = self._replace_variables(request_url or '', variables)
             url = resolver.resolve(url)
+            # 缺 scheme 时自动用环境 base_url 补齐；仍无 base 则抛出清晰错误
+            url = normalize_base_url(url, variables)
             
             # 准备请求头
             headers = {}
@@ -433,27 +435,16 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
             # 执行请求
             start_time = time.time()
 
-            # 根据请求体类型决定使用 data 还是 json 参数
-            if body_type == 'raw':
-                # raw 类型使用 data 参数，发送原始字符串
-                response = requests.request(
-                    method=request_method,
-                    url=url,
-                    headers=headers,
-                    params=params,
-                    data=body_data,
-                    timeout=30
-                )
-            else:
-                # json 类型使用 json 参数，自动序列化
-                response = requests.request(
-                    method=request_method,
-                    url=url,
-                    headers=headers,
-                    params=params,
-                    json=body_data,
-                    timeout=30
-                )
+            # 根据请求体类型组装发送参数（urlencoded/form-data 做正确编码）
+            send_kwargs = request_body_kwargs(body_type, body_data)
+            response = requests.request(
+                method=request_method,
+                url=url,
+                headers=headers,
+                params=params,
+                timeout=30,
+                **send_kwargs
+            )
             end_time = time.time()
             
             response_time = (end_time - start_time) * 1000  # 转换为毫秒

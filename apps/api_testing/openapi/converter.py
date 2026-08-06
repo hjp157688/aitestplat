@@ -36,7 +36,7 @@ class RequestConverter:
         base = base_url.rstrip('/') if base_url else ''
 
         # URL: 保留路径参数模板 {param}
-        url = f"{{{{baseUrl}}}}{path}" if base else path
+        url = f"{{{{base_url}}}}{path}" if base else path
 
         # 构建 headers: 认证头 + 标准头 + header 参数
         headers = []
@@ -113,22 +113,28 @@ class RequestConverter:
         if not request_body:
             return {'type': 'none', 'data': {}}
         ct = request_body.get('content_type', 'application/json')
+        example = request_body.get('example')
         if 'json' in ct:
             return {
                 'type': 'json',
-                'data': request_body.get('example') or {},
+                'data': example or {},
             }
         elif 'form-urlencoded' in ct:
             return {
                 'type': 'x-www-form-urlencoded',
-                'data': request_body.get('example') or {},
+                'data': example or {},
             }
         elif 'form-data' in ct:
             return {
                 'type': 'form-data',
-                'data': request_body.get('example') or {},
+                'data': example or {},
             }
-        return {'type': 'none', 'data': {}}
+        # 其余 content-type（text/plain、xml、octet-stream 等）按 raw 保留原始 example，
+        # 避免 body 数据在导入时丢失
+        return {
+            'type': 'raw',
+            'data': example or '',
+        }
 
     def _build_auth_spec(self, auth_headers: list) -> dict:
         if not auth_headers:
