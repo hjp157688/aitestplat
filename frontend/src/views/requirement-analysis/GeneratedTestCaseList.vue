@@ -1370,6 +1370,8 @@ export default {
 .status-tag.pending { background: #FFFBEB; color: #D97706; }
 .status-tag.generating { background: #EFF6FF; color: var(--aitest-primary); }
 .status-tag.reviewing { background: #EFF6FF; color: var(--aitest-primary); }
+.status-tag.revising { background: #EFF6FF; color: var(--aitest-primary); }
+.status-tag.cancelled { background: #F1F5F9; color: #64748B; }
 .status-tag.completed { background: #F0FDF4; color: #059669; }
 .status-tag.failed { background: #FEF2F2; color: #DC2626; }
 
