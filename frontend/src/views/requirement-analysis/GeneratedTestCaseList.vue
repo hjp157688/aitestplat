@@ -8,7 +8,7 @@
       <div class="filter-card">
         <div class="filter-group">
           <label>{{ $t('generatedTestCases.statusFilter') }}</label>
-          <select v-model="selectedStatus" @change="loadTasks" class="filter-select">
+          <select v-model="selectedStatus" @change="loadTasks()" class="filter-select">
             <option value="">{{ $t('generatedTestCases.allStatus') }}</option>
             <option value="pending">{{ $t('generatedTestCases.statusPending') }}</option>
             <option value="generating">{{ $t('generatedTestCases.statusGenerating') }}</option>
@@ -29,7 +29,7 @@
             <span v-if="isDeleting">{{ $t('generatedTestCases.deleting') }}</span>
             <span v-else>{{ $t('generatedTestCases.batchDelete', { count: selectedTasks.length }) }}</span>
           </button>
-          <button class="refresh-btn" @click="loadTasks" :disabled="isLoading">
+          <button class="refresh-btn" @click="loadTasks()" :disabled="isLoading">
             <span v-if="isLoading">{{ $t('generatedTestCases.loading') }}</span>
             <span v-else>{{ $t('generatedTestCases.refresh') }}</span>
           </button>
