@@ -35,12 +35,21 @@
           </div>
         </div>
 
+        <!-- 批量操作栏：有勾选时显示 -->
+        <div v-if="!searchKeyword && checkedNodes.length > 0" class="batch-actions-bar">
+          <span class="batch-count">{{ $t('apiTesting.interface.batchActions.selected', { count: checkedRequests.length }) }}</span>
+          <div class="batch-buttons">
+            <el-button size="small" text @click="clearChecked">{{ $t('apiTesting.interface.batchActions.clear') }}</el-button>
+          </div>
+        </div>
+
         <div class="collection-tree" v-show="!searchKeyword || searchKeyword.trim() === ''">
           <el-tree
             ref="treeRef"
             :data="collections"
             :props="treeProps"
-            node-key="id"
+            node-key="key"
+            show-checkbox
             :expand-on-click-node="false"
             :default-expanded-keys="expandedKeys"
             draggable
@@ -51,6 +60,7 @@
             @node-expand="onNodeExpand"
             @node-collapse="onNodeCollapse"
             @node-drop="handleDrop"
+            @check="handleCheck"
           >
             <template #default="{ node, data }">
               <div class="tree-node" :class="{ 'testcase-node': data.type === 'testcase', 'deprecated-node': data.deprecated }">
@@ -1114,6 +1124,22 @@ const treeProps = {
   label: 'name'
 }
 
+// ---- 批量操作勾选状态 ----
+const checkedNodes = ref([])
+const checkedRequests = computed(() => checkedNodes.value.filter(n => n.type === 'request'))
+const checkedCollections = computed(() => checkedNodes.value.filter(n => n.type === 'collection'))
+
+const handleCheck = () => {
+  checkedNodes.value = treeRef.value?.getCheckedNodes?.() || []
+}
+
+const clearChecked = () => {
+  if (treeRef.value && typeof treeRef.value.setCheckedNodes === 'function') {
+    treeRef.value.setCheckedNodes([])
+  }
+  checkedNodes.value = []
+}
+
 // 数据工厂选择器相关
 const showDataFactorySelector = ref(false)
 const showVariableHelper = ref(false)
@@ -1334,6 +1360,7 @@ const buildTree = (items) => {
     map[item.id] = {
       ...item,
       type: 'collection',
+      key: `collection:${item.id}`,
       children: []
     }
   })
@@ -1407,6 +1434,7 @@ const loadRequests = async () => {
       const requestNode = {
         ...request,
         type: 'request',
+        key: `request:${request.id}`,
         name: request.name,
         children: [],
       }
@@ -1416,6 +1444,7 @@ const loadRequests = async () => {
         requestNode.children = childRequests[request.id].map(child => ({
           ...child,
           type: 'testcase',
+          key: `testcase:${child.id}`,
           name: child.name,
         }))
       } else if (request.test_cases_count > 0) {
@@ -1558,11 +1587,11 @@ const onNodeRightClick = (event, node, treeNode) => {
 }
 
 const onNodeExpand = (node) => {
-  expandedKeys.value.push(node.id)
+  expandedKeys.value.push(node.key)
 }
 
 const onNodeCollapse = (node) => {
-  expandedKeys.value = expandedKeys.value.filter(key => key !== node.id)
+  expandedKeys.value = expandedKeys.value.filter(key => key !== node.key)
 }
 
 const createEmptyRequest = () => {
@@ -4743,6 +4772,26 @@ const useLocalVariableCategories = () => {
 .deprecated-node .node-label {
   color: #c0c4cc;
   text-decoration: line-through;
+}
+
+.batch-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px 8px;
+  flex-wrap: wrap;
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  margin-bottom: 4px;
+}
+.batch-count {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+}
+.batch-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 </style>
