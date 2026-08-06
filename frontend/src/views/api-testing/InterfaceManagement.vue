@@ -1267,6 +1267,28 @@ const setBodyFromJson = (data) => {
   _originalJsonBody.value = data
 }
 
+const buildRawFromList = (items, asUrlEncoded) => {
+  // 把键值表格序列化成 raw 内容（urlencoded → 编码字符串，其它 → JSON）
+  const rows = (items || []).filter(i => i.enabled !== false && i.key)
+  if (asUrlEncoded) {
+    rawType.value = 'text'
+    return rows
+      .map(i => `${encodeURIComponent(i.key)}=${encodeURIComponent(i.value || '')}`)
+      .join('&')
+  }
+  const jsonData = {}
+  rows.forEach(item => {
+    const val = item.value || ''
+    try {
+      jsonData[item.key] = JSON.parse(val)
+    } catch {
+      jsonData[item.key] = val
+    }
+  })
+  rawType.value = 'json'
+  return JSON.stringify(jsonData, null, 2)
+}
+
 const toggleBodyMode = () => {
   if (bodyType.value === 'raw') {
     // raw → table: parse rawBody back to form-data
@@ -1276,23 +1298,14 @@ const toggleBodyMode = () => {
     } catch (e) {
       ElMessage.warning('无法解析为 JSON，请检查格式')
     }
-  } else {
-    // table → raw: rebuild raw JSON from formData
-    const jsonData = {}
-    const items = formData.value || []
-    items.forEach(item => {
-      if (item.key) {
-        const val = item.value || ''
-        try {
-          jsonData[item.key] = JSON.parse(val)
-        } catch {
-          jsonData[item.key] = val
-        }
-      }
-    })
+  } else if (bodyType.value === 'x-www-form-urlencoded') {
+    // urlencoded 表格 → raw：生成编码字符串
     bodyType.value = 'raw'
-    rawType.value = 'json'
-    rawBody.value = JSON.stringify(jsonData, null, 2)
+    rawBody.value = buildRawFromList(formUrlEncoded.value, true)
+  } else {
+    // 其它表格 → raw：序列化为 JSON
+    bodyType.value = 'raw'
+    rawBody.value = buildRawFromList(formData.value, false)
   }
 }
 
@@ -2255,21 +2268,10 @@ const saveRequest = async () => {
 const onBodyTypeChange = () => {
   // 切换到 raw 且当前还没有 raw 内容时，把表格/表单内容序列化填进去（避免"切到 raw 是空"）
   if (bodyType.value === 'raw' && !rawBody.value) {
-    const source = formData.value && formData.value.length ? formData.value : (formUrlEncoded.value || [])
-    if (source.length) {
-      const jsonData = {}
-      source.forEach(item => {
-        if (item.key) {
-          const val = item.value || ''
-          try {
-            jsonData[item.key] = JSON.parse(val)
-          } catch {
-            jsonData[item.key] = val
-          }
-        }
-      })
-      rawBody.value = JSON.stringify(jsonData, null, 2)
-      rawType.value = 'json'
+    if (formUrlEncoded.value && formUrlEncoded.value.length) {
+      rawBody.value = buildRawFromList(formUrlEncoded.value, true)
+    } else if (formData.value && formData.value.length) {
+      rawBody.value = buildRawFromList(formData.value, false)
     }
   }
 
