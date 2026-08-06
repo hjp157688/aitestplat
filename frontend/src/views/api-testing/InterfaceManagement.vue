@@ -2253,6 +2253,26 @@ const saveRequest = async () => {
 }
 
 const onBodyTypeChange = () => {
+  // 切换到 raw 且当前还没有 raw 内容时，把表格/表单内容序列化填进去（避免"切到 raw 是空"）
+  if (bodyType.value === 'raw' && !rawBody.value) {
+    const source = formData.value && formData.value.length ? formData.value : (formUrlEncoded.value || [])
+    if (source.length) {
+      const jsonData = {}
+      source.forEach(item => {
+        if (item.key) {
+          const val = item.value || ''
+          try {
+            jsonData[item.key] = JSON.parse(val)
+          } catch {
+            jsonData[item.key] = val
+          }
+        }
+      })
+      rawBody.value = JSON.stringify(jsonData, null, 2)
+      rawType.value = 'json'
+    }
+  }
+
   // 保存当前body数据到selectedRequest
   if (selectedRequest.value) {
     if (bodyType.value === 'raw' && rawBody.value) {
@@ -2609,11 +2629,29 @@ const generateCode = async (language) => {
 
     // 构建完整的 requestModel 对象
     let bodyMode = 'none'
+    let serializedJson = rawBody.value
 
     if (bodyType.value === 'raw') {
       bodyMode = rawType.value === 'json' ? 'json' : 'raw'
     } else if (bodyType.value === 'form-data') {
-      bodyMode = 'formdata'
+      // 该表格原本是 JSON body 时按 JSON 语义生成（-d json），真正的 form-data 才走 multipart
+      if (_originalJsonBody.value) {
+        bodyMode = 'json'
+        const jsonData = {}
+        ;(formData.value || []).forEach(item => {
+          if (item.key) {
+            const val = item.value || ''
+            try {
+              jsonData[item.key] = JSON.parse(val)
+            } catch {
+              jsonData[item.key] = val
+            }
+          }
+        })
+        serializedJson = JSON.stringify(jsonData, null, 2)
+      } else {
+        bodyMode = 'formdata'
+      }
     } else if (bodyType.value === 'x-www-form-urlencoded') {
       bodyMode = 'urlencoded'
     } else if (bodyType.value === 'binary') {
@@ -2641,8 +2679,8 @@ const generateCode = async (language) => {
       headers: Array.isArray(selectedRequest.value.headers) ? selectedRequest.value.headers : [],
       body: {
         mode: bodyMode,
-        raw: rawBody.value,
-        json: rawBody.value,
+        raw: serializedJson,
+        json: serializedJson,
         formdata: formData.value,
         urlencoded: formUrlEncoded.value
       },

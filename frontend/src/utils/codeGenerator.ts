@@ -237,21 +237,29 @@ export class CodeGenerator {
       return ''
     }
 
-    const bodyValue = model.body.raw || model.body.json || ''
-    if (!bodyValue) {
-      return ''
-    }
-
     switch (model.body.mode) {
       case 'raw':
-      case 'json':
+      case 'json': {
+        const bodyValue = model.body.raw || model.body.json || ''
+        if (!bodyValue) {
+          return ''
+        }
         return `-d '${bodyValue}'`
-      case 'formdata':
-        return '--data-urlencode "data"'
-      case 'urlencoded':
-        return `--data-urlencode "${bodyValue}"`
+      }
+      case 'formdata': {
+        const items = (model.body.formdata || []).filter(f => f.enabled && f.key)
+        return items
+          .map(f => `--form '${f.key}=${f.value || ''}'`)
+          .join(' ')
+      }
+      case 'urlencoded': {
+        const items = (model.body.urlencoded || []).filter(f => f.enabled && f.key)
+        return items
+          .map(f => `--data-urlencode '${f.key}=${f.value || ''}'`)
+          .join(' ')
+      }
       case 'binary':
-        return `--data-binary "@${bodyValue}"`
+        return model.body.raw ? `--data-binary '@${model.body.raw}'` : ''
       default:
         return ''
     }
