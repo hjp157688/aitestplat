@@ -2252,17 +2252,21 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
 
                 adopted_count = 0
                 for test_case in test_cases:
+                    import json as _json
+                    parsed_steps = test_case.get('steps', [])
+                    if not isinstance(parsed_steps, list):
+                        parsed_steps = [{'desc': str(parsed_steps), 'expect': ''}]
                     TestCase.objects.create(
                         project=project,  # 使用统一的项目选择逻辑
                         author=task.created_by,
-                        title=test_case.get('scenario', '测试用例'),
+                        title=test_case.get('title') or test_case.get('scenario', '测试用例'),
                         description=test_case.get('scenario', ''),  # 使用scenario作为描述
                         preconditions=test_case.get('precondition', ''),
-                        steps=test_case.get('steps', ''),
-                        expected_result=test_case.get('expected', ''),
+                        steps=_json.dumps(parsed_steps, ensure_ascii=False),
                         priority=self._map_priority(test_case.get('priority', '中')),
                         test_type='functional',
-                        status='draft'
+                        status='draft',
+                        requirement=task.requirement,
                     )
                     adopted_count += 1
 
@@ -2345,17 +2349,26 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
 
                 adopted_count = 0
                 for case_data in test_cases_data:
+                    import json as _json
+                    parsed_steps = case_data.get('steps', [])
+                    if isinstance(parsed_steps, str):
+                        try:
+                            parsed_steps = json.loads(parsed_steps)
+                        except Exception:
+                            parsed_steps = [{'desc': parsed_steps, 'expect': ''}]
+                    if not isinstance(parsed_steps, list):
+                        parsed_steps = []
                     TestCase.objects.create(
                         project=project,  # 使用统一的项目选择逻辑
                         author=task.created_by,
                         title=case_data.get('title', '测试用例'),
                         description=case_data.get('description', ''),
                         preconditions=case_data.get('preconditions', ''),
-                        steps=case_data.get('steps', ''),
-                        expected_result=case_data.get('expected_result', ''),
+                        steps=_json.dumps(parsed_steps, ensure_ascii=False),
                         priority=case_data.get('priority', 'medium'),
                         test_type=case_data.get('test_type', 'functional'),
-                        status=case_data.get('status', 'draft')
+                        status=case_data.get('status', 'draft'),
+                        requirement=task.requirement,
                     )
                     adopted_count += 1
 
