@@ -78,9 +78,32 @@
         {{ getStatusText(task.status) }} · {{ Math.round(task.progress || 0) }}%
       </div>
 
-      <div v-if="streamedContent" class="stream-section">
-        <div class="stream-section-title">{{ $t('taskDetail.generatedContent') }}</div>
-        <div class="stream-content" v-html="formatMarkdown(formatStreamForDisplay(streamedContent))"></div>
+      <!-- 生成中：初版用例预览（JSONL 解析为卡片；非 JSON 输出时回退展示原文） -->
+      <div v-if="streamedContent && !streamedReviewContent && !finalCasesStream" class="stream-section">
+        <div class="stream-section-title">
+          {{ $t('taskDetail.generatedContent') }}<template v-if="streamedWriterCases.length">（{{ streamedWriterCases.length }}）</template>
+        </div>
+        <div v-if="streamedWriterCases.length" class="stream-cards">
+          <div v-for="(tc, idx) in streamedWriterCases" :key="idx" class="stream-card">
+            <div class="stream-card-head">
+              <span class="stream-card-id">{{ tc.caseId || 'TC' + String(idx + 1).padStart(3, '0') }}</span>
+              <span class="priority-tag" :class="(tc.priority || 'P2').toLowerCase()">{{ tc.priority || 'P2' }}</span>
+            </div>
+            <div class="stream-card-scenario">{{ tc.scenario }}</div>
+            <div v-if="tc.stepsList && tc.stepsList.length" class="stream-card-steps">
+              <div v-for="(step, si) in tc.stepsList" :key="si" class="stream-step">
+                <span class="step-order">{{ +si + 1 }}.</span>
+                <span class="step-desc">{{ step.desc || '—' }}</span>
+                <span v-if="step.expect" class="step-expect">{{ $t('taskDetail.tableExpected') }}：{{ step.expect }}</span>
+              </div>
+            </div>
+            <div v-else-if="tc.steps || tc.expected" class="stream-card-body">
+              <span v-if="tc.steps">{{ $t('taskDetail.tableSteps') }}：{{ tc.steps }}</span>
+              <span v-if="tc.expected">{{ $t('taskDetail.tableExpected') }}：{{ tc.expected }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="stream-content" v-html="formatMarkdown(formatStreamForDisplay(streamedContent))"></div>
       </div>
 
       <div v-if="streamedReviewContent" class="stream-section">
@@ -88,6 +111,7 @@
         <div class="stream-content" v-html="formatMarkdown(streamedReviewContent)"></div>
       </div>
 
+      <!-- 最终用例：JSONL 解析为卡片；非 JSON 输出时回退展示原文 -->
       <div v-if="finalCasesStream" class="stream-section">
         <div class="stream-section-title">{{ $t('taskDetail.finalCases') }}（{{ streamedCases.length }}）</div>
         <div v-if="streamedCases.length" class="stream-cards">
@@ -97,13 +121,20 @@
               <span class="priority-tag" :class="(tc.priority || 'P2').toLowerCase()">{{ tc.priority || 'P2' }}</span>
             </div>
             <div class="stream-card-scenario">{{ tc.scenario }}</div>
-            <div class="stream-card-body" v-if="tc.steps || tc.expected">
+            <div v-if="tc.stepsList && tc.stepsList.length" class="stream-card-steps">
+              <div v-for="(step, si) in tc.stepsList" :key="si" class="stream-step">
+                <span class="step-order">{{ +si + 1 }}.</span>
+                <span class="step-desc">{{ step.desc || '—' }}</span>
+                <span v-if="step.expect" class="step-expect">{{ $t('taskDetail.tableExpected') }}：{{ step.expect }}</span>
+              </div>
+            </div>
+            <div v-else-if="tc.steps || tc.expected" class="stream-card-body">
               <span v-if="tc.steps">{{ $t('taskDetail.tableSteps') }}：{{ tc.steps }}</span>
               <span v-if="tc.expected">{{ $t('taskDetail.tableExpected') }}：{{ tc.expected }}</span>
             </div>
           </div>
         </div>
-        <div class="stream-content" v-html="formatMarkdown(formatStreamForDisplay(finalCasesStream))"></div>
+        <div v-else class="stream-content" v-html="formatMarkdown(formatStreamForDisplay(finalCasesStream))"></div>
       </div>
     </div>
 
@@ -373,7 +404,8 @@ export default {
       streamedContent: '',       // 流式原始生成内容
       streamedReviewContent: '', // 流式评审反馈
       finalCasesStream: '',      // 流式最终用例（原始文本）
-      streamedCases: [],         // 流式解析出的用例卡片预览
+      streamedCases: [],         // 流式解析出的最终用例卡片预览
+      streamedWriterCases: [],   // 流式解析出的初版用例卡片预览（生成阶段）
       eventSource: null,         // SSE 连接
       pollTimer: null,           // 轮询降级定时器
       showReviewFeedback: false, // 完成态是否展示评审反馈
@@ -497,7 +529,7 @@ export default {
           }
         } else if (data.type === 'content') {
           this.streamedContent += data.content
-          this.streamedCases = this.parseStreamingTestCases(this.streamedContent)
+          this.streamedWriterCases = this.parseTestCases(this.streamedContent)
           this.currentStep = 2
         } else if (data.type === 'review_content') {
           this.streamedReviewContent += data.content
@@ -505,7 +537,7 @@ export default {
           this.currentStep = 3
         } else if (data.type === 'final_content') {
           this.finalCasesStream += data.content
-          this.streamedCases = this.parseStreamingTestCases(this.finalCasesStream)
+          this.streamedCases = this.parseTestCases(this.finalCasesStream)
           this.currentStep = 3
         } else if (data.type === 'status') {
           if (data.status === 'completed') {
@@ -613,75 +645,27 @@ export default {
     parseTestCases(content) {
       if (!content) return []
 
+      // JSONL 解析（每行一个独立 JSON），与 writer/revise 的 JSONL 输出约定一致
+      // 流式增量下解析失败的残缺行直接跳过，等待补齐后再整体重解析
       const testCases = []
-
-      // 优先 JSONL 解析（每行一个 JSON）
-      const lines = content.split('\n')
-      let hasJsonL = false
-      for (const line of lines) {
+      for (const line of content.split('\n')) {
         const trimmed = line.trim()
         if (!trimmed) continue
         try {
           const obj = JSON.parse(trimmed)
+          if (!(obj && typeof obj === 'object') || (obj.case_id === undefined && obj.title === undefined)) continue
+          const stepsList = Array.isArray(obj.steps) ? obj.steps.map(s => ({ desc: s.desc || '', expect: s.expect || '' })) : []
           testCases.push({
             caseId: obj.case_id || '',
             scenario: obj.title || '',
             precondition: obj.precondition || '',
-            steps: Array.isArray(obj.steps) ? obj.steps.map(s => `${s.desc || ''}\n预期: ${s.expect || ''}`).join('\n') : '',
-            expected: (obj.steps || []).map(s => s.expect || '').filter(Boolean).join('\n'),
+            stepsList,
+            steps: stepsList.map(s => `${s.desc}\n预期: ${s.expect}`).join('\n'),
+            expected: stepsList.map(s => s.expect).filter(Boolean).join('\n'),
             priority: obj.priority || 'P2',
           })
-          hasJsonL = true
         } catch (e) {
-          // 不完整行跳过，下次轮询再处理
-        }
-      }
-      if (hasJsonL) return testCases
-
-      // 回退：旧表格格式解析
-      let cleanContent = content.replace(/\*\*([^*]+)\*\*/g, '$1')
-      const legacyLines = cleanContent.split('\n').filter(line => line.trim())
-      let isTableFormat = false
-      const tableData = []
-
-      for (let line of legacyLines) {
-        const trimmedLine = line.trim()
-        if (trimmedLine.includes('|') && !trimmedLine.includes('--------')) {
-          const cells = trimmedLine.split('|').map(cell => cell.trim()).filter(cell => cell)
-          if (cells.length > 1) {
-            tableData.push(cells)
-            isTableFormat = true
-          }
-        }
-      }
-
-      if (isTableFormat && tableData.length > 1) {
-        const headers = tableData[0]
-        for (let i = 1; i < tableData.length; i++) {
-          const row = tableData[i]
-          const testCase = {}
-          headers.forEach((header, index) => {
-            const value = (row[index] || '').replace(/<br\s*\/?>/gi, '\n')
-            const cleanHeader = header.trim().toLowerCase()
-            if (cleanHeader === '优先级' || cleanHeader === 'priority' || cleanHeader.includes('优先级')) {
-              testCase.priority = value
-            } else if (cleanHeader.includes('用例id') || cleanHeader === '编号' || cleanHeader === 'id') {
-              testCase.caseId = value
-            } else if (cleanHeader.includes('测试目标') || cleanHeader === '测试场景' || cleanHeader === '场景' || cleanHeader === '标题') {
-              testCase.scenario = value
-            } else if (cleanHeader === '前置条件' || cleanHeader === '前置' || cleanHeader === '前提条件') {
-              testCase.precondition = value
-            } else if ((cleanHeader === '测试步骤' || cleanHeader === '操作步骤' || cleanHeader === '步骤') && !cleanHeader.includes('预期')) {
-              testCase.steps = value
-            } else if (cleanHeader === '预期结果' || cleanHeader === '预期' || cleanHeader.includes('预期结果')) {
-              testCase.expected = value
-            }
-          })
-          if (testCase.scenario || testCase.caseId) {
-            if (!testCase.steps && testCase.scenario) testCase.steps = testCase.scenario
-            if (!testCase.priority) testCase.priority = 'P2'
-            testCases.push(testCase)
-          }
+          // 不完整行跳过，等待下次解析
         }
       }
       return testCases
@@ -743,134 +727,6 @@ export default {
       html = html.replace(/\n/g, '<br>');
 
       return html;
-    },
-
-    // 增量解析流式文本为用例卡片数据
-    parseStreamingTestCases(content) {
-      if (!content) return []
-
-      // 去除 markdown 加粗标记
-      const cleanContent = content.replace(/\*\*([^*]+)\*\*/g, '$1')
-      const lines = cleanContent.split('\n').filter(line => line.trim())
-      if (lines.length === 0) return []
-
-      // 检测表格格式 (| col1 | col2 | ...)
-      const tableLines = lines.filter(l => l.includes('|') && !l.includes('---'))
-      if (tableLines.length >= 2) {
-        return this.parseTableToCards(tableLines)
-      }
-
-      // 检测结构化格式
-      return this.parseStructuredToCards(lines)
-    },
-
-    // 解析表格格式为卡片数据
-    parseTableToCards(tableLines) {
-      const headers = tableLines[0].split('|').map(c => c.trim()).filter(c => c)
-      const cases = []
-
-      const cleanBr = (text) => {
-        if (!text) return ''
-        return text.replace(/<br\s*\/?>/gi, '\n')
-      }
-
-      for (let i = 1; i < tableLines.length; i++) {
-        const cells = tableLines[i].split('|').map(c => c.trim()).filter(c => c)
-        const tc = { _incomplete: false, _justArrived: false }
-
-        // 如果当前行单元格数不匹配，标记为不完整
-        if (cells.length < headers.length && i === tableLines.length - 1) {
-          tc._incomplete = true
-        }
-
-        headers.forEach((header, index) => {
-          const value = cleanBr(cells[index] || '')
-          const cleanHeader = header.trim().toLowerCase()
-
-          if (cleanHeader === '优先级' || cleanHeader === 'priority' || cleanHeader.includes('优先级')) {
-            tc.priority = value || 'P2'
-          } else if (cleanHeader === '用例id' || cleanHeader === '编号' || cleanHeader === 'id' || cleanHeader.includes('用例id')) {
-            tc.caseId = value
-          } else if (cleanHeader === '测试目标' || cleanHeader === '测试场景' || cleanHeader === '场景' || cleanHeader === '标题' || cleanHeader.includes('测试目标') || cleanHeader.includes('测试场景')) {
-            tc.scenario = value
-          } else if (cleanHeader === '前置条件' || cleanHeader === '前置' || cleanHeader === '前提条件') {
-            tc.precondition = value
-          } else if (cleanHeader === '测试步骤' || cleanHeader === '操作步骤' || cleanHeader === '步骤') {
-            if (!cleanHeader.includes('预期') && !cleanHeader.includes('结果')) {
-              tc.steps = value
-            }
-          } else if (cleanHeader === '预期结果' || cleanHeader === '预期' || cleanHeader === '结果' || cleanHeader.includes('预期结果')) {
-            tc.expected = value
-          }
-        })
-
-        // 只添加有实际内容的卡片
-        if (tc.scenario || tc.caseId || tc.precondition || tc.steps || tc.expected) {
-          if (!tc.priority) tc.priority = 'P2'
-          cases.push(tc)
-        }
-      }
-
-      return cases
-    },
-
-    // 解析结构化文本格式为卡片数据
-    parseStructuredToCards(lines) {
-      const cases = []
-      let currentCase = null
-      let caseNumber = 1
-
-      for (const line of lines) {
-        const trimmed = line.trim()
-
-        // 检测新用例开始
-        if (trimmed.includes('测试用例') || trimmed.includes('Test Case') ||
-            trimmed.match(/^(\d+\.|\*|\-|\d+、)/)) {
-
-          if (currentCase && Object.keys(currentCase).length > 1) {
-            cases.push(currentCase)
-            caseNumber++
-          }
-
-          currentCase = {
-            caseId: `TC${String(caseNumber).padStart(3, '0')}`,
-            scenario: trimmed.replace(/^(\d+\.|\*|\-|\d+、)\s*/, '').replace(/测试用例\d*[:：]?\s*/, '').replace(/Test Case\s*\d*[:：]?\s*/i, ''),
-            precondition: '',
-            steps: '',
-            expected: '',
-            priority: 'P2',
-            _incomplete: true,
-            _justArrived: false
-          }
-        } else if (currentCase) {
-          // 匹配字段
-          if (trimmed.includes('前置条件') || trimmed.includes('前提') || trimmed.includes('Precondition')) {
-            currentCase.precondition = trimmed.replace(/.*?[:：]\s*/, '')
-            currentCase._incomplete = false
-          } else if ((trimmed.includes('测试步骤') || trimmed.includes('操作步骤') || trimmed.includes('步骤')) &&
-                     !trimmed.includes('预期') && !trimmed.includes('结果')) {
-            currentCase.steps = trimmed.replace(/.*?[:：]\s*/, '')
-            currentCase._incomplete = false
-          } else if (trimmed.includes('预期结果') || trimmed.includes('Expected') || trimmed.includes('期望')) {
-            currentCase.expected = trimmed.replace(/.*?[:：]\s*/, '')
-            currentCase._incomplete = false
-          } else if (trimmed.includes('优先级') || trimmed.includes('Priority')) {
-            currentCase.priority = trimmed.replace(/.*?[:：]\s*/, '')
-            currentCase._incomplete = false
-          }
-          // 如果用例至少有了场景和步骤/预期，就标记为完成
-          if (currentCase.scenario && (currentCase.steps || currentCase.expected)) {
-            currentCase._incomplete = false
-          }
-        }
-      }
-
-      // 保存最后一个
-      if (currentCase && Object.keys(currentCase).length > 1) {
-        cases.push(currentCase)
-      }
-
-      return cases
     },
 
     toggleSelectAll() {
@@ -1052,13 +908,13 @@ export default {
       this.isSaving = true
 
       try {
-        // 将换行符转换回<br>
+        // JSONL 原生保留换行，无需再转换为 <br>
         const updatedCase = {
           ...this.selectedCase,
           scenario: this.editForm.scenario,
-          precondition: this.convertNewlineToBr(this.editForm.precondition),
-          steps: this.convertNewlineToBr(this.editForm.steps),
-          expected: this.convertNewlineToBr(this.editForm.expected),
+          precondition: this.editForm.precondition,
+          steps: this.editForm.steps,
+          expected: this.editForm.expected,
           priority: this.editForm.priority
         }
 
@@ -1069,7 +925,7 @@ export default {
           this.selectedCase = updatedCase
         }
 
-        // 重新生成表格格式的测试用例字符串
+        // 重新生成 JSONL 格式的测试用例字符串
         const updatedTestCases = this.generateTestCasesString()
 
         // 调用后端API保存（使用自定义action接口）
@@ -1090,48 +946,52 @@ export default {
       }
     },
 
-    // 将testCases数组重新生成为表格格式的字符串
+    // 将 testCases 数组重新生成为 JSONL 字符串（与后端 _reconstruct_test_cases_content 一致）
     generateTestCasesString() {
       if (this.testCases.length === 0) return ''
 
-      // 表头
-      const headers = [
-        this.$t('taskDetail.tableCaseId'),
-        this.$t('taskDetail.tableScenario'),
-        this.$t('taskDetail.tablePrecondition'),
-        this.$t('taskDetail.tableSteps'),
-        this.$t('taskDetail.tableExpected'),
-        this.$t('taskDetail.tablePriority')
-      ]
-      let result = headers.join(' | ') + '\n'
-      result += '|'.repeat(headers.length) + '\n'
+      return this.testCases.map((testCase) => JSON.stringify({
+        case_id: testCase.caseId || '',
+        title: testCase.scenario || '',
+        precondition: this.convertBrToNewline(testCase.precondition || ''),
+        steps: Array.isArray(testCase.stepsList) && testCase.stepsList.length
+          ? testCase.stepsList
+          : this.stepsStringToArray(testCase.steps || '', testCase.expected || ''),
+        priority: testCase.priority || '',
+        test_type: testCase.test_type || '',
+        module: testCase.module || '',
+      })).join('\n')
+    },
 
-      // 数据行
-      this.testCases.forEach((testCase, index) => {
-        const row = [
-          testCase.caseId || `TC${String(index + 1).padStart(3, '0')}`,
-          testCase.scenario || '',
-          testCase.precondition || '',
-          testCase.steps || '',
-          testCase.expected || '',
-          testCase.priority || 'P2'
-        ]
-        result += row.join(' | ') + '\n'
-      })
+    // 将展示用的 steps 多行文本（"desc\n预期: expect"）还原为 [{desc, expect}]
+    // 兼容 <br> 换行；无描述只有预期时生成单步
+    stepsStringToArray(stepsStr, expected) {
+      const raw = this.convertBrToNewline(stepsStr)
+      if (!raw) {
+        return expected ? [{ desc: '', expect: this.convertBrToNewline(expected) }] : []
+      }
 
-      return result
+      const steps = []
+      for (const line of raw.split('\n')) {
+        const expectMatch = line.match(/^\s*预期[:：]\s*(.*)$/)
+        if (expectMatch && steps.length) {
+          steps[steps.length - 1].expect = expectMatch[1].trim()
+        } else if (line.trim()) {
+          steps.push({ desc: line.trim(), expect: '' })
+        }
+      }
+
+      // 旧数据的整行“预期结果”兜底挂到最后一步（与后端 _reconstruct 行为一致）
+      if (expected && steps.length && !steps[steps.length - 1].expect) {
+        steps[steps.length - 1].expect = this.convertBrToNewline(expected)
+      }
+      return steps
     },
 
     // 将HTML的<br>标签转换为换行符
     convertBrToNewline(text) {
       if (!text) return ''
       return text.replace(/<br\s*\/?>/gi, '\n')
-    },
-
-    // 将换行符转换为HTML的<br>标签
-    convertNewlineToBr(text) {
-      if (!text) return ''
-      return text.replace(/\n/g, '<br>')
     },
 
     async adoptSingleCase(testCase, index) {
@@ -1882,6 +1742,32 @@ export default {
   flex-direction: column;
   gap: 2px;
   color: #64748b;
+}
+.stream-card-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 2px;
+}
+.stream-step {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  line-height: 1.6;
+}
+.step-order {
+  flex: none;
+  color: #94A3B8;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 0.72rem;
+}
+.step-desc {
+  color: #475569;
+  word-break: break-word;
+}
+.step-expect {
+  color: #64748b;
+  word-break: break-word;
 }
 .review-feedback-section {
   background: #f0f9ff;

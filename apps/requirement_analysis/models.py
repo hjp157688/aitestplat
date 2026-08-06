@@ -3,6 +3,7 @@ from django.utils import timezone
 from apps.users.models import User
 from apps.projects.models import Project
 import json
+import re
 import httpx
 import asyncio
 from typing import Dict, Any, List, AsyncIterator
@@ -13,6 +14,9 @@ from apps.ai import observability
 from apps.ai.providers import MODEL_CHOICES as providers_MODEL_CHOICES
 
 logger = logging.getLogger(__name__)
+
+# 测试用例编号格式：可选前缀(字母/中文) + 可选分隔符 + 数字，如 LOGIN_001 / TC-003 / IMMSG001 / 001
+_CASE_ID_PATTERN = re.compile(r'^([A-Za-z一-鿿]*)([-_]*)(\d+)$')
 
 
 class RequirementDocument(models.Model):
@@ -921,9 +925,9 @@ class AIModelService:
             f"   - **编号必须连续，中间不能有遗漏**\n"
             f"   - **所有用例必须一次性完整输出，不能中断**\n"
             rf"6. **⚠️ 特殊字符处理（关键）**：\n"
-            rf"   - **如果在表格内容（如操作步骤、预期结果）中出现管道符 '|'，请使用HTML实体 '&#124;' 代替**。\n"
-            rf"   - **绝对不要使用反斜杠转义（如 '\|'），这会导致输出混乱**。\n"
-            rf"   - 示例：应输入 'a&#124;b' 而不是 'a|b' 或 'a\|b'。\n\n"
+            rf"   - **禁止任何 Markdown 标记**：不得使用加粗 `**`/`*`、标题 `#`、代码块围栏、HTML 标签或 `<br>`。\n"
+            rf"   - **不得输出 Markdown 表格**；JSON 字符串值中的管道符 '|' 可原样书写，无需转义或实体替换。\n"
+            rf"   - 多步骤请拆成 `steps` 数组的多个元素（每个元素 `{{\"desc\":...,\"expect\":...}}`），不要用 `<br>` 或序号拼接。\n\n"
             f"【需求文档内容】\n{requirement_text}"
         )
 
@@ -1055,6 +1059,40 @@ class AIModelService:
         return full_content
 
     @staticmethod
+    def _build_revise_user_message(
+            original_test_cases: str,
+            review_feedback: str,
+            prefs: str = '') -> str:
+        """构建评审后改进阶段的用户消息（纯函数，可单测）。
+
+        与 writer 的 JSONL 输出约定保持一致：禁止 Markdown（加粗/表格/<br>），
+        steps 必须是 [{desc, expect}] 数组。
+        """
+        return (
+            f"请根据以下专家评审意见，改进和完善测试用例。\n\n"
+            f"{prefs}\n\n"
+            f"【原始测试用例】\n{original_test_cases}\n\n"
+            f"【评审意见】\n{review_feedback}\n\n"
+            f"【改进要求】\n"
+            f"1. 严格根据评审意见指出的问题进行修改\n"
+            f"2. 补充缺失的测试场景\n"
+            f"3. 修正不合理的预期结果\n"
+            f"4. 删除冗余的测试用例\n"
+            f"5. 保持测试用例的格式规范\n"
+            f"6. **⚠️ 输出格式（必须严格执行）**：与【原始测试用例】保持同一 **JSONL** 结构——"
+            f"每行一个独立可解析的 JSON 对象，行内不要换行；字段：case_id/title/precondition/steps/priority/test_type/module；"
+            f"其中 `steps` 必须为 `[{{\"desc\":\"步骤描述\",\"expect\":\"该步骤预期结果\"}}]` 数组。\n"
+            f"7. **⚠️ 禁止 Markdown**：不得使用 Markdown 加粗（`**`/`*`）、标题（`#`）、代码块围栏、"
+            f"HTML 标签或 `<br>`；不得输出 Markdown 表格。`desc`/`expect` 均为纯文本，多步请拆成多个数组元素。\n"
+            f"8. **⚠️ 输出顺序要求（必须严格执行）**：按编号从小到大输出，绝对不跳号、重复或乱序，"
+            f"编号连续，所有用例一次性完整输出。\n"
+            f"9. **必须输出完整**：请输出所有改进后的测试用例，不因篇幅省略任何一条。\n"
+            f"10. **测试用例编号规则**：新增用例按原编号规则继续编号（如原最后一个为 TC-003，新增应为 TC-004），"
+            f"不得使用'新增'、'用例1'等作为编号。\n\n"
+            f"请直接输出改进后的完整测试用例，不要包含任何说明性文字。"
+        )
+
+    @staticmethod
     async def revise_test_cases_based_on_review(
             task: TestCaseGenerationTask,
             original_test_cases: str,
@@ -1077,46 +1115,9 @@ class AIModelService:
 
         prefs = AIModelService._build_preferences_block(task.case_type, task.granularity)
 
-        # 构建改进指令
-        user_message = (
-            f"请根据以下专家评审意见，改进和完善测试用例。\n\n"
-            f"{prefs}\n\n"
-            f"【原始测试用例】\n{original_test_cases}\n\n"
-            f"【评审意见】\n{review_feedback}\n\n"
-            f"【改进要求】\n"
-            f"1. 严格根据评审意见指出的问题进行修改\n"
-            f"2. 补充缺失的测试场景\n"
-            f"3. 修正不合理的预期结果\n"
-            f"4. 删除冗余的测试用例\n"
-            f"5. 保持测试用例的格式规范\n"
-            f"6. **加粗标记规则（必须严格执行）**：\n"
-            f"   **6.1 新增测试用例**：对整个新增的测试用例进行加粗\n"
-            f"   - 示例：**TC-004 测试用例标题**\\n**测试步骤：**\\n**1. 步骤内容**\\n**预期结果：**\\n**2. 预期内容**\n"
-            f"   - 注意：新增用例的编号、标题、步骤、预期结果等所有内容都要加粗\n"
-            f"   **6.2 修改现有用例**：只对被修改的具体部分进行加粗\n"
-            f"   - 修改标题：**TC-001 修改后的新标题**（其他内容保持原样）\n"
-            f"   - 修改步骤：1. 原步骤\\n2. **修改后的步骤内容**（只有步骤2加粗）\n"
-            f"   - 修改预期结果：预期结果：**修改后的预期内容**（只有预期内容加粗）\n"
-            f"   - 新增步骤：1. 原步骤\\n**2. 新增的步骤内容**（新增的步骤整体加粗）\n"
-            f"   **6.3 注意事项**：\n"
-            f"   - 未修改的部分不要加粗\n"
-            f"   - 原始测试用例中已经存在的用例，如果没有改动就不要加粗\n"
-            f"   - 只有根据评审意见新增或修改的部分才需要加粗\n"
-            f"7. **⚠️ 输出顺序要求（必须严格执行）**：\n"
-            f"   - **必须按用例编号从小到大的顺序输出**（如：001, 002, 003...或LOGIN_001, LOGIN_002, LOGIN_003...）\n"
-            f"   - **绝对不能跳号、重复或乱序输出**\n"
-            f"   - **编号必须连续，中间不能有遗漏**\n"
-            f"   - **所有用例必须一次性完整输出，不能中断**\n"
-            f"8. **必须输出完整**：请确保输出所有改进后的测试用例，不要因为篇幅原因省略任何用例，"
-            f"即使是第30条、第40条甚至更多的用例，也必须完整输出。\n"
-            f"9. **测试用例编号规则**：新增的测试用例必须按照原有编号规则继续编号（例如原最后一个用例是TC-003，新增的第一个用例应该是TC-004），"
-            f"绝不能使用'新增'、'用例1'等作为编号，必须是正式的测试用例编号。\n"
-            rf"10. **⚠️ 特殊字符处理（关键）**：\n"
-            rf"   - **如果在表格内容（如操作步骤、预期结果）中出现管道符 '|'，请使用HTML实体 '&#124;' 代替**。\n"
-            rf"   - **绝对不要使用反斜杠转义（如 '\|'），这会导致输出混乱**。\n"
-            rf"   - 示例：应输入 'a&#124;b' 而不是 'a|b' 或 'a\|b'。\n\n"
-            f"请直接输出改进后的完整测试用例，不要包含任何说明性文字。"
-        )
+        # 构建改进指令（JSONL 输出约定，禁止任何 Markdown 标记）
+        user_message = AIModelService._build_revise_user_message(
+            original_test_cases, review_feedback, prefs)
 
         messages = [
             {"role": "system", "content": writer_prompt},
@@ -1160,10 +1161,10 @@ class AIModelService:
     @staticmethod
     def sort_test_cases_by_id(test_cases_content: str) -> str:
         """
-        按照测试用例编号排序测试用例内容
+        按照测试用例编号（case_id 数字部分）对 JSONL 测试用例排序。
 
         Args:
-            test_cases_content: 测试用例内容（字符串）
+            test_cases_content: 测试用例内容（JSONL 字符串）
 
         Returns:
             str: 排序后的测试用例内容
@@ -1171,70 +1172,45 @@ class AIModelService:
         if not test_cases_content:
             return test_cases_content
 
-        import re
-
-        # 按行分割内容
-        lines = test_cases_content.split('\n')
-
-        # 识别用例块：每个用例从包含编号的行开始
-        # 支持多种编号格式：TC-001, TC001, TEST-001, 测试用例1, 1. 等
-        case_pattern = re.compile(r'^(#{1,6}\s+)?(?:TC[-_]?\d+|TEST[-_]?\d+|测试用例\d+|\d+[\.\、]\s*[:：]?\s*\S+)',
-                                  re.IGNORECASE | re.MULTILINE)
-
-        # 找到所有用例块的起始位置
-        case_starts = []
-        for i, line in enumerate(lines):
-            if case_pattern.match(line):
-                case_starts.append(i)
-
-        # 如果没有找到编号，返回原内容
-        if len(case_starts) < 2:
-            logger.info(f"未检测到足够的用例编号（只找到{len(case_starts)}个），保持原顺序")
+        lines = [ln for ln in test_cases_content.split('\n') if ln.strip()]
+        if len(lines) < 2:
             return test_cases_content
 
-        # 提取每个用例块
-        case_blocks = []
-        for i in range(len(case_starts)):
-            start = case_starts[i]
-            # 下一个用例的开始位置，或者文件末尾
-            end = case_starts[i + 1] if i + 1 < len(case_starts) else len(lines)
-            block_lines = lines[start:end]
-            block_content = '\n'.join(block_lines)
-            case_blocks.append({
-                'start': start,
-                'content': block_content,
-                'first_line': block_lines[0] if block_lines else ''
-            })
+        # 逐行解析为 (原始行, 用例对象|None)
+        entries = []
+        for line in lines:
+            try:
+                obj = json.loads(line)
+            except (json.JSONDecodeError, ValueError):
+                obj = None
+            entries.append((line, obj))
 
-        # 提取编号用于排序
-        def extract_case_id(block):
-            first_line = block['first_line']
-            # 尝试匹配各种编号格式
-            # TC-001, TC001, TEST-001, 测试用例1, 1. xxx 等
-            match = re.search(r'(?:TC[-_]?|TEST[-_]?|测试用例)?(\d+)', first_line, re.IGNORECASE)
-            if match:
-                return int(match.group(1))
-            return 0
+        # 非 JSONL（没有一行是可解析且含 case_id 的对象）直接原样返回
+        if not any(isinstance(obj, dict) and 'case_id' in obj for _, obj in entries):
+            logger.info("未检测到 JSONL 测试用例编号，保持原顺序")
+            return test_cases_content
 
-        # 按编号排序
-        try:
-            case_blocks.sort(key=extract_case_id)
-            logger.info(f"成功对{len(case_blocks)}个测试用例按编号排序")
-        except Exception as e:
-            logger.warning(f"排序失败: {e}，保持原顺序")
+        def sort_key(entry):
+            line, obj = entry
+            if not (isinstance(obj, dict) and isinstance(obj.get('case_id'), str)):
+                return (2, 0)  # 不可解析/无编号 → 排到末尾，保持原有相对顺序
+            m = _CASE_ID_PATTERN.match(obj['case_id'].strip())
+            if not m:
+                return (2, 0)
+            return (1, int(m.group(3)))
 
-        # 重新组合内容
-        sorted_content = '\n'.join([block['content'] for block in case_blocks])
-
-        return sorted_content
+        # Python 排序稳定：同编号/兜底行保持原始相对顺序，不丢任何行
+        entries.sort(key=sort_key)
+        logger.info(f"成功对{len(entries)}个测试用例按编号排序")
+        return '\n'.join(line for line, _ in entries)
 
     @staticmethod
     def fix_incomplete_last_case(test_cases_content: str) -> str:
         """
-        检测并修复不完整的最后一条测试用例
+        检测并移除 JSONL 末尾不完整的用例行（截断/无法解析的行）。
 
         Args:
-            test_cases_content: 测试用例内容
+            test_cases_content: 测试用例内容（JSONL 字符串）
 
         Returns:
             str: 修复后的测试用例内容
@@ -1244,50 +1220,37 @@ class AIModelService:
 
         lines = test_cases_content.split('\n')
 
-        # 检查最后几行，找到最后一个表格行
-        table_lines = []
-        for i in range(len(lines) - 1, -1, -1):
-            line = lines[i].strip()
-            if line.startswith('|') and line.endswith('|'):
-                table_lines.insert(0, (i, line))
-                # 只检查最后10行
-                if len(table_lines) >= 10:
-                    break
+        # 从末尾向前：跳过空行，丢弃截断或无法解析成用例对象的行
+        end = len(lines)
+        while end > 0:
+            line = lines[end - 1].strip()
+            if not line:
+                end -= 1
+                continue
+            try:
+                obj = json.loads(line)
+            except (json.JSONDecodeError, ValueError):
+                obj = None
+            if isinstance(obj, dict) and ('case_id' in obj or 'title' in obj):
+                break  # 最后是完整用例，无需处理
+            logger.warning(f"检测到末尾不完整用例行，已移除: {line[:60]}")
+            end -= 1
 
-        if not table_lines:
+        if end == len(lines):
             return test_cases_content
-
-        # 检查最后一个表格行是否完整（应该有7个|，即7列）
-        last_line_index, last_line = table_lines[-1]
-        column_count = last_line.count('|')
-
-        # 正常的表格应该有7个|（开头+结尾+5个分隔符）
-        if column_count < 7:
-            logger.warning(f"检测到最后一条用例不完整: 只有{column_count}列，应该是7列")
-            # 删除不完整的最后一条用例
-            # 找到完整的上一条用例
-            for i in range(len(table_lines) - 2, -1, -1):
-                prev_index, prev_line = table_lines[i]
-                if prev_line.count('|') >= 7:
-                    # 截断到上一条完整用例的位置
-                    fixed_content = '\n'.join(lines[:prev_index + 1])
-                    logger.info(f"已删除不完整的最后一条用例，保留了{prev_index + 1}行")
-                    return fixed_content
-
-            # 如果找不到完整的上一条，直接删除最后5行
-            fixed_content = '\n'.join(lines[:-5])
-            logger.info(f"删除最后5行不完整的内容")
-            return fixed_content
-
-        return test_cases_content
+        logger.info(f"已删除不完整的末尾内容，保留了{end}行")
+        return '\n'.join(lines[:end])
 
     @staticmethod
     def renumber_test_cases(test_cases_content: str) -> str:
         """
-        重新编号测试用例，使其编号连续
+        按顺序重新编号 JSONL 测试用例，使编号连续。
+
+        保留每行的前缀与分隔符（如 LOGIN_ / TC- / IMMSG），位数与原有编号一致；
+        多前缀（如混合 LOGIN_* 与 REGISTER_*）各自独立连续编号；无数字编号的行保持不变。
 
         Args:
-            test_cases_content: 测试用例内容（字符串）
+            test_cases_content: 测试用例内容（JSONL 字符串）
 
         Returns:
             str: 重新编号后的测试用例内容
@@ -1295,94 +1258,35 @@ class AIModelService:
         if not test_cases_content:
             return test_cases_content
 
-        import re
-
-        lines = test_cases_content.split('\n')
-
-        # 找到表格分隔线
-        separator_line = None
-        separator_index = -1
-        for i, line in enumerate(lines):
-            if line.strip().startswith('|') and '|' in line and '---' in line:
-                separator_line = line
-                separator_index = i
-                break
-
-        if not separator_line:
-            logger.warning("未找到表格分隔线，无法重新编号")
-            return test_cases_content
-
-        # 计算列数
-        column_count = separator_line.count('|')
-
-        # 找到第一个数据行（包含编号的行）
-        first_data_index = -1
-        for i in range(separator_index + 1, len(lines)):
-            line = lines[i]
-            if line.strip().startswith('|') and line.count('|') == column_count:
-                first_data_index = i
-                break
-
-        if first_data_index == -1:
-            logger.warning("未找到任何数据行")
-            return test_cases_content
-
-        # 从第一个数据行中提取编号格式
-        first_line = lines[first_data_index]
-        parts = first_line.split('|')
-        if len(parts) < 2:
-            logger.warning("无法解析第一列")
-            return test_cases_content
-
-        # 获取第一列的编号（例如：IMMSG001）
-        first_id = parts[1].strip()
-
-        # 提取编号格式前缀（例如：IMMSG）
-        id_match = re.match(r'^([A-Z]+)(\d+)$', first_id)
-        if not id_match:
-            logger.warning(f"无法识别编号格式: {first_id}")
-            return test_cases_content
-
-        prefix = id_match.group(1)  # 例如：IMMSG
-        total_cases = 0
-
-        # 重新编号所有数据行
-        result_lines = lines[:first_data_index]
-        i = first_data_index
-
-        while i < len(lines):
-            line = lines[i]
-
-            # 检查是否是数据行
-            if not line.strip().startswith('|'):
-                # 不是表格行，添加并继续
-                result_lines.append(line)
-                i += 1
+        entries = []
+        for line in test_cases_content.split('\n'):
+            stripped = line.strip()
+            if not stripped:
                 continue
+            try:
+                obj = json.loads(stripped)
+            except (json.JSONDecodeError, ValueError):
+                obj = None
+            entries.append(obj)
 
-            # 检查列数是否正确
-            if line.count('|') != column_count:
-                # 列数不对，可能是空行或其他内容
-                result_lines.append(line)
-                i += 1
+        if not any(isinstance(obj, dict) and 'case_id' in obj for obj in entries):
+            logger.warning("未检测到 JSONL 测试用例，无法重新编号")
+            return test_cases_content
+
+        counters = {}  # 按 前缀+分隔符 分别计数，避免不同模块编号互相干扰
+        out_lines = []
+        for obj in entries:
+            if not isinstance(obj, dict):
+                out_lines.append(json.dumps(obj, ensure_ascii=False))
                 continue
+            case_id = obj.get('case_id')
+            m = _CASE_ID_PATTERN.match(str(case_id).strip()) if isinstance(case_id, str) else None
+            if m:
+                key = m.group(1) + m.group(2)
+                counters[key] = counters.get(key, 0) + 1
+                width = max(len(m.group(3)), 1)
+                obj['case_id'] = f"{m.group(1)}{m.group(2)}{str(counters[key]).zfill(width)}"
+            out_lines.append(json.dumps(obj, ensure_ascii=False))
 
-            # 这是一个数据行，重新编号
-            total_cases += 1
-            new_id = f"{prefix}{total_cases:03d}"  # 格式：IMMSG001
-
-            # 替换第一列的编号，保持原有格式
-            parts = line.split('|')
-            if len(parts) >= 2:
-                # 保持第一列（空）和第二列（编号）之间的空格
-                # 只替换编号部分
-                parts[1] = f" {new_id} "
-                new_line = '|'.join(parts)
-                result_lines.append(new_line)
-
-            i += 1
-
-        renumbered_content = '\n'.join(result_lines)
-        logger.info(f"重新编号完成: 共{total_cases}条测试用例，编号范围: {prefix}001-{prefix}{total_cases:03d}")
-
-        return renumbered_content
+        logger.info(f"重新编号完成: 共{sum(counters.values())}条测试用例")
+        return '\n'.join(out_lines)

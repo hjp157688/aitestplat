@@ -37,8 +37,11 @@
 
         <!-- 批量操作栏：有勾选时显示 -->
         <div v-if="!searchKeyword && checkedNodes.length > 0" class="batch-actions-bar">
-          <span class="batch-count">{{ $t('apiTesting.interface.batchActions.selected', { count: checkedRequests.length }) }}</span>
-          <div class="batch-buttons">
+          <div class="batch-bar-top">
+            <span class="batch-count">{{ $t('apiTesting.interface.batchActions.selected', { count: checkedRequests.length }) }}</span>
+            <el-button size="small" text @click="clearChecked">{{ $t('apiTesting.interface.batchActions.clear') }}</el-button>
+          </div>
+          <div class="batch-bar-actions">
             <el-button size="small" type="danger" @click="batchDelete">
               {{ $t('apiTesting.interface.batchActions.batchDelete') }}
             </el-button>
@@ -48,7 +51,6 @@
             <el-button size="small" type="primary" @click="showCreateSuiteDialog = true" :disabled="checkedRequests.length === 0">
               {{ $t('apiTesting.interface.batchActions.createSuite') }}
             </el-button>
-            <el-button size="small" text @click="clearChecked">{{ $t('apiTesting.interface.batchActions.clear') }}</el-button>
           </div>
         </div>
 
@@ -4853,23 +4855,31 @@ const useLocalVariableCategories = () => {
 }
 
 .batch-actions-bar {
-  display: flex;
-  align-items: center;
-  gap: 4px 8px;
-  flex-wrap: wrap;
-  padding: 4px 4px 8px;
+  padding: 10px 8px 8px;
   border-bottom: 1px solid var(--el-border-color-lighter);
   margin-bottom: 4px;
+}
+.batch-bar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 .batch-count {
   font-size: 12px;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
-.batch-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+.batch-bar-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.batch-bar-actions .el-button {
+  width: 100%;
+  margin-left: 0;
+  padding-inline: 4px;
+  font-size: 12px;
 }
 
 </style>

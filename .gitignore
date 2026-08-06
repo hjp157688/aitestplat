@@ -81,10 +81,6 @@ logs/*
 logs/*/*
 !logs/*/.gitkeep
 
-# ----- Django migrations (保留 __init__.py) -----
-apps/*/migrations/*
-!apps/*/migrations/__init__.py
-
 # ----- media 运行时上传文件 (保留各目录 .gitkeep) -----
 media/ai_recording/*
 !media/ai_recording/.gitkeep

@@ -368,16 +368,33 @@
                   <span class="field-label">{{ $t('requirementAnalysis.cardPrecondition') }}</span>
                   <span class="field-value">{{ tc.precondition }}</span>
                 </div>
-                <div class="card-field" v-if="tc.steps">
-                  <span class="field-icon"><el-icon><EditPen /></el-icon></span>
-                  <span class="field-label">{{ $t('requirementAnalysis.cardSteps') }}</span>
-                  <span class="field-value">{{ tc.steps }}</span>
-                </div>
-                <div class="card-field" v-if="tc.expected">
-                  <span class="field-icon"><el-icon><CircleCheck /></el-icon></span>
-                  <span class="field-label">{{ $t('requirementAnalysis.cardExpected') }}</span>
-                  <span class="field-value">{{ tc.expected }}</span>
-                </div>
+                <template v-if="tc.stepsList && tc.stepsList.length">
+                  <div class="card-field">
+                    <span class="field-icon"><el-icon><EditPen /></el-icon></span>
+                    <span class="field-label">{{ $t('requirementAnalysis.cardSteps') }}</span>
+                    <div class="step-list">
+                      <div v-for="(step, si) in tc.stepsList" :key="si" class="step-row">
+                        <span class="step-order">{{ +si + 1 }}.</span>
+                        <span class="step-desc">{{ step.desc || '—' }}</span>
+                        <span class="step-expect" v-if="step.expect">
+                          <span class="expect-label">{{ $t('requirementAnalysis.cardExpected') }}：</span>{{ step.expect }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="card-field" v-if="tc.steps">
+                    <span class="field-icon"><el-icon><EditPen /></el-icon></span>
+                    <span class="field-label">{{ $t('requirementAnalysis.cardSteps') }}</span>
+                    <span class="field-value">{{ tc.steps }}</span>
+                  </div>
+                  <div class="card-field" v-if="tc.expected">
+                    <span class="field-icon"><el-icon><CircleCheck /></el-icon></span>
+                    <span class="field-label">{{ $t('requirementAnalysis.cardExpected') }}</span>
+                    <span class="field-value">{{ tc.expected }}</span>
+                  </div>
+                </template>
                 <div v-if="tc._incomplete && isGenerating && !showResults" class="streaming-shimmer"></div>
               </div>
             </div>
@@ -429,16 +446,33 @@
                   <span class="field-label">{{ $t('requirementAnalysis.cardPrecondition') }}</span>
                   <span class="field-value">{{ tc.precondition }}</span>
                 </div>
-                <div class="card-field" v-if="tc.steps">
-                  <span class="field-icon"><el-icon><EditPen /></el-icon></span>
-                  <span class="field-label">{{ $t('requirementAnalysis.cardSteps') }}</span>
-                  <span class="field-value">{{ tc.steps }}</span>
-                </div>
-                <div class="card-field" v-if="tc.expected">
-                  <span class="field-icon"><el-icon><CircleCheck /></el-icon></span>
-                  <span class="field-label">{{ $t('requirementAnalysis.cardExpected') }}</span>
-                  <span class="field-value">{{ tc.expected }}</span>
-                </div>
+                <template v-if="tc.stepsList && tc.stepsList.length">
+                  <div class="card-field">
+                    <span class="field-icon"><el-icon><EditPen /></el-icon></span>
+                    <span class="field-label">{{ $t('requirementAnalysis.cardSteps') }}</span>
+                    <div class="step-list">
+                      <div v-for="(step, si) in tc.stepsList" :key="si" class="step-row">
+                        <span class="step-order">{{ +si + 1 }}.</span>
+                        <span class="step-desc">{{ step.desc || '—' }}</span>
+                        <span class="step-expect" v-if="step.expect">
+                          <span class="expect-label">{{ $t('requirementAnalysis.cardExpected') }}：</span>{{ step.expect }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="card-field" v-if="tc.steps">
+                    <span class="field-icon"><el-icon><EditPen /></el-icon></span>
+                    <span class="field-label">{{ $t('requirementAnalysis.cardSteps') }}</span>
+                    <span class="field-value">{{ tc.steps }}</span>
+                  </div>
+                  <div class="card-field" v-if="tc.expected">
+                    <span class="field-icon"><el-icon><CircleCheck /></el-icon></span>
+                    <span class="field-label">{{ $t('requirementAnalysis.cardExpected') }}</span>
+                    <span class="field-value">{{ tc.expected }}</span>
+                  </div>
+                </template>
               </div>
             </div>
           </section>
@@ -1484,36 +1518,26 @@ export default {
         // 过滤掉总结和建议部分，只保留测试用例内容
         const filteredContent = this.filterTestCasesOnly(finalTestCases);
 
-        // 尝试解析表格格式的测试用例（参考AutoGenTestCase的做法）
-        const tableFormat = this.parseTableFormat(filteredContent);
+        // 解析 JSONL 测试用例为数据行（每行一个独立 JSON）
+        let dataRows = this.jsonlToExcelRows(filteredContent);
 
-        let worksheetData = [];
-
-        if (tableFormat.length > 0) {
-          // 如果解析到表格格式，直接使用，但要确保表头正确
-          worksheetData = tableFormat;
-
-          // 检查并修正表头
-          if (worksheetData.length > 0) {
-            const header = worksheetData[0];
-            for (let i = 0; i < header.length; i++) {
-              if (header[i] && header[i].includes('测试步骤')) {
-                header[i] = header[i].replace('测试步骤', '操作步骤');
-              }
-              if (header[i] && header[i].includes('Test Steps')) {
-                header[i] = header[i].replace('Test Steps', '操作步骤');
-              }
-            }
-          }
-        } else {
-          // 否则尝试解析结构化格式
-          worksheetData = this.parseStructuredFormat(filteredContent);
+        // 非 JSONL（历史数据）：整段内容放入场景列，避免静默丢数据
+        if (dataRows.length === 0 && this.convertBrToNewline(filteredContent).trim()) {
+          dataRows = [['', this.convertBrToNewline(filteredContent), '', '', '', '']];
         }
 
-        // 将所有单元格中的<br>标签转换为换行符
-        worksheetData = worksheetData.map(row =>
-          row.map(cell => this.convertBrToNewline(cell))
-        );
+        // 统一表头 + 数据行
+        const worksheetData = [
+          [
+            this.$t('requirementAnalysis.excelTestCaseNumber'),
+            this.$t('requirementAnalysis.excelTestScenario'),
+            this.$t('requirementAnalysis.excelPrecondition'),
+            this.$t('requirementAnalysis.excelTestSteps'),
+            this.$t('requirementAnalysis.excelExpectedResult'),
+            this.$t('requirementAnalysis.excelPriority')
+          ],
+          ...dataRows
+        ];
 
         // 创建工作表
         const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
@@ -1594,132 +1618,33 @@ export default {
       }
     },
 
-    // 增量解析流式文本为用例卡片数据
+    // 解析 JSONL 测试用例为卡片数据（每行一个独立 JSON，与 writer/revise 的 JSONL 输出约定一致）
+    // 流式增量下解析失败的残缺行直接跳过，等待补齐后再整体重解析
     parseStreamingTestCases(content) {
       if (!content) return []
 
-      // 去除 markdown 加粗标记
-      const cleanContent = content.replace(/\*\*([^*]+)\*\*/g, '$1')
-      const lines = cleanContent.split('\n').filter(line => line.trim())
-      if (lines.length === 0) return []
-
-      // 检测表格格式 (| col1 | col2 | ...)
-      const tableLines = lines.filter(l => l.includes('|') && !l.includes('---'))
-      if (tableLines.length >= 2) {
-        return this.parseTableToCards(tableLines)
-      }
-
-      // 检测结构化格式
-      return this.parseStructuredToCards(lines)
-    },
-
-    // 解析表格格式为卡片数据
-    parseTableToCards(tableLines) {
-      const headers = tableLines[0].split('|').map(c => c.trim()).filter(c => c)
-      const cases = []
-
-      const cleanBr = (text) => {
-        if (!text) return ''
-        return text.replace(/<br\s*\/?>/gi, '\n')
-      }
-
-      for (let i = 1; i < tableLines.length; i++) {
-        const cells = tableLines[i].split('|').map(c => c.trim()).filter(c => c)
-        const tc = { _incomplete: false, _justArrived: false }
-
-        // 如果当前行单元格数不匹配，标记为不完整
-        if (cells.length < headers.length && i === tableLines.length - 1) {
-          tc._incomplete = true
-        }
-
-        headers.forEach((header, index) => {
-          const value = cleanBr(cells[index] || '')
-          const cleanHeader = header.trim().toLowerCase()
-
-          if (cleanHeader === '优先级' || cleanHeader === 'priority' || cleanHeader.includes('优先级')) {
-            tc.priority = value || 'P2'
-          } else if (cleanHeader === '用例id' || cleanHeader === '编号' || cleanHeader === 'id' || cleanHeader.includes('用例id')) {
-            tc.caseId = value
-          } else if (cleanHeader === '测试目标' || cleanHeader === '测试场景' || cleanHeader === '场景' || cleanHeader === '标题' || cleanHeader.includes('测试目标') || cleanHeader.includes('测试场景')) {
-            tc.scenario = value
-          } else if (cleanHeader === '前置条件' || cleanHeader === '前置' || cleanHeader === '前提条件') {
-            tc.precondition = value
-          } else if (cleanHeader === '测试步骤' || cleanHeader === '操作步骤' || cleanHeader === '步骤') {
-            if (!cleanHeader.includes('预期') && !cleanHeader.includes('结果')) {
-              tc.steps = value
-            }
-          } else if (cleanHeader === '预期结果' || cleanHeader === '预期' || cleanHeader === '结果' || cleanHeader.includes('预期结果')) {
-            tc.expected = value
-          }
-        })
-
-        // 只添加有实际内容的卡片
-        if (tc.scenario || tc.caseId || tc.precondition || tc.steps || tc.expected) {
-          if (!tc.priority) tc.priority = 'P2'
-          cases.push(tc)
-        }
-      }
-
-      return cases
-    },
-
-    // 解析结构化文本格式为卡片数据
-    parseStructuredToCards(lines) {
-      const cases = []
-      let currentCase = null
-      let caseNumber = 1
-
-      for (const line of lines) {
+      const testCases = []
+      for (const line of content.split('\n')) {
         const trimmed = line.trim()
-
-        // 检测新用例开始
-        if (trimmed.includes('测试用例') || trimmed.includes('Test Case') ||
-            trimmed.match(/^(\d+\.|\*|\-|\d+、)/)) {
-
-          if (currentCase && Object.keys(currentCase).length > 1) {
-            cases.push(currentCase)
-            caseNumber++
-          }
-
-          currentCase = {
-            caseId: `TC${String(caseNumber).padStart(3, '0')}`,
-            scenario: trimmed.replace(/^(\d+\.|\*|\-|\d+、)\s*/, '').replace(/测试用例\d*[:：]?\s*/, '').replace(/Test Case\s*\d*[:：]?\s*/i, ''),
-            precondition: '',
-            steps: '',
-            expected: '',
-            priority: 'P2',
-            _incomplete: true,
-            _justArrived: false
-          }
-        } else if (currentCase) {
-          // 匹配字段
-          if (trimmed.includes('前置条件') || trimmed.includes('前提') || trimmed.includes('Precondition')) {
-            currentCase.precondition = trimmed.replace(/.*?[:：]\s*/, '')
-            currentCase._incomplete = false
-          } else if ((trimmed.includes('测试步骤') || trimmed.includes('操作步骤') || trimmed.includes('步骤')) &&
-                     !trimmed.includes('预期') && !trimmed.includes('结果')) {
-            currentCase.steps = trimmed.replace(/.*?[:：]\s*/, '')
-            currentCase._incomplete = false
-          } else if (trimmed.includes('预期结果') || trimmed.includes('Expected') || trimmed.includes('期望')) {
-            currentCase.expected = trimmed.replace(/.*?[:：]\s*/, '')
-            currentCase._incomplete = false
-          } else if (trimmed.includes('优先级') || trimmed.includes('Priority')) {
-            currentCase.priority = trimmed.replace(/.*?[:：]\s*/, '')
-            currentCase._incomplete = false
-          }
-          // 如果用例至少有了场景和步骤/预期，就标记为完成
-          if (currentCase.scenario && (currentCase.steps || currentCase.expected)) {
-            currentCase._incomplete = false
-          }
+        if (!trimmed) continue
+        try {
+          const obj = JSON.parse(trimmed)
+          if (!(obj && typeof obj === 'object') || (obj.case_id === undefined && obj.title === undefined)) continue
+          const stepsList = Array.isArray(obj.steps) ? obj.steps.map(s => ({ desc: s.desc || '', expect: s.expect || '' })) : []
+          testCases.push({
+            caseId: obj.case_id || '',
+            scenario: obj.title || '',
+            precondition: obj.precondition || '',
+            stepsList,
+            steps: stepsList.map(s => `${s.desc}\n预期: ${s.expect}`).join('\n'),
+            expected: stepsList.map(s => s.expect).filter(Boolean).join('\n'),
+            priority: obj.priority || 'P2',
+          })
+        } catch (e) {
+          // 不完整行跳过，等待下个 chunk 补齐
         }
       }
-
-      // 保存最后一个
-      if (currentCase && Object.keys(currentCase).length > 1) {
-        cases.push(currentCase)
-      }
-
-      return cases
+      return testCases
     },
 
     // 格式化Markdown为HTML（简化版）
@@ -1803,187 +1728,46 @@ export default {
       return filteredLines.join('\n');
     },
 
-    // 解析表格格式的测试用例（参考AutoGenTestCase的做法）
-    parseTableFormat(content) {
-      if (!content) return [];
+    // 解析 JSONL 测试用例为 Excel 数据行（不含表头，步骤/预期按行编号显示）
+    jsonlToExcelRows(content) {
+      if (!content) return []
 
-      const lines = content.split('\n').filter(line => line.trim());
-      const worksheetData = [];
-
-      for (let line of lines) {
-        const trimmedLine = line.trim();
-
-        // 检查是否是表格行（包含|分隔符，且不是分隔线）
-        if (trimmedLine.includes('|') && !trimmedLine.includes('--------')) {
-          const cells = trimmedLine.split('|').map(cell => cell.trim()).filter(cell => cell);
-          if (cells.length > 1) {
-            worksheetData.push(cells);
-          }
+      const rows = []
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim()
+        if (!trimmed) continue
+        let obj = null
+        try {
+          obj = JSON.parse(trimmed)
+        } catch (e) {
+          continue
         }
+        if (!(obj && typeof obj === 'object') || (obj.case_id === undefined && obj.title === undefined)) continue
+
+        const steps = Array.isArray(obj.steps) ? obj.steps : []
+        const descs = []
+        const expects = []
+        steps.forEach((s, si) => {
+          if (!(s && typeof s === 'object')) return
+          if (s.desc) descs.push(`${si + 1}. ${this.convertBrToNewline(s.desc)}`)
+          if (s.expect) expects.push(`${si + 1}. ${this.convertBrToNewline(s.expect)}`)
+        })
+
+        rows.push([
+          obj.case_id || '',
+          obj.title || '',
+          this.convertBrToNewline(obj.precondition || ''),
+          descs.join('\n'),
+          expects.join('\n'),
+          obj.priority || 'P2',
+        ])
       }
-
-      return worksheetData;
-    },
-
-    // 解析结构化格式的测试用例
-    parseStructuredFormat(content) {
-      if (!content) return [];
-
-      const lines = content.split('\n').filter(line => line.trim());
-      const worksheetData = [];
-
-      // 添加表头
-      worksheetData.push([
-        this.$t('requirementAnalysis.excelTestCaseNumber'),
-        this.$t('requirementAnalysis.excelTestScenario'),
-        this.$t('requirementAnalysis.excelPrecondition'),
-        this.$t('requirementAnalysis.excelTestSteps'),
-        this.$t('requirementAnalysis.excelExpectedResult'),
-        this.$t('requirementAnalysis.excelPriority')
-      ]);
-
-      let currentTestCase = {};
-      let testCaseNumber = 1;
-      let i = 0;
-
-      while (i < lines.length) {
-        const line = lines[i].trim();
-
-        // 识别测试用例开始标志
-        if (line.includes('测试用例') || line.includes('Test Case') ||
-            line.match(/^(\d+\.|\*|\-|\d+、)/)) {
-
-          // 如果之前有测试用例数据，先保存
-          if (Object.keys(currentTestCase).length > 0) {
-            worksheetData.push([
-              currentTestCase.number || `TC${testCaseNumber}`,
-              currentTestCase.scenario || '',
-              currentTestCase.precondition || '',
-              currentTestCase.steps || '',
-              currentTestCase.expected || '',
-              currentTestCase.priority || '中'
-            ]);
-            testCaseNumber++;
-          }
-
-          // 开始新的测试用例
-          currentTestCase = {
-            number: `TC${testCaseNumber}`,
-            scenario: line.replace(/^(\d+\.|\*|\-|\d+、)\s*/, '').replace(/测试用例\d*[:：]?\s*/, ''),
-            precondition: '',
-            steps: '',
-            expected: '',
-            priority: '中'
-          };
-          i++;
-        }
-        // 识别前置条件
-        else if (line.includes('前置条件') || line.includes('前提') ||
-            line.includes('Precondition')) {
-          let precondition = line.replace(/.*?[:：]\s*/, '');
-          // 收集后续的前置条件行
-          i++;
-          while (i < lines.length) {
-            const nextLine = lines[i].trim();
-            if (nextLine.includes('测试步骤') || nextLine.includes('操作步骤') ||
-                nextLine.includes('Test Steps') || nextLine.includes('步骤') ||
-                nextLine.includes('预期结果') || nextLine.includes('Expected') ||
-                nextLine.includes('优先级') || nextLine.includes('Priority') ||
-                nextLine.includes('测试用例') || nextLine.includes('Test Case') ||
-                nextLine.match(/^(\d+\.|\*|\-|\d+、)/)) {
-              break;
-            }
-            if (nextLine) {
-              precondition += '\n' + nextLine;
-            }
-            i++;
-          }
-          currentTestCase.precondition = precondition;
-        }
-        // 识别测试步骤
-        else if (line.includes('测试步骤') || line.includes('操作步骤') ||
-            line.includes('Test Steps') || line.includes('步骤')) {
-          let steps = line.replace(/.*?[:：]\s*/, '');
-          // 收集后续的步骤行
-          i++;
-          while (i < lines.length) {
-            const nextLine = lines[i].trim();
-            if (nextLine.includes('预期结果') || nextLine.includes('Expected') ||
-                nextLine.includes('优先级') || nextLine.includes('Priority') ||
-                nextLine.includes('测试用例') || nextLine.includes('Test Case') ||
-                nextLine.match(/^(\d+\.|\*|\-|\d+、)/)) {
-              break;
-            }
-            if (nextLine) {
-              steps += '\n' + nextLine;
-            }
-            i++;
-          }
-          currentTestCase.steps = steps;
-        }
-        // 识别预期结果
-        else if (line.includes('预期结果') || line.includes('Expected') ||
-            line.includes('期望')) {
-          let expected = line.replace(/.*?[:：]\s*/, '');
-          // 收集后续的结果行
-          i++;
-          while (i < lines.length) {
-            const nextLine = lines[i].trim();
-            if (nextLine.includes('优先级') || nextLine.includes('Priority') ||
-                nextLine.includes('测试用例') || nextLine.includes('Test Case') ||
-                nextLine.match(/^(\d+\.|\*|\-|\d+、)/)) {
-              break;
-            }
-            if (nextLine) {
-              expected += '\n' + nextLine;
-            }
-            i++;
-          }
-          currentTestCase.expected = expected;
-        }
-        // 识别优先级
-        else if (line.includes('优先级') || line.includes('Priority')) {
-          currentTestCase.priority = line.replace(/.*?[:：]\s*/, '');
-          i++;
-        }
-        // 如果是没有明确标识的行，可能是场景描述的延续
-        else if (Object.keys(currentTestCase).length > 0 &&
-            !currentTestCase.steps && !currentTestCase.expected &&
-            !currentTestCase.precondition) {
-          if (currentTestCase.scenario && line.length > 5) {
-            currentTestCase.scenario += '\n' + line;
-          }
-          i++;
-        } else {
-          i++;
-        }
-      }
-
-      // 保存最后一个测试用例
-      if (Object.keys(currentTestCase).length > 0) {
-        worksheetData.push([
-          currentTestCase.number || `TC${testCaseNumber}`,
-          currentTestCase.scenario || '',
-          currentTestCase.precondition || '',
-          currentTestCase.steps || '',
-          currentTestCase.expected || '',
-          currentTestCase.priority || '中'
-        ]);
-      }
-
-      // 如果没有解析到结构化数据，则按原格式输出
-      if (worksheetData.length <= 1) {
-        worksheetData.length = 0; // 清空
-        worksheetData.push([this.$t('requirementAnalysis.testCaseContent')]);
-        content.split('\n').forEach((line, index) => {
-          if (line.trim()) {
-            worksheetData.push([line.trim()]);
-          }
-        });
-      }
-
-      return worksheetData;
+      return rows
     }
+
+  }
+}
+
   }
 }
 </script>
@@ -3008,6 +2792,43 @@ export default {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Card steps (结构化步骤逐条展示) */
+.testcase-card .step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.testcase-card .step-row {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  line-height: 1.5;
+}
+
+.testcase-card .step-order {
+  flex-shrink: 0;
+  font-family: var(--aitest-font-mono);
+  font-size: 0.72rem;
+  color: var(--aitest-text-3);
+}
+
+.testcase-card .step-desc {
+  color: var(--aitest-text-2);
+  word-break: break-word;
+}
+
+.testcase-card .step-expect {
+  color: var(--aitest-text-3);
+  word-break: break-word;
+}
+
+.testcase-card .expect-label {
+  color: var(--aitest-text-3);
 }
 
 /* Streaming indicator */

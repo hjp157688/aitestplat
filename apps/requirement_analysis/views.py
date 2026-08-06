@@ -52,6 +52,7 @@ from .serializers import (
     KnowledgeEntrySerializer, KnowledgeRetrieveRequestSerializer
 )
 from .services import RequirementAnalysisService, DocumentProcessor, ZentaoService, AIRequirementParser
+from .text_cleaner import clean_text, normalize_steps
 
 logger = logging.getLogger(__name__)
 
@@ -2112,9 +2113,7 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                     adopted_count = 0
                     for test_case in test_cases:
                         import json as _json
-                        parsed_steps = test_case.get('steps', [])
-                        if not isinstance(parsed_steps, list):
-                            parsed_steps = [{'desc': str(parsed_steps), 'expect': ''}]
+                        parsed_steps = normalize_steps(test_case.get('steps', []))
                         TestCase.objects.create(
                             project=project,
                             author=task.created_by,
@@ -2253,9 +2252,7 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                 adopted_count = 0
                 for test_case in test_cases:
                     import json as _json
-                    parsed_steps = test_case.get('steps', [])
-                    if not isinstance(parsed_steps, list):
-                        parsed_steps = [{'desc': str(parsed_steps), 'expect': ''}]
+                    parsed_steps = normalize_steps(test_case.get('steps', []))
                     TestCase.objects.create(
                         project=project,  # 使用统一的项目选择逻辑
                         author=task.created_by,
@@ -2350,20 +2347,13 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                 adopted_count = 0
                 for case_data in test_cases_data:
                     import json as _json
-                    parsed_steps = case_data.get('steps', [])
-                    if isinstance(parsed_steps, str):
-                        try:
-                            parsed_steps = json.loads(parsed_steps)
-                        except Exception:
-                            parsed_steps = [{'desc': parsed_steps, 'expect': ''}]
-                    if not isinstance(parsed_steps, list):
-                        parsed_steps = []
+                    parsed_steps = normalize_steps(case_data.get('steps', []))
                     TestCase.objects.create(
                         project=project,  # 使用统一的项目选择逻辑
                         author=task.created_by,
-                        title=case_data.get('title', '测试用例'),
-                        description=case_data.get('description', ''),
-                        preconditions=case_data.get('preconditions', ''),
+                        title=clean_text(case_data.get('title', '测试用例')),
+                        description=clean_text(case_data.get('description', '')),
+                        preconditions=clean_text(case_data.get('preconditions', '')),
                         steps=_json.dumps(parsed_steps, ensure_ascii=False),
                         priority=case_data.get('priority', 'medium'),
                         test_type=case_data.get('test_type', 'functional'),
@@ -2595,20 +2585,17 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
             try:
                 obj = json.loads(line)
                 # 规整字段名：JSONL 用 title,precondition,steps,priority,test_type,module
-                # 返回 dict 供下游（采纳等）使用
-                steps = obj.get('steps', [])
-                if not isinstance(steps, list):
-                    steps = []
+                # 返回 dict 供下游（采纳等）使用；清洗 Markdown/HTML 残留
                 case = {
                     'caseId': obj.get('case_id', ''),
-                    'scenario': obj.get('title', ''),
-                    'title': obj.get('title', ''),
-                    'precondition': obj.get('precondition', ''),
-                    'steps': steps,
+                    'scenario': clean_text(obj.get('title', '')),
+                    'title': clean_text(obj.get('title', '')),
+                    'precondition': clean_text(obj.get('precondition', '')),
+                    'steps': normalize_steps(obj.get('steps', [])),
                     'expected': '',  # 不再有独立预期，steps 内含 expect
-                    'priority': obj.get('priority', ''),
-                    'test_type': obj.get('test_type', ''),
-                    'module': obj.get('module', ''),
+                    'priority': obj.get('priority', '') or '',
+                    'test_type': obj.get('test_type', '') or '',
+                    'module': obj.get('module', '') or '',
                 }
                 cases.append(case)
             except (json.JSONDecodeError, ValueError):
@@ -2666,108 +2653,47 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                 elif any(k in header for k in ['优先级', 'priority']):
                     test_case['priority'] = value
             if test_case.get('scenario') or test_case.get('steps'):
+                # 清洗 Markdown/HTML 残留：去 **、<br>→换行；步骤字符串拆成多步，
+                # 并把该行整体「预期结果」挂到最后一步的 expect
+                test_case['scenario'] = clean_text(test_case.get('scenario') or '')
+                test_case['precondition'] = clean_text(test_case.get('precondition') or '')
+                if isinstance(test_case.get('steps'), str):
+                    steps = normalize_steps(test_case['steps'])
+                    if steps and test_case.get('expected'):
+                        steps[-1]['expect'] = clean_text(test_case['expected'])
+                    test_case['steps'] = steps
+                test_case['expected'] = clean_text(test_case.get('expected') or '')
                 test_cases.append(test_case)
         return test_cases
 
     def _reconstruct_test_cases_content(self, test_cases):
-        """重新构建测试用例内容 - 保持原有格式和编号"""
+        """重新构建测试用例内容 - 统一以 JSONL（每行一个独立 JSON）输出。
+
+        与 writer/revise 的 JSONL 约定一致，避免再引入 Markdown 表格/<br> 残留。
+        旧表格解析产生的整行预期（expected）兜底挂到末步 expect。
+        """
         if not test_cases:
             return ""
 
-        # 检查是否有caseId字段，如果有，说明是表格格式
-        has_case_ids = any(test_case.get('caseId') for test_case in test_cases)
-
-        if has_case_ids:
-            # 重构为表格格式，保持原有编号
-            return self._reconstruct_table_format(test_cases)
-        else:
-            # 重构为文本格式
-            return self._reconstruct_text_format(test_cases)
-
-    def _reconstruct_table_format(self, test_cases):
-        """重构为表格格式"""
-        content_lines = []
-        content_lines.append("```markdown")
-
-        # 检查是否有任何测试用例包含steps字段
-        has_steps = any(
-            test_case.get('steps') and test_case.get('steps') != '参考测试目标执行相应操作' for test_case in test_cases)
-
-        if has_steps:
-            # 包含测试步骤的表格格式
-            content_lines.append(
-                "| 用例ID | 测试目标 | 前置条件 | 测试步骤 | 预期结果 | 优先级 | 测试类型 | 关联需求 |")
-            content_lines.append("|--------|--------|--------|--------|--------|--------|--------|--------|")
-
-            for test_case in test_cases:
-                case_id = test_case.get('caseId', '')
-                scenario = test_case.get('scenario', '')
-                precondition = test_case.get('precondition', '')
-                steps = test_case.get('steps', '参考测试目标执行相应操作')
-                expected = test_case.get('expected', '')
-                priority = test_case.get('priority', 'P2')
-
-                # 保持原有格式，将换行符转换为<br>
-                precondition = precondition.replace('\n', '<br>')
-                steps = steps.replace('\n', '<br>')
-                expected = expected.replace('\n', '<br>')
-
-                content_lines.append(
-                    f"| {case_id} | {scenario} | {precondition} | {steps} | {expected} | {priority} | 功能验证 | 需求1 |")
-        else:
-            # 原始格式（没有测试步骤列）
-            content_lines.append("| 用例ID | 测试目标 | 前置条件 | 预期结果 | 优先级 | 测试类型 | 关联需求 |")
-            content_lines.append("|--------|--------|--------|--------|--------|--------|--------|")
-
-            for test_case in test_cases:
-                case_id = test_case.get('caseId', '')
-                scenario = test_case.get('scenario', '')
-                precondition = test_case.get('precondition', '')
-                expected = test_case.get('expected', '')
-                priority = test_case.get('priority', 'P2')
-
-                # 保持原有格式，将换行符转换为<br>
-                precondition = precondition.replace('\n', '<br>')
-                expected = expected.replace('\n', '<br>')
-
-                content_lines.append(
-                    f"| {case_id} | {scenario} | {precondition} | {expected} | {priority} | 功能验证 | 需求1 |")
-
-        content_lines.append("```")
-        return "\n".join(content_lines)
-
-    def _reconstruct_text_format(self, test_cases):
-        """重构为文本格式"""
-        content_lines = []
-        for test_case in test_cases:
-            # 获取原有的scenario
-            scenario = test_case.get('scenario', '未命名测试用例')
-
-            # 确保scenario能被前端正确识别
-            # 如果scenario不是以数字开头或不包含"测试用例"，则添加标识
-            if not (bool(re.match(r'^\d+[\.\)、]', scenario)) or
-                    '测试用例' in scenario or
-                    'Test Case' in scenario):
-                # 添加"测试用例:"前缀确保能被识别
-                content_lines.append(f"\n测试用例: {scenario}")
-            else:
-                content_lines.append(f"\n{scenario}")
-
-            if test_case.get('precondition'):
-                content_lines.append(f"前置条件: {test_case['precondition']}")
-
-            if test_case.get('steps'):
-                content_lines.append(f"测试步骤: {test_case['steps']}")
-
-            if test_case.get('expected'):
-                content_lines.append(f"预期结果: {test_case['expected']}")
-
-            if test_case.get('priority'):
-                content_lines.append(f"优先级: {test_case['priority']}")
-
-            content_lines.append("")  # 空行分隔
-
-        return "\n".join(content_lines)
+        lines = []
+        for tc in test_cases:
+            steps = tc.get('steps', [])
+            if not isinstance(steps, list):
+                steps = normalize_steps(steps)
+            expected = tc.get('expected') or ''
+            if expected and steps and not steps[-1].get('expect'):
+                steps[-1]['expect'] = expected
+            obj = {
+                'case_id': tc.get('caseId') or tc.get('case_id', ''),
+                'title': tc.get('title') or tc.get('scenario', ''),
+                'precondition': tc.get('precondition', ''),
+                'steps': steps,
+                'priority': tc.get('priority', ''),
+                'test_type': tc.get('test_type', ''),
+                'module': tc.get('module', ''),
+            }
+            lines.append(json.dumps(obj, ensure_ascii=False))
+        return '\n'.join(lines)
 
     def _map_priority(self, priority_str):
         """映射优先级"""
