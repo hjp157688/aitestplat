@@ -27,6 +27,7 @@ from .models import (
     RequestHistory, TestSuite, TestExecution, TestSuiteRequest,
     ScheduledTask, TaskExecutionLog, NotificationLog,
     TaskNotificationSetting, OperationLog, ApiDocument,
+    ApiKnownData,
 )
 
 from .serializers import (
@@ -39,6 +40,7 @@ from .serializers import (
     TaskNotificationSettingDetailSerializer, OperationLogSerializer,
     ApiDocumentUploadSerializer, ApiDocumentSerializer, ApiDocumentImportSerializer,
     TestCaseGenerationRequestSerializer, TestCaseSaveRequestSerializer,
+    ApiKnownDataSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -131,7 +133,7 @@ class ApiProjectViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(project)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
     def _create_sample_data(self, project, user):
         """创建示例数据"""
         # 用户管理集合
@@ -2726,5 +2728,18 @@ class ApiDocumentViewSet(viewsets.ModelViewSet):
             document.status = 'failed'
             document.save(update_fields=['status'])
             return Response({'error': f'导入失败: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ApiKnownDataViewSet(viewsets.ModelViewSet):
+    queryset = ApiKnownData.objects.all()
+    serializer_class = ApiKnownDataSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = ApiKnownData.objects.all()
+        project_id = self.request.query_params.get('project')
+        if project_id:
+            qs = qs.filter(project_id=project_id)
+        return qs
 
 

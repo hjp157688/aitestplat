@@ -17,6 +17,7 @@ from .models import (
     RequestHistory, TestSuite, TestExecution, TestSuiteRequest,
     ScheduledTask, TaskExecutionLog, NotificationLog,
     TaskNotificationSetting, OperationLog, ApiDocument,
+    ApiKnownData,
 )
 
 User = get_user_model()
@@ -162,6 +163,22 @@ class EnvironmentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         return data
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class ApiKnownDataSerializer(serializers.ModelSerializer):
+    project = serializers.PrimaryKeyRelatedField(queryset=ApiProject.objects.all())
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    created_by = serializers.CharField(source='created_by.username', read_only=True)
+
+    class Meta:
+        model = ApiKnownData
+        fields = ['id', 'project', 'project_name', 'name', 'value', 'description',
+                  'created_by', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
