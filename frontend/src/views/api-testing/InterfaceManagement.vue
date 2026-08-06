@@ -39,6 +39,9 @@
         <div v-if="!searchKeyword && checkedNodes.length > 0" class="batch-actions-bar">
           <span class="batch-count">{{ $t('apiTesting.interface.batchActions.selected', { count: checkedRequests.length }) }}</span>
           <div class="batch-buttons">
+            <el-button size="small" type="danger" @click="batchDelete">
+              {{ $t('apiTesting.interface.batchActions.batchDelete') }}
+            </el-button>
             <el-button size="small" text @click="clearChecked">{{ $t('apiTesting.interface.batchActions.clear') }}</el-button>
           </div>
         </div>
@@ -1080,6 +1083,7 @@ import DataFactorySelector from '@/components/DataFactorySelector.vue'
 import { RequestModelParser } from '@/utils/requestModel'
 import ImportOpenApiDialog from './components/ImportOpenApiDialog.vue'
 import GenerateTestCasesDialog from './components/GenerateTestCasesDialog.vue'
+import { batchDeleteRequests } from '@/api/api-testing'
 import { getVariableFunctions } from '@/api/data-factory'
 import { CodeGenerator } from '@/utils/codeGenerator'
 import { debounce } from 'lodash-es'
@@ -1743,6 +1747,41 @@ const deleteNode = (node = rightClickedNode.value) => {
     // 取消删除
     showContextMenu.value = false
   })
+}
+
+// 批量删除（勾选的集合 + 非集合节点）
+const batchDelete = () => {
+  const collectionCount = checkedCollections.value.length
+  const nonCollectionNodes = checkedNodes.value.filter(n => n.type !== 'collection')
+
+  ElMessageBox.confirm(
+    t('apiTesting.interface.batchActions.batchDeleteConfirm', {
+      collections: collectionCount,
+      requests: nonCollectionNodes.length,
+    }),
+    t('apiTesting.interface.batchActions.batchDeleteTitle'),
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(async () => {
+    try {
+      const { data } = await batchDeleteRequests({
+        collection_ids: checkedCollections.value.map(n => n.id),
+        request_ids: nonCollectionNodes.map(n => n.id),
+      })
+      ElMessage.success(t('apiTesting.interface.batchActions.batchDeleteSuccess', {
+        collections: data.deleted_collections,
+        requests: data.deleted_requests,
+      }))
+      clearChecked()
+      await loadCollections(selectedProject.value)
+    } catch (error) {
+      ElMessage.error(t('apiTesting.interface.batchActions.batchDeleteFailed'))
+      console.error('批量删除失败:', error)
+    }
+  }).catch(() => {})
 }
 
 const copyRequest = async (node) => {
