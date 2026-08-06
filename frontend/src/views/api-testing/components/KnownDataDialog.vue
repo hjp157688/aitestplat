@@ -77,7 +77,7 @@ async function saveRow() {
   }
   saving.value = true
   try {
-    const payload = { project: props.projectId, ...form.value }
+    const payload = { ...form.value, project: props.projectId }
     delete payload.id
     if (form.value.id) {
       await api.patch(`/api-testing/api-known-data/${form.value.id}/`, payload)
