@@ -658,8 +658,19 @@ class ZentaoService:
 
     @staticmethod
     def get_testcase_detail(config, case_id) -> dict:
-        """获取单个测试用例详情"""
-        return ZentaoService._call_api(config, f'/api.php/v1/testcases/{case_id}')
+        """获取单个测试用例详情。
+
+        该禅道版本 case id 形如 'case_12288'，详情端点接受数字 id（12288）。
+        """
+        numeric = ZentaoService._extract_case_id(case_id)
+        return ZentaoService._call_api(config, f'/api.php/v1/testcases/{numeric}')
+
+    @staticmethod
+    def _extract_case_id(case_id):
+        """从 'case_12288' 或 12288 提取数字 id（详情/PUT 端点用）"""
+        import re
+        m = re.search(r'(\d+)$', str(case_id or ''))
+        return int(m.group(1)) if m else int(case_id)
 
     @staticmethod
     def create_testcase(config, product_id: int, case_data: dict) -> dict:
@@ -670,10 +681,11 @@ class ZentaoService:
         )
 
     @staticmethod
-    def update_testcase(config, case_id: int, case_data: dict) -> dict:
-        """更新禅道测试用例"""
+    def update_testcase(config, case_id, case_data: dict) -> dict:
+        """更新禅道测试用例（case_id 接受 'case_12288' 或数字）"""
+        numeric = ZentaoService._extract_case_id(case_id)
         return ZentaoService._call_api(
-            config, f'/api.php/v1/testcases/{case_id}',
+            config, f'/api.php/v1/testcases/{numeric}',
             method='PUT', json_body=case_data,
         )
 
@@ -720,13 +732,37 @@ class ZentaoService:
 
     @staticmethod
     def steps_from_zentao(zentao_steps):
-        """禅道 steps 数组 -> 本地 steps JSON 文本"""
+        """禅道 steps 数组 -> 本地 steps JSON 文本。
+
+        兼容两种入参：list（禅道详情接口返回，如 [{desc,expect,type,id},...]）；
+        dict（部分禅道版本 steps 为 {'1': {'desc':..,'expect':..}}）。
+        顺带统一 HTML 实体/换行符。
+        """
+        import html
         import json
-        if not isinstance(zentao_steps, list):
-            return '[]'
+        steps = []
+        if isinstance(zentao_steps, dict):
+            # 排序 key（可按 step 编号），过滤非步骤对象
+            def _key(k):
+                try:
+                    return int(k)
+                except (TypeError, ValueError):
+                    return 0
+            items = sorted(zentao_steps.items(), key=lambda kv: _key(kv[0]))
+            for _, v in items:
+                if isinstance(v, dict):
+                    steps.append(v)
+        elif isinstance(zentao_steps, list):
+            steps = [s for s in zentao_steps if isinstance(s, dict)]
+
+        def _clean(t):
+            if not t:
+                return ''
+            return html.unescape(str(t)).replace('\r\n', '\n').replace('\r', '\n')
+
         return json.dumps(
-            [{'desc': s.get('desc', ''), 'expect': s.get('expect', '')}
-             for s in zentao_steps if isinstance(s, dict)],
+            [{'desc': _clean(s.get('desc', '')), 'expect': _clean(s.get('expect', ''))}
+             for s in steps],
             ensure_ascii=False,
         )
 

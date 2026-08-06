@@ -69,10 +69,11 @@ class ZentaoExportViewTests(BaseZentaoTestCase):
 
 
 class ZentaoImportViewTests(BaseZentaoTestCase):
+    @mock.patch('apps.testcases.views.ZentaoService.get_testcase_detail')
     @mock.patch('apps.testcases.views.ZentaoService.get_story_detail')
     @mock.patch('apps.testcases.views.ZentaoService.get_story_testcases')
     @mock.patch('apps.testcases.views.ZentaoConfig.get_active_config')
-    def test_import_creates_cases_and_requirement(self, mock_cfg, mock_cases, mock_detail):
+    def test_import_creates_cases_and_requirement(self, mock_cfg, mock_cases, mock_detail, mock_tc_detail):
         from apps.testcases.models import TestCase
         from apps.projects.models import Project
         mock_cfg.return_value = mock.MagicMock()
@@ -82,8 +83,12 @@ class ZentaoImportViewTests(BaseZentaoTestCase):
         }
         mock_cases.return_value = [{
             'id': 'case_300', 'title': 'c1', 'precondition': '',
-            'steps': [{'desc': 's', 'expect': 'e'}], 'type': 'feature', 'pri': 2,
+            'steps': [], 'type': 'feature', 'pri': 2,
         }]
+        mock_tc_detail.return_value = {
+            'id': 'case_300', 'title': 'c1', 'precondition': '',
+            'steps': [{'desc': 's', 'expect': 'e'}], 'type': 'feature', 'pri': 2,
+        }
 
         p = Project.objects.create(name='p', owner=self.user)
         resp = self.client.post(
@@ -101,11 +106,15 @@ class ZentaoImportViewTests(BaseZentaoTestCase):
         self.assertIsNotNone(tc.requirement_id)
         self.assertEqual(tc.requirement.zentao_id, 55)
         self.assertEqual(tc.story_id, 55)
+        import json
+        imported_steps = json.loads(tc.steps)
+        self.assertEqual(imported_steps, [{'desc': 's', 'expect': 'e'}])
 
+    @mock.patch('apps.testcases.views.ZentaoService.get_testcase_detail')
     @mock.patch('apps.testcases.views.ZentaoService.get_story_detail')
     @mock.patch('apps.testcases.views.ZentaoService.get_story_testcases')
     @mock.patch('apps.testcases.views.ZentaoConfig.get_active_config')
-    def test_import_updates_existing(self, mock_cfg, mock_cases, mock_detail):
+    def test_import_updates_existing(self, mock_cfg, mock_cases, mock_detail, mock_tc_detail):
         from apps.testcases.models import TestCase
         from apps.projects.models import Project
         from apps.requirement_analysis.models import Requirement
@@ -117,6 +126,10 @@ class ZentaoImportViewTests(BaseZentaoTestCase):
             'id': 'case_300', 'title': 'c1-updated', 'precondition': '',
             'steps': [], 'type': 'feature', 'pri': 2,
         }]
+        mock_tc_detail.return_value = {
+            'id': 'case_300', 'title': 'c1-updated', 'precondition': '',
+            'steps': [], 'type': 'feature', 'pri': 2,
+        }
         p = Project.objects.create(name='p', owner=self.user)
         req = Requirement.objects.create(
             project=p, source_type='zentao', title='X', zentao_id=55,

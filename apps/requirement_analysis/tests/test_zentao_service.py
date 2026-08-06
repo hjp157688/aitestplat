@@ -196,6 +196,29 @@ class ZentaoTestCaseMethodsTests(SimpleTestCase):
         m.assert_called_once_with(_cfg(), '/api.php/v1/testcases/5')
         self.assertEqual(case['id'], 5)
 
+    def test_get_testcase_detail_accepts_prefixed_string_id(self):
+        with mock.patch.object(
+            ZentaoService, '_call_api', return_value={'id': 12288}
+        ) as m:
+            case = ZentaoService.get_testcase_detail(_cfg(), 'case_12288')
+        m.assert_called_once_with(_cfg(), '/api.php/v1/testcases/12288')
+        self.assertEqual(case['id'], 12288)
+
+    def test_extract_case_id(self):
+        self.assertEqual(ZentaoService._extract_case_id('case_12288'), 12288)
+        self.assertEqual(ZentaoService._extract_case_id(12288), 12288)
+        self.assertEqual(ZentaoService._extract_case_id('ABC_9'), 9)
+
+    def test_update_testcase_uses_numeric_id(self):
+        payload = {'keywords': 'AI生成'}
+        with mock.patch.object(
+            ZentaoService, '_call_api', return_value={'id': 12288}
+        ) as m:
+            ZentaoService.update_testcase(_cfg(), 'case_12288', payload)
+        m.assert_called_once_with(
+            _cfg(), '/api.php/v1/testcases/12288', method='PUT', json_body=payload,
+        )
+
     def test_create_testcase_posts_to_product(self):
         payload = {'title': 'c', 'steps': []}
         with mock.patch.object(
@@ -253,6 +276,27 @@ class ZentaoTestCaseMethodsTests(SimpleTestCase):
             [{'desc': 's1', 'expect': 'e1'}],
         )
         self.assertEqual(ZentaoService.steps_from_zentao('not-list'), '[]')
+
+    def test_steps_from_zentao_dict_form(self):
+        """部分禅道版本 steps 为 dict {'1': {...}, '2': {...}}，需按编号排序展开"""
+        import json
+        steps = {
+            '2': {'desc': '第二步', 'expect': 'e2'},
+            '1': {'desc': '第一步', 'expect': 'e1'},
+            'step': {'desc': '无编号步骤', 'expect': 'x'},
+        }
+        result = json.loads(ZentaoService.steps_from_zentao(steps))
+        # 无编号 'step' 排前（key 转 int 失败归一为 0），随后 1,2
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[1]['desc'], '第一步')
+        self.assertEqual(result[2]['desc'], '第二步')
+
+    def test_steps_from_zentao_cleans_html_and_newlines(self):
+        import json
+        steps = [{'desc': 'a &quot;b&quot;\r\nc', 'expect': 'x\r\ny'}]
+        result = json.loads(ZentaoService.steps_from_zentao(steps))
+        self.assertEqual(result[0]['desc'], 'a "b"\nc')
+        self.assertEqual(result[0]['expect'], 'x\ny')
 
     def test_put_method_in_call_api(self):
         with mock.patch.object(ZentaoService, '_get_token', return_value='tok'):

@@ -386,14 +386,22 @@ class TestCaseZentaoImportView(APIView):
                 for zc in cases:
                     try:
                         case_id = zc.get('id')
+                        # 列表接口不含步骤，逐条拉详情拿 steps
+                        zc_detail = {}
+                        try:
+                            zc_detail = ZentaoService.get_testcase_detail(config, case_id)
+                        except Exception:
+                            zc_detail = zc  # 详情失败则退回列表数据（无步骤）
+                        steps_json = ZentaoService.steps_from_zentao(zc_detail.get('steps'))
                         existing = TestCase.objects.filter(zentao_case_id=case_id).first()
-                        steps_json = ZentaoService.steps_from_zentao(zc.get('steps', []))
                         if existing:
-                            existing.title = zc.get('title', existing.title)
-                            existing.preconditions = zc.get('precondition', '') or ''
+                            existing.title = zc_detail.get('title') or zc.get('title', existing.title)
+                            existing.preconditions = (zc_detail.get('precondition') or zc.get('precondition')) or ''
                             existing.steps = steps_json
-                            existing.priority = ZentaoService.map_priority_from_zentao(zc.get('pri'))
-                            existing.test_type = ZentaoService.map_type_from_zentao(zc.get('type'))
+                            existing.priority = ZentaoService.map_priority_from_zentao(
+                                zc_detail.get('pri') or zc.get('pri'))
+                            existing.test_type = ZentaoService.map_type_from_zentao(
+                                zc_detail.get('type') or zc.get('type'))
                             existing.requirement = req
                             existing.product_id = req.product_id
                             existing.module_id = req.module_id
@@ -404,12 +412,14 @@ class TestCaseZentaoImportView(APIView):
                             TestCase.objects.create(
                                 project=project,
                                 author=request.user if request.user.is_authenticated else None,
-                                title=zc.get('title', '禅道用例'),
-                                description=zc.get('title', ''),
-                                preconditions=zc.get('precondition', '') or '',
+                                title=zc_detail.get('title') or zc.get('title', '禅道用例'),
+                                description=zc_detail.get('title') or zc.get('title', ''),
+                                preconditions=(zc_detail.get('precondition') or zc.get('precondition')) or '',
                                 steps=steps_json,
-                                priority=ZentaoService.map_priority_from_zentao(zc.get('pri')),
-                                test_type=ZentaoService.map_type_from_zentao(zc.get('type')),
+                                priority=ZentaoService.map_priority_from_zentao(
+                                    zc_detail.get('pri') or zc.get('pri')),
+                                test_type=ZentaoService.map_type_from_zentao(
+                                    zc_detail.get('type') or zc.get('type')),
                                 status='draft',
                                 requirement=req,
                                 zentao_case_id=case_id,
