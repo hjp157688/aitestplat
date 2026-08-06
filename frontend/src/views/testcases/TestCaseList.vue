@@ -69,6 +69,22 @@
               />
             </el-select>
           </el-col>
+          <el-col :span="4">
+            <el-select
+              v-model="requirementFilter"
+              :placeholder="$t('testcase.requirementFilter')"
+              filterable
+              clearable
+              @change="handleFilter"
+            >
+              <el-option
+                v-for="req in requirements"
+                :key="req.id"
+                :label="req.title"
+                :value="req.id"
+              />
+            </el-select>
+          </el-col>
           <el-col :span="3">
             <el-select v-model="priorityFilter" :placeholder="$t('testcase.priorityFilter')" clearable @change="handleFilter">
               <el-option :label="$t('testcase.low')" value="low" />
@@ -99,6 +115,11 @@
           <el-table-column prop="project.name" :label="$t('testcase.relatedProject')" width="150">
             <template #default="{ row }">
               {{ row.project?.name || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="requirement" :label="$t('testcase.relatedRequirement')" width="180">
+            <template #default="{ row }">
+              {{ row.requirement?.title || '-' }}
             </template>
           </el-table-column>
           <el-table-column prop="versions" :label="$t('testcase.relatedVersions')" width="200">
@@ -309,7 +330,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Download, Delete, Upload, Position, Connection } from '@element-plus/icons-vue'
 import api from '@/utils/api'
-import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao } from '@/api/requirement'
+import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getRequirements } from '@/api/requirement'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 
@@ -324,6 +345,8 @@ const total = ref(0)
 const searchText = ref('')
 const projectFilter = ref('')
 const priorityFilter = ref('')
+const requirementFilter = ref('')
+const requirements = ref([])
 const selectedTestCases = ref([])
 const isDeleting = ref(false)
 const importDialogVisible = ref(false)
@@ -485,7 +508,8 @@ const fetchTestCases = async () => {
       page_size: pageSize.value,
       search: searchText.value,
       project: projectFilter.value,
-      priority: priorityFilter.value
+      priority: priorityFilter.value,
+      requirement: requirementFilter.value
     }
     const response = await api.get('/testcases/', { params })
     testcases.value = response.data.results || []
@@ -882,8 +906,18 @@ const fetchProjects = async () => {
   }
 }
 
+const fetchRequirements = async () => {
+  try {
+    const res = await getRequirements({ page_size: 1000 })
+    requirements.value = (res.data.results || [])
+  } catch (e) {
+    console.error('加载需求列表失败', e)
+  }
+}
+
 onMounted(() => {
   fetchProjects()
+  fetchRequirements()
   fetchTestCases()
 })
 </script>
