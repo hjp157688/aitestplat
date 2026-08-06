@@ -151,3 +151,102 @@ class ZentaoPublicMethodsTests(SimpleTestCase):
             result = ZentaoService.test_connection(_cfg())
         self.assertFalse(result['success'])
         self.assertIn('无法连接到禅道服务器', result['message'])
+
+
+class ZentaoTestCaseMethodsTests(SimpleTestCase):
+    """禅道用例读写与字段映射测试"""
+
+    def test_get_story_testcases_returns_cases(self):
+        with mock.patch.object(
+            ZentaoService, '_call_api', return_value={'cases': [{'id': 1, 'title': 'c1'}]}
+        ) as m:
+            cases = ZentaoService.get_story_testcases(_cfg(), 99)
+        m.assert_called_once_with(
+            _cfg(), '/api.php/v1/stories/99/cases?page=1&limit=10000'
+        )
+        self.assertEqual(cases, [{'id': 1, 'title': 'c1'}])
+
+    def test_get_story_testcases_fallback_testcases_key(self):
+        with mock.patch.object(
+            ZentaoService, '_call_api', return_value={'testcases': [{'id': 2}]}
+        ):
+            self.assertEqual(ZentaoService.get_story_testcases(_cfg(), 1), [{'id': 2}])
+
+    def test_get_testcase_detail(self):
+        with mock.patch.object(
+            ZentaoService, '_call_api', return_value={'id': 5}
+        ) as m:
+            case = ZentaoService.get_testcase_detail(_cfg(), 5)
+        m.assert_called_once_with(_cfg(), '/api.php/v1/testcases/5')
+        self.assertEqual(case['id'], 5)
+
+    def test_create_testcase_posts_to_product(self):
+        payload = {'title': 'c', 'steps': []}
+        with mock.patch.object(
+            ZentaoService, '_call_api', return_value={'id': 10}
+        ) as m:
+            result = ZentaoService.create_testcase(_cfg(), 7, payload)
+        m.assert_called_once_with(
+            _cfg(), '/api.php/v1/products/7/testcases',
+            method='POST', json_body=payload,
+        )
+        self.assertEqual(result['id'], 10)
+
+    def test_update_testcase_puts(self):
+        payload = {'keywords': 'AI生成'}
+        with mock.patch.object(
+            ZentaoService, '_call_api', return_value={'id': 10}
+        ) as m:
+            ZentaoService.update_testcase(_cfg(), 10, payload)
+        m.assert_called_once_with(
+            _cfg(), '/api.php/v1/testcases/10',
+            method='PUT', json_body=payload,
+        )
+
+    def test_priority_mapping_both_directions(self):
+        self.assertEqual(ZentaoService.map_priority_to_zentao('critical'), 1)
+        self.assertEqual(ZentaoService.map_priority_to_zentao('high'), 2)
+        self.assertEqual(ZentaoService.map_priority_to_zentao('medium'), 3)
+        self.assertEqual(ZentaoService.map_priority_to_zentao('low'), 4)
+        self.assertEqual(ZentaoService.map_priority_to_zentao('unknown'), 3)
+        self.assertEqual(ZentaoService.map_priority_from_zentao(1), 'critical')
+        self.assertEqual(ZentaoService.map_priority_from_zentao(99), 'medium')
+
+    def test_type_mapping_both_directions(self):
+        self.assertEqual(ZentaoService.map_type_to_zentao('functional'), 'feature')
+        self.assertEqual(ZentaoService.map_type_to_zentao('api'), 'interface')
+        self.assertEqual(ZentaoService.map_type_to_zentao('performance'), 'performance')
+        self.assertEqual(ZentaoService.map_type_to_zentao('security'), 'security')
+        self.assertEqual(ZentaoService.map_type_to_zentao('ui'), 'feature')
+        self.assertEqual(ZentaoService.map_type_from_zentao('feature'), 'functional')
+        self.assertEqual(ZentaoService.map_type_from_zentao('interface'), 'api')
+
+    def test_steps_to_zentao(self):
+        steps_json = '[{"desc": "s1", "expect": "e1"}]'
+        self.assertEqual(
+            ZentaoService.steps_to_zentao(steps_json),
+            [{'desc': 's1', 'expect': 'e1'}],
+        )
+        self.assertEqual(ZentaoService.steps_to_zentao('bad json'), [])
+
+    def test_steps_from_zentao(self):
+        import json
+        result = ZentaoService.steps_from_zentao([{'desc': 's1', 'expect': 'e1'}])
+        self.assertEqual(
+            json.loads(result),
+            [{'desc': 's1', 'expect': 'e1'}],
+        )
+        self.assertEqual(ZentaoService.steps_from_zentao('not-list'), '[]')
+
+    def test_put_method_in_call_api(self):
+        with mock.patch.object(ZentaoService, '_get_token', return_value='tok'):
+            with mock.patch('apps.requirement_analysis.services.requests.put') as m:
+                m.return_value = _resp(200, {'id': 1})
+                ZentaoService._call_api(
+                    _cfg(), '/api.php/v1/testcases/1', method='PUT',
+                    json_body={'keywords': 'x'},
+                )
+        args, kwargs = m.call_args
+        self.assertEqual(args[0], 'https://zentao.example.com/api.php/v1/testcases/1')
+        self.assertEqual(kwargs['json'], {'keywords': 'x'})
+        self.assertEqual(kwargs['headers'], {'Token': 'tok'})

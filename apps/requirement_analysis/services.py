@@ -563,16 +563,21 @@ class ZentaoService:
             raise
 
     @staticmethod
-    def _call_api(config, endpoint: str, method: str = 'GET') -> dict:
+    def _call_api(config, endpoint: str, method: str = 'GET', json_body=None) -> dict:
         """调用禅道API"""
         token = ZentaoService._get_token(config)
         url = config.zentao_url.rstrip('/') + endpoint
+        headers = {'Token': token}
 
         try:
             if method == 'GET':
-                resp = requests.get(url, headers={'Token': token}, verify=False, timeout=30)
+                resp = requests.get(url, headers=headers, verify=False, timeout=30)
+            elif method == 'POST':
+                resp = requests.post(url, headers=headers, json=json_body or {}, verify=False, timeout=30)
+            elif method == 'PUT':
+                resp = requests.put(url, headers=headers, json=json_body or {}, verify=False, timeout=30)
             else:
-                resp = requests.post(url, headers={'Token': token}, verify=False, timeout=30)
+                raise Exception(f"不支持的method: {method}")
 
             if resp.status_code in (200, 201):
                 data = resp.json()
@@ -625,6 +630,91 @@ class ZentaoService:
     def get_story_detail(config, story_id: int) -> dict:
         """获取单个需求的完整详情"""
         return ZentaoService._call_api(config, f'/api.php/v1/stories/{story_id}')
+
+    # ==================== 测试用例读写 ====================
+
+    @staticmethod
+    def get_story_testcases(config, story_id: int) -> list:
+        """获取需求(story)下的测试用例列表"""
+        data = ZentaoService._call_api(
+            config, f'/api.php/v1/stories/{story_id}/cases?page=1&limit=10000'
+        )
+        # 禅道返回键名可能是 cases 或 testcases
+        return data.get('cases') or data.get('testcases') or []
+
+    @staticmethod
+    def get_testcase_detail(config, case_id: int) -> dict:
+        """获取单个测试用例详情"""
+        return ZentaoService._call_api(config, f'/api.php/v1/testcases/{case_id}')
+
+    @staticmethod
+    def create_testcase(config, product_id: int, case_data: dict) -> dict:
+        """创建禅道测试用例"""
+        return ZentaoService._call_api(
+            config, f'/api.php/v1/products/{product_id}/testcases',
+            method='POST', json_body=case_data,
+        )
+
+    @staticmethod
+    def update_testcase(config, case_id: int, case_data: dict) -> dict:
+        """更新禅道测试用例"""
+        return ZentaoService._call_api(
+            config, f'/api.php/v1/testcases/{case_id}',
+            method='PUT', json_body=case_data,
+        )
+
+    # ==================== 字段映射 ====================
+
+    PRIORITY_TO_ZENTAO = {'critical': 1, 'high': 2, 'medium': 3, 'low': 4}
+    PRIORITY_FROM_ZENTAO = {1: 'critical', 2: 'high', 3: 'medium', 4: 'low'}
+    TYPE_TO_ZENTAO = {
+        'functional': 'feature', 'integration': 'interface', 'api': 'interface',
+        'ui': 'feature', 'performance': 'performance', 'security': 'security',
+    }
+    TYPE_FROM_ZENTAO = {
+        'feature': 'functional', 'interface': 'api', 'performance': 'performance',
+        'security': 'security', 'config': 'functional', 'install': 'functional',
+        'unit': 'functional', 'other': 'functional',
+    }
+
+    @staticmethod
+    def map_priority_to_zentao(priority):
+        return ZentaoService.PRIORITY_TO_ZENTAO.get(priority, 3)
+
+    @staticmethod
+    def map_priority_from_zentao(pri):
+        return ZentaoService.PRIORITY_FROM_ZENTAO.get(pri, 'medium')
+
+    @staticmethod
+    def map_type_to_zentao(test_type):
+        return ZentaoService.TYPE_TO_ZENTAO.get(test_type, 'feature')
+
+    @staticmethod
+    def map_type_from_zentao(zentao_type):
+        return ZentaoService.TYPE_FROM_ZENTAO.get(zentao_type, 'functional')
+
+    @staticmethod
+    def steps_to_zentao(steps_json):
+        """本地 steps JSON 文本 -> 禅道 steps 数组 [{desc, expect}]"""
+        import json
+        try:
+            steps = json.loads(steps_json) if steps_json else []
+        except (ValueError, TypeError):
+            return []
+        return [{'desc': s.get('desc', ''), 'expect': s.get('expect', '')}
+                for s in steps if isinstance(s, dict)]
+
+    @staticmethod
+    def steps_from_zentao(zentao_steps):
+        """禅道 steps 数组 -> 本地 steps JSON 文本"""
+        import json
+        if not isinstance(zentao_steps, list):
+            return '[]'
+        return json.dumps(
+            [{'desc': s.get('desc', ''), 'expect': s.get('expect', '')}
+             for s in zentao_steps if isinstance(s, dict)],
+            ensure_ascii=False,
+        )
 
     @staticmethod
     def test_connection(config) -> dict:
