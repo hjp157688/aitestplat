@@ -236,3 +236,185 @@ class TestCaseImportFailureReportDownloadView(APIView):
             filename=record.failure_report_file.name.split('/')[-1],
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.http import JsonResponse
+from django.utils import timezone
+from apps.requirement_analysis.services import ZentaoService
+from apps.requirement_analysis.models import ZentaoConfig
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TestCaseZentaoExportView(APIView):
+    """导出测试用例到禅道（有 zentao_case_id 走更新，无则新建并回写）"""
+
+    def post(self, request):
+        case_ids = request.data.get('case_ids', [])
+        product_id = request.data.get('product_id')
+        module_id = request.data.get('module_id') or 0
+        story_id = request.data.get('story_id') or 0
+
+        if not case_ids:
+            return JsonResponse({'error': '未选择用例'}, status=400)
+
+        config = ZentaoConfig.get_active_config()
+        if not config:
+            return JsonResponse({'error': '请先在配置中心配置禅道连接'}, status=400)
+
+        cases = TestCase.objects.filter(id__in=case_ids)
+        success_count = 0
+        failures = []
+
+        for tc in cases:
+            try:
+                # 确定目标 product/module/story：禅道源 association 优先，否则手动指定
+                if tc.requirement_id and tc.requirement.zentao_id:
+                    p_id = tc.requirement.product_id or product_id
+                    m_id = tc.requirement.module_id or module_id or 0
+                    s_id = tc.requirement.zentao_id or story_id or 0
+                else:
+                    p_id = product_id
+                    m_id = module_id
+                    s_id = story_id
+                if not p_id:
+                    raise Exception('未指定禅道产品')
+
+                case_data = {
+                    'product': p_id,
+                    'module': m_id,
+                    'story': s_id,
+                    'title': tc.title,
+                    'precondition': tc.preconditions or '',
+                    'steps': ZentaoService.steps_to_zentao(tc.steps),
+                    'type': ZentaoService.map_type_to_zentao(tc.test_type),
+                    'stage': 'feature',
+                    'pri': ZentaoService.map_priority_to_zentao(tc.priority),
+                }
+
+                if tc.zentao_case_id:
+                    ZentaoService.update_testcase(config, tc.zentao_case_id, case_data)
+                else:
+                    result = ZentaoService.create_testcase(config, p_id, case_data)
+                    new_id = result.get('id')
+                    if new_id:
+                        tc.zentao_case_id = new_id
+                        tc.product_id = p_id
+                        tc.module_id = m_id
+                        tc.story_id = s_id
+                        tc.save(update_fields=[
+                            'zentao_case_id', 'product_id', 'module_id', 'story_id'
+                        ])
+                success_count += 1
+            except Exception as e:
+                failures.append({'case_id': tc.id, 'title': tc.title, 'error': str(e)})
+
+        return JsonResponse({
+            'success_count': success_count,
+            'failed_count': len(failures),
+            'failures': failures,
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TestCaseZentaoImportView(APIView):
+    """从禅道导入测试用例（自动同步需求 + 按 zentao_case_id 去重）"""
+
+    def post(self, request):
+        scope_type = request.data.get('scope_type')
+        scope_id = request.data.get('scope_id')
+        story_ids = request.data.get('story_ids', [])
+        project_id = request.data.get('project_id')
+
+        if not story_ids or not project_id:
+            return JsonResponse({'error': '缺少 story_ids 或 project_id'}, status=400)
+
+        config = ZentaoConfig.get_active_config()
+        if not config:
+            return JsonResponse({'error': '请先在配置中心配置禅道连接'}, status=400)
+
+        from apps.requirement_analysis.models import Requirement
+        from apps.projects.models import Project as P
+
+        try:
+            project = P.objects.get(id=project_id)
+        except P.DoesNotExist:
+            return JsonResponse({'error': '项目不存在'}, status=400)
+
+        created = 0
+        updated = 0
+        failures = []
+
+        for story_id in story_ids:
+            try:
+                # 自动同步需求（若本地不存在则创建 Requirement）
+                story = ZentaoService.get_story_detail(config, story_id)
+                zentao_id = story.get('id', story_id)
+                req = Requirement.objects.filter(zentao_id=zentao_id).first()
+                if not req:
+                    req = Requirement.objects.create(
+                        project=project,
+                        source_type='zentao',
+                        zentao_id=zentao_id,
+                        product_id=story.get('product'),
+                        module_id=story.get('module'),
+                        title=story.get('title', f'禅道需求{zentao_id}'),
+                        spec=story.get('spec', ''),
+                        status=story.get('status', 'active'),
+                        raw_data=story,
+                        synced_at=timezone.now(),
+                        created_by=request.user if request.user.is_authenticated else None,
+                    )
+                else:
+                    req.product_id = req.product_id or story.get('product')
+                    req.module_id = req.module_id or story.get('module')
+                    req.save(update_fields=['product_id', 'module_id'])
+
+                cases = ZentaoService.get_story_testcases(config, zentao_id)
+                for zc in cases:
+                    try:
+                        case_id = zc.get('id')
+                        existing = TestCase.objects.filter(zentao_case_id=case_id).first()
+                        steps_json = ZentaoService.steps_from_zentao(zc.get('steps', []))
+                        if existing:
+                            existing.title = zc.get('title', existing.title)
+                            existing.preconditions = zc.get('precondition', '') or ''
+                            existing.steps = steps_json
+                            existing.priority = ZentaoService.map_priority_from_zentao(zc.get('pri'))
+                            existing.test_type = ZentaoService.map_type_from_zentao(zc.get('type'))
+                            existing.requirement = req
+                            existing.product_id = req.product_id
+                            existing.module_id = req.module_id
+                            existing.story_id = zentao_id
+                            existing.save()
+                            updated += 1
+                        else:
+                            TestCase.objects.create(
+                                project=project,
+                                author=request.user if request.user.is_authenticated else None,
+                                title=zc.get('title', '禅道用例'),
+                                description=zc.get('title', ''),
+                                preconditions=zc.get('precondition', '') or '',
+                                steps=steps_json,
+                                priority=ZentaoService.map_priority_from_zentao(zc.get('pri')),
+                                test_type=ZentaoService.map_type_from_zentao(zc.get('type')),
+                                status='draft',
+                                requirement=req,
+                                zentao_case_id=case_id,
+                                product_id=req.product_id,
+                                module_id=req.module_id,
+                                story_id=zentao_id,
+                            )
+                            created += 1
+                    except Exception as e:
+                        failures.append({'case_id': case_id, 'error': str(e)})
+            except Exception as e:
+                failures.append({'story_id': story_id, 'error': str(e)})
+
+        return JsonResponse({
+            'created': created,
+            'updated': updated,
+            'failed': len(failures),
+            'failures': failures,
+        })
