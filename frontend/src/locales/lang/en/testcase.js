@@ -15,6 +15,12 @@ export default {
     importRecords: 'Import Records',
     saveChanges: 'Save Changes',
     createCase: 'Create Case',
+    exportZentao: 'Export to Zentao',
+    importZentao: 'Import from Zentao',
+    addStep: 'Add Step',
+    stepDescPlaceholder: 'Step description',
+    stepExpectPlaceholder: 'Expected result of this step',
+    expectPrefix: 'Expected',
 
     // Field labels
     caseTitle: 'Case Title',
@@ -138,6 +144,30 @@ export default {
     titleLength: 'Title length must be between 5 and 500 characters',
     expectedResultRequired: 'Please enter expected result',
     stepsMaxLength: 'Steps cannot exceed 1000 characters',
+    stepsRequired: 'Please add at least one valid step',
+
+    // Zentao sync
+    exportZentaoAutoHint: 'Export {count} cases to Zentao; product/module/story taken from the linked requirement',
+    exportZentaoNeedManualHint: 'Some cases have no linked Zentao requirement; choose product and story for them',
+    selectZentaoProduct: 'Select Zentao product',
+    selectZentaoProject: 'Select Zentao project',
+    selectZentaoStory: 'Select Zentao story',
+    importScope: 'Import scope',
+    byProduct: 'By product',
+    byProject: 'By project',
+    zentaoProduct: 'Zentao product',
+    zentaoProject: 'Zentao project',
+    zentaoStory: 'Zentao story',
+    localProject: 'Local project',
+    selectLocalProject: 'Select local project',
+    exportZentaoResult: 'Export result',
+    exportZentaoSuccess: 'Export succeeded',
+    exportZentaoFailed: 'Export failed',
+    importZentaoResult: 'Import result',
+    importZentaoSuccess: 'Import succeeded',
+    importZentaoFailed: 'Import failed',
+    created: 'created',
+    updated: 'updated',
 
     // Excel export
     excelNumber: 'Test Case ID',

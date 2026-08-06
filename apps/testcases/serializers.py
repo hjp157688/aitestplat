@@ -45,12 +45,14 @@ class TestCaseListSerializer(serializers.ModelSerializer):
     assignee = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
     versions = serializers.SerializerMethodField()
-    
+    requirement = serializers.SerializerMethodField()
+
     class Meta:
         model = TestCase
         fields = [
             'id', 'title', 'description', 'preconditions', 'steps',
             'priority', 'test_type',
+            'requirement', 'zentao_case_id',
             'author', 'assignee', 'project', 'versions', 'tags', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -63,7 +65,16 @@ class TestCaseListSerializer(serializers.ModelSerializer):
     
     def get_project(self, obj):
         return {'id': obj.project.id, 'name': obj.project.name} if obj.project else None
-    
+
+    def get_requirement(self, obj):
+        if obj.requirement_id:
+            return {
+                'id': obj.requirement_id,
+                'zentao_id': obj.requirement.zentao_id,
+                'title': obj.requirement.title,
+            }
+        return None
+
     def get_versions(self, obj):
         return [{'id': v.id, 'name': v.name, 'is_baseline': v.is_baseline} for v in obj.versions.all()]
 

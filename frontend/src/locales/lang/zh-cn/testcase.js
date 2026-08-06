@@ -15,6 +15,12 @@ export default {
     importRecords: '导入记录',
     saveChanges: '保存修改',
     createCase: '创建用例',
+    exportZentao: '导出禅道用例',
+    importZentao: '导入禅道用例',
+    addStep: '添加步骤',
+    stepDescPlaceholder: '步骤描述',
+    stepExpectPlaceholder: '该步骤预期结果',
+    expectPrefix: '预期',
 
     // Field labels
     caseTitle: '用例标题',
@@ -138,6 +144,30 @@ export default {
     titleLength: '标题长度在 5 到 500 个字符',
     expectedResultRequired: '请输入预期结果',
     stepsMaxLength: '操作步骤不能超过1000个字符',
+    stepsRequired: '请至少添加一个有效的操作步骤',
+
+    // Zentao sync
+    exportZentaoAutoHint: '将导出 {count} 条用例到禅道，产品/模块/需求自动取自关联需求',
+    exportZentaoNeedManualHint: '部分用例未关联禅道需求，请为它们选择禅道产品与需求',
+    selectZentaoProduct: '请选择禅道产品',
+    selectZentaoProject: '请选择禅道项目',
+    selectZentaoStory: '请选择禅道需求',
+    importScope: '导入范围',
+    byProduct: '按产品',
+    byProject: '按项目',
+    zentaoProduct: '禅道产品',
+    zentaoProject: '禅道项目',
+    zentaoStory: '禅道需求',
+    localProject: '本地项目',
+    selectLocalProject: '请选择本地项目',
+    exportZentaoResult: '导出结果',
+    exportZentaoSuccess: '导出成功',
+    exportZentaoFailed: '导出失败',
+    importZentaoResult: '导入结果',
+    importZentaoSuccess: '导入成功',
+    importZentaoFailed: '导入失败',
+    created: '新增',
+    updated: '更新',
 
     // Excel export
     excelNumber: '测试用例编号',

@@ -15,6 +15,17 @@
           <el-icon><Download /></el-icon>
           {{ $t('testcase.exportExcel') }}
         </el-button>
+        <el-button
+          type="warning"
+          :disabled="selectedTestCases.length === 0"
+          @click="openZentaoExportDialog">
+          <el-icon><Position /></el-icon>
+          {{ $t('testcase.exportZentao') }}
+        </el-button>
+        <el-button type="danger" plain @click="openZentaoImportDialog">
+          <el-icon><Connection /></el-icon>
+          {{ $t('testcase.importZentao') }}
+        </el-button>
         <el-button @click="downloadImportTemplate">
           <el-icon><Download /></el-icon>
           {{ $t('testcase.downloadImportTemplate') }}
@@ -213,16 +224,92 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <el-dialog
+      v-model="zentaoExportVisible"
+      :title="$t('testcase.exportZentao')"
+      width="520px"
+    >
+      <el-alert v-if="!exportNeedsManual" type="success" :closable="false" show-icon>
+        {{ $t('testcase.exportZentaoAutoHint', { count: selectedTestCases.length }) }}
+      </el-alert>
+      <el-form v-else label-width="100px">
+        <el-form-item :label="$t('testcase.zentaoProduct')" required>
+          <el-select v-model="zentaoExportForm.productId" filterable style="width: 100%"
+            :placeholder="$t('testcase.selectZentaoProduct')" @change="onExportProductChange">
+            <el-option v-for="p in zentaoProducts" :key="p.id" :label="p.name" :value="p.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('testcase.zentaoStory')">
+          <el-select v-model="zentaoExportForm.storyId" filterable clearable style="width: 100%"
+            :placeholder="$t('testcase.selectZentaoStory')">
+            <el-option v-for="s in zentaoExportStories" :key="s.id" :label="s.title" :value="s.id" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="zentaoExportVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="zentaoExporting" @click="submitZentaoExport">
+          {{ $t('common.confirm') }}
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="zentaoImportVisible"
+      :title="$t('testcase.importZentao')"
+      width="620px"
+    >
+      <el-form label-width="100px">
+        <el-form-item :label="$t('testcase.importScope')">
+          <el-radio-group v-model="zentaoImportForm.scopeType">
+            <el-radio value="product">{{ $t('testcase.byProduct') }}</el-radio>
+            <el-radio value="project">{{ $t('testcase.byProject') }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="zentaoImportForm.scopeType === 'product'" :label="$t('testcase.zentaoProduct')" required>
+          <el-select v-model="zentaoImportForm.scopeId" filterable style="width: 100%"
+            :placeholder="$t('testcase.selectZentaoProduct')" @change="loadScopeStories">
+            <el-option v-for="p in zentaoProducts" :key="p.id" :label="p.name" :value="p.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-else :label="$t('testcase.zentaoProject')" required>
+          <el-select v-model="zentaoImportForm.scopeId" filterable style="width: 100%"
+            :placeholder="$t('testcase.selectZentaoProject')" @change="loadScopeStories">
+            <el-option v-for="p in zentaoProjects" :key="p.id" :label="p.name" :value="p.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('testcase.zentaoStory')">
+          <el-select v-model="zentaoImportForm.storyIds" multiple filterable style="width: 100%"
+            :placeholder="$t('testcase.selectZentaoStory')">
+            <el-option v-for="s in scopeStories" :key="s.id" :label="s.title" :value="s.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('testcase.localProject')" required>
+          <el-select v-model="zentaoImportForm.projectId" filterable style="width: 100%"
+            :placeholder="$t('testcase.selectLocalProject')">
+            <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="zentaoImportVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="zentaoImporting" @click="submitZentaoImport">
+          {{ $t('common.confirm') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search, Download, Delete, Upload } from '@element-plus/icons-vue'
+import { Plus, Search, Download, Delete, Upload, Position, Connection } from '@element-plus/icons-vue'
 import api from '@/utils/api'
+import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao } from '@/api/requirement'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 
@@ -245,6 +332,150 @@ const selectedImportFile = ref(null)
 const importForm = ref({
   projectId: ''
 })
+
+// Zentao 导出状态
+const zentaoExportVisible = ref(false)
+const zentaoExporting = ref(false)
+const zentaoProducts = ref([])
+const zentaoExportStories = ref([])
+const zentaoExportForm = ref({ productId: '', storyId: '' })
+const exportNeedsManual = computed(() =>
+  selectedTestCases.value.some(tc => !tc.requirement || !tc.requirement.zentao_id)
+)
+
+// Zentao 导入状态
+const zentaoImportVisible = ref(false)
+const zentaoImporting = ref(false)
+const zentaoProjects = ref([])
+const scopeStories = ref([])
+const zentaoImportForm = ref({ scopeType: 'product', scopeId: '', storyIds: [], projectId: '' })
+
+const openZentaoExportDialog = async () => {
+  if (selectedTestCases.value.length === 0) return
+  zentaoExportForm.value = { productId: '', storyId: '' }
+  zentaoExportStories.value = []
+  if (exportNeedsManual.value) {
+    try {
+      const res = await getZentaoProducts()
+      zentaoProducts.value = res.data.products || []
+    } catch (e) {
+      ElMessage.error(e.response?.data?.error || t('testcase.selectZentaoProduct'))
+    }
+  }
+  zentaoExportVisible.value = true
+}
+
+const onExportProductChange = async (pid) => {
+  zentaoExportStories.value = []
+  zentaoExportForm.value.storyId = ''
+  if (pid) {
+    try {
+      const res = await getZentaoProductStories(pid)
+      zentaoExportStories.value = res.data.stories || []
+    } catch (e) {
+      ElMessage.error(e.response?.data?.error || t('testcase.selectZentaoProduct'))
+    }
+  }
+}
+
+const submitZentaoExport = async () => {
+  zentaoExporting.value = true
+  try {
+    const data = { case_ids: selectedTestCases.value.map(tc => tc.id) }
+    if (exportNeedsManual.value) {
+      if (!zentaoExportForm.value.productId) {
+        ElMessage.warning(t('testcase.selectZentaoProduct'))
+        return
+      }
+      data.product_id = zentaoExportForm.value.productId
+      data.story_id = zentaoExportForm.value.storyId || 0
+    }
+    const res = await exportCasesToZentao(data)
+    const { success_count, failed_count, failures } = res.data
+    if (failed_count > 0) {
+      ElMessageBox.alert(
+        failures.map(f => `${f.title}: ${f.error}`).join('\n'),
+        `${t('testcase.exportZentaoResult')}: ${success_count} ${t('testcase.success')}, ${failed_count} ${t('testcase.failed')}`,
+        { type: 'warning', confirmButtonText: t('common.confirm') }
+      )
+    } else {
+      ElMessage.success(`${t('testcase.exportZentaoSuccess')}: ${success_count}`)
+    }
+    zentaoExportVisible.value = false
+    fetchTestCases()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || t('testcase.exportZentaoFailed'))
+  } finally {
+    zentaoExporting.value = false
+  }
+}
+
+const openZentaoImportDialog = async () => {
+  zentaoImportForm.value = { scopeType: 'product', scopeId: '', storyIds: [], projectId: '' }
+  scopeStories.value = []
+  try {
+    const [prodRes, projRes] = await Promise.all([getZentaoProducts(), getZentaoProjects()])
+    zentaoProducts.value = prodRes.data.products || []
+    zentaoProjects.value = projRes.data.projects || []
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || t('testcase.importZentaoFailed'))
+  }
+  zentaoImportVisible.value = true
+}
+
+const loadScopeStories = async () => {
+  scopeStories.value = []
+  zentaoImportForm.value.storyIds = []
+  const { scopeType, scopeId } = zentaoImportForm.value
+  if (!scopeId) return
+  try {
+    const res = scopeType === 'product'
+      ? await getZentaoProductStories(scopeId)
+      : await getZentaoProjectStories(scopeId)
+    scopeStories.value = res.data.stories || []
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || t('testcase.selectZentaoStory'))
+  }
+}
+
+const submitZentaoImport = async () => {
+  if (!zentaoImportForm.value.scopeId || !zentaoImportForm.value.storyIds.length) {
+    ElMessage.warning(t('testcase.selectZentaoStory'))
+    return
+  }
+  if (!zentaoImportForm.value.projectId) {
+    ElMessage.warning(t('testcase.selectLocalProject'))
+    return
+  }
+  zentaoImporting.value = true
+  try {
+    const res = await importCasesFromZentao({
+      scope_type: zentaoImportForm.value.scopeType,
+      scope_id: zentaoImportForm.value.scopeId,
+      story_ids: zentaoImportForm.value.storyIds,
+      project_id: zentaoImportForm.value.projectId
+    })
+    const { created, updated, failed, failures } = res.data
+    if (failed > 0) {
+      ElMessageBox.alert(
+        failures.map(f => {
+          const title = f.case_id !== undefined ? `case#${f.case_id}` : `story#${f.story_id}`
+          return `${title}: ${f.error}`
+        }).join('\n'),
+        `${t('testcase.importZentaoResult')}: ${created} ${t('testcase.created')}, ${updated} ${t('testcase.updated')}, ${failed} ${t('testcase.failed')}`,
+        { type: 'warning', confirmButtonText: t('common.confirm') }
+      )
+    } else {
+      ElMessage.success(`${t('testcase.importZentaoSuccess')}: ${created} ${t('testcase.created')}, ${updated} ${t('testcase.updated')}`)
+    }
+    zentaoImportVisible.value = false
+    fetchTestCases()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || t('testcase.importZentaoFailed'))
+  } finally {
+    zentaoImporting.value = false
+  }
+}
 
 const fetchTestCases = async () => {
   loading.value = true

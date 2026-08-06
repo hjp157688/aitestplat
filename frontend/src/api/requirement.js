@@ -179,6 +179,28 @@ export function getZentaoStatus() {
   })
 }
 
+/**
+ * 导出测试用例到禅道
+ */
+export function exportCasesToZentao(data) {
+  return request({
+    url: '/testcases/zentao-export/',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 从禅道导入测试用例
+ */
+export function importCasesFromZentao(data) {
+  return request({
+    url: '/testcases/zentao-import/',
+    method: 'post',
+    data
+  })
+}
+
 // ==================== 禅道配置 ====================
 
 /**
