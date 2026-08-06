@@ -1518,6 +1518,37 @@ def _execute_task(task, selected_knowledge):
 
 
 
+def _ensure_task_requirement(task):
+    """任务没有关联需求时，用任务标题+需求文本创建一条 Requirement 并绑定（source_type=manual）。"""
+    if getattr(task, 'requirement_id', None):
+        return task.requirement
+
+    from apps.projects.models import Project
+    from django.db.models import Q as _Q
+
+    project = task.project
+    if not project:
+        user = task.created_by
+        project = Project.objects.filter(
+            _Q(owner=user) | _Q(members=user)
+        ).distinct().first()
+    if not project:
+        project = Project.objects.create(
+            name='默认项目', owner=task.created_by, description='系统自动创建的默认项目'
+        )
+
+    base_title = (task.title or '未命名需求').strip() or '未命名需求'
+    requirement, _ = Requirement.objects.get_or_create(
+        title=f'{base_title}（手动导入）',
+        source_type='manual',
+        project=project,
+        defaults={'spec': task.requirement_text or '', 'created_by': task.created_by},
+    )
+    task.requirement = requirement
+    task.save(update_fields=['requirement'])
+    return requirement
+
+
 def _start_generation_thread(task, selected_knowledge):
     """在新线程中启动测试用例生成任务。"""
     try:
@@ -2124,7 +2155,7 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                             priority=self._map_priority(test_case.get('priority', '中')),
                             test_type='functional',
                             status='draft',
-                            requirement=task.requirement,
+                            requirement=_ensure_task_requirement(task),
                         )
                         adopted_count += 1
 
@@ -2263,7 +2294,7 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                         priority=self._map_priority(test_case.get('priority', '中')),
                         test_type='functional',
                         status='draft',
-                        requirement=task.requirement,
+                        requirement=_ensure_task_requirement(task),
                     )
                     adopted_count += 1
 
@@ -2358,7 +2389,7 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                         priority=case_data.get('priority', 'medium'),
                         test_type=case_data.get('test_type', 'functional'),
                         status=case_data.get('status', 'draft'),
-                        requirement=task.requirement,
+                        requirement=_ensure_task_requirement(task),
                     )
                     adopted_count += 1
 
