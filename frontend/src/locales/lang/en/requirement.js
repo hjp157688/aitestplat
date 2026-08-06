@@ -374,6 +374,8 @@ export default {
     statusReviewing: 'Reviewing',
     statusCompleted: 'Completed',
     statusFailed: 'Failed',
+    statusRevising: 'Refining',
+    statusCancelled: 'Cancelled',
     statusDraft: 'Draft',
     statusActive: 'Active',
 

@@ -15,6 +15,8 @@
             <option value="reviewing">{{ $t('generatedTestCases.statusReviewing') }}</option>
             <option value="completed">{{ $t('generatedTestCases.statusCompleted') }}</option>
             <option value="failed">{{ $t('generatedTestCases.statusFailed') }}</option>
+            <option value="revising">{{ $t('generatedTestCases.statusRevising') }}</option>
+            <option value="cancelled">{{ $t('generatedTestCases.statusCancelled') }}</option>
           </select>
         </div>
 
@@ -110,6 +112,12 @@
               <span class="status-tag" :class="task.status">
                 {{ getStatusText(task.status) }}
               </span>
+              <div v-if="isRunningStatus(task.status)" class="task-progress">
+                <div class="progress-track">
+                  <div class="progress-fill" :style="{ width: Math.min(task.progress || 0, 100) + '%' }"></div>
+                </div>
+                <span class="progress-num">{{ Math.round(task.progress || 0) }}%</span>
+              </div>
             </div>
             <div class="body-cell option-cell">
               <span class="option-chip">
@@ -438,7 +446,8 @@ export default {
         completed: 0,
         running: 0,
         failed: 0
-      }
+      },
+      pollTimer: null // 运行中任务列表轮询计时器
     }
   },
 
@@ -469,6 +478,11 @@ export default {
     // 是否全选
     isAllSelected() {
       return this.tasks.length > 0 && this.selectedTasks.length === this.tasks.length
+    },
+
+    // 是否存在运行中的任务（生成/评审/改进中）
+    hasRunningTasks() {
+      return this.tasks.some(t => ['pending', 'generating', 'reviewing', 'revising'].includes(t.status))
     }
   },
   
@@ -479,6 +493,23 @@ export default {
   },
   
   methods: {
+    // 判断任务是否处于运行中状态（用于展示进度条）
+    isRunningStatus(status) {
+      return ['pending', 'generating', 'reviewing', 'revising'].includes(status)
+    },
+
+    // 有运行中任务时启动3秒轮询，全部完成后停止
+    syncPolling() {
+      if (this.hasRunningTasks) {
+        if (!this.pollTimer) {
+          this.pollTimer = setInterval(() => this.loadTasks(), 3000)
+        }
+      } else if (this.pollTimer) {
+        clearInterval(this.pollTimer)
+        this.pollTimer = null
+      }
+    },
+
     async loadTasks() {
       this.isLoading = true
       try {
@@ -518,6 +549,8 @@ export default {
         this.isLoading = false
         // 清空选择（因为任务列表已更新）
         this.selectedTasks = []
+        // 管理运行中任务的轮询
+        this.syncPolling()
       }
     },
 
@@ -643,6 +676,8 @@ export default {
         'pending': this.$t('generatedTestCases.statusPending'),
         'generating': this.$t('generatedTestCases.statusGenerating'),
         'reviewing': this.$t('generatedTestCases.statusReviewing'),
+        'revising': this.$t('generatedTestCases.statusRevising'),
+        'cancelled': this.$t('generatedTestCases.statusCancelled'),
         'completed': this.$t('generatedTestCases.statusCompleted'),
         'failed': this.$t('generatedTestCases.statusFailed')
       }
@@ -1018,7 +1053,14 @@ export default {
 
       return pages
     }
-  }
+  },
+
+  beforeUnmount() {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer)
+      this.pollTimer = null
+    }
+  },
 }
 </script>
 
@@ -1330,6 +1372,32 @@ export default {
 .status-tag.reviewing { background: #EFF6FF; color: var(--aitest-primary); }
 .status-tag.completed { background: #F0FDF4; color: #059669; }
 .status-tag.failed { background: #FEF2F2; color: #DC2626; }
+
+/* 运行中任务进度条 */
+.task-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.progress-track {
+  width: 72px;
+  height: 4px;
+  border-radius: 2px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--aitest-primary, #409eff);
+  transition: width 0.3s ease;
+}
+.progress-num {
+  font-size: 0.7rem;
+  color: #64748b;
+  min-width: 30px;
+}
 
 .view-detail-btn {
   background: var(--aitest-primary);

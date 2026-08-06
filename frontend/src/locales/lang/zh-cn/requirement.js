@@ -374,6 +374,8 @@ export default {
     statusReviewing: '用例评审中',
     statusCompleted: '已完成',
     statusFailed: '失败',
+    statusRevising: '用例改进中',
+    statusCancelled: '已取消',
     statusDraft: '草稿',
     statusActive: '激活',
 
