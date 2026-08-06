@@ -1099,11 +1099,12 @@ class TestSuiteViewSet(viewsets.ModelViewSet):
         environment = None
         if environment_id:
             environment = Environment.objects.filter(
-                id=environment_id, project=project,
+                models.Q(id=environment_id, project=project)
+                | models.Q(id=environment_id, scope='GLOBAL', project__isnull=True)
             ).first()
             if not environment:
                 return Response(
-                    {'error': '所选环境不属于该项目'},
+                    {'error': '所选环境不可用'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

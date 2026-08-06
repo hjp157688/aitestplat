@@ -201,7 +201,7 @@ class CreateSuiteFromRequestsTests(BatchDeleteBase):
     def test_foreign_environment_400(self):
         from apps.api_testing.models import Environment
         foreign_env = Environment.objects.create(
-            scope='GLOBAL', name='ForeignEnv', project=None,
+            scope='LOCAL', name='ForeignEnv', project=self.other_project,
             created_by=self.other)
         resp = self.client.post(
             '/api/api-testing/test-suites/create-from-requests/',
@@ -214,6 +214,25 @@ class CreateSuiteFromRequestsTests(BatchDeleteBase):
             format='json',
         )
         self.assertEqual(resp.status_code, 400)
+
+    def test_global_environment_accepted(self):
+        from apps.api_testing.models import Environment
+        global_env = Environment.objects.create(
+            scope='GLOBAL', name='GlobalEnv', project=None,
+            created_by=self.other)
+        resp = self.client.post(
+            '/api/api-testing/test-suites/create-from-requests/',
+            {
+                'project_id': self.project.id,
+                'name': 'GlobalSuite',
+                'environment_id': global_env.id,
+                'request_ids': [self.request_a.id],
+            },
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 201)
+        suite = TestSuite.objects.get(id=resp.json()['id'])
+        self.assertEqual(suite.environment_id, global_env.id)
 
     def test_add_requests_rejects_foreign_requests(self):
         suite = TestSuite.objects.create(
