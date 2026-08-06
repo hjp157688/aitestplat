@@ -502,7 +502,7 @@ export default {
     syncPolling() {
       if (this.hasRunningTasks) {
         if (!this.pollTimer) {
-          this.pollTimer = setInterval(() => this.loadTasks(), 3000)
+          this.pollTimer = setInterval(() => this.loadTasks(true), 3000)
         }
       } else if (this.pollTimer) {
         clearInterval(this.pollTimer)
@@ -510,8 +510,8 @@ export default {
       }
     },
 
-    async loadTasks() {
-      this.isLoading = true
+    async loadTasks(silent = false) {
+      if (!silent) this.isLoading = true
       try {
         let url = '/requirement-analysis/testcase-generation/'
         const params = new URLSearchParams()
@@ -546,7 +546,7 @@ export default {
         this.tasks = []
         this.pagination.total = 0
       } finally {
-        this.isLoading = false
+        if (!silent) this.isLoading = false
         // 清空选择（因为任务列表已更新）
         this.selectedTasks = []
         // 管理运行中任务的轮询
