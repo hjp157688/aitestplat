@@ -522,6 +522,28 @@ def _safe_json_loads(text) -> Optional[dict]:
         return None
 
 
+_TEMPLATE_KEY_RE = re.compile(r'\{\{(\w+)\}\}')
+
+
+def collect_template_keys(*values) -> set:
+    """递归收集字符串值中的 {{变量名}}。"""
+    keys = set()
+
+    def walk(v):
+        if isinstance(v, dict):
+            for x in v.values():
+                walk(x)
+        elif isinstance(v, list):
+            for x in v:
+                walk(x)
+        elif isinstance(v, str):
+            keys.update(_TEMPLATE_KEY_RE.findall(v))
+
+    for v in values:
+        walk(v)
+    return keys
+
+
 class ApiTestCaseGenerator:
     """使用 AI 为选中的 ApiRequest 生成测试用例变体"""
 
@@ -672,12 +694,19 @@ class ApiTestCaseGenerator:
             raise Exception('生成任务未完成或不存在')
 
         created_count = 0
+        variables_count = 0
+        pending_variables = set()
         suite = None
 
         # 获取 collection
         collection = None
         if collection_id:
             collection = ApiCollection.objects.get(id=collection_id)
+
+        # 获取已知数据池，供回填用例级变量
+        from .known_data import flatten_pool
+        known_data = task.get('known_data') or {}
+        pool = flatten_pool(known_data)
 
         with transaction.atomic():
             if suite_name and project_id:
@@ -714,6 +743,17 @@ class ApiTestCaseGenerator:
                         else:
                             body = {'type': 'json', 'data': case['body_override']}
 
+                # 收集本用例引用的 {{键}}，回填用例级变量
+                referenced = collect_template_keys(params, body, case.get('assertions') or [])
+                case_vars = {}
+                for key in referenced:
+                    key_value = pool.get(key)
+                    if key_value is not None and str(key_value) != '':
+                        case_vars[key] = str(key_value)
+                    else:
+                        pending_variables.add(key)
+                variables_count += len(case_vars)
+
                 # 创建新请求
                 new_request = ApiRequest.objects.create(
                     collection=collection or parent_request.collection,
@@ -728,6 +768,7 @@ class ApiTestCaseGenerator:
                     assertions=case.get('assertions', []),
                     request_type=parent_request.request_type,
                     created_by=user,
+                    variables=case_vars,
                 )
 
                 # 关联到测试套件
@@ -746,4 +787,6 @@ class ApiTestCaseGenerator:
             'created_count': created_count,
             'suite_id': suite.id if suite else None,
             'suite_name': suite.name if suite else None,
+            'variables_count': variables_count,
+            'pending_variables': sorted(pending_variables),
         }
