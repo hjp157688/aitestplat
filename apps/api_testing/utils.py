@@ -5,6 +5,13 @@ from .models import RequestHistory
 from .variable_resolver import VariableResolver
 
 
+def merge_variables(env_variables, case_variables):
+    """用例级变量优先，环境变量兜底。"""
+    env = dict(env_variables) if env_variables else {}
+    case = dict(case_variables) if case_variables else {}
+    return {**env, **case}
+
+
 def execute_assertions(response, assertions):
     """执行断言验证"""
     results = []
@@ -142,7 +149,10 @@ def execute_test_suite(test_suite, environment, executed_by):
                 variables = {}
                 if environment:
                     variables.update(environment.variables)
-                
+
+                # 用例级变量优先于环境变量
+                variables = merge_variables(variables, getattr(api_request, 'variables', None) or {})
+
                 # 替换URL中的变量（先解析动态函数，再替换环境变量）
                 url = _replace_variables(api_request.url, variables)
                 url = resolver.resolve(url)

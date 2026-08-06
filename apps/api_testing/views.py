@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 # 批量生成用例单次上限
 MAX_BATCH_GENERATE = 20
 
-from .utils import execute_assertions
+from .utils import execute_assertions, merge_variables
 from .operation_logger import log_operation
 from .variable_resolver import VariableResolver
 
@@ -364,7 +364,10 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
             if environment_id:
                 env = Environment.objects.get(id=environment_id)
                 variables.update(env.variables)
-            
+
+            # 用例级变量优先于环境变量
+            variables = merge_variables(variables, getattr(api_request, 'variables', None) or {})
+
             # 使用前端发送的更新后的数据，如果没有则使用数据库中的数据
             request_params = request.data.get('params', api_request.params)
             request_headers = request.data.get('headers', api_request.headers)
