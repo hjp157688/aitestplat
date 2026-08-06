@@ -730,6 +730,8 @@ export default {
     statusReviewing: 'Reviewing Test Cases',
     statusCompleted: 'Completed',
     statusFailed: 'Failed',
+    statusRevising: 'Refining',
+    statusCancelled: 'Cancelled',
 
     // Batch Operations
     selectAll: 'Select All',
@@ -822,7 +824,19 @@ export default {
 
     // Excel Export
     excelSheetName: 'Test Cases',
-    excelFileName: 'TestCases_{taskId}_{date}.xlsx'
+    excelFileName: 'TestCases_{taskId}_{date}.xlsx',
+    stepGenerating: 'Generating',
+    stepReviewing: 'AI Review',
+    stepRevising: 'Refining',
+    stepComplete: 'Done',
+    generatedContent: 'Generated Content',
+    reviewFeedback: 'AI Review Feedback',
+    finalCases: 'Final Test Cases',
+    streamInterrupted: 'Stream connection lost, switched to polling',
+    failedTitle: 'Test case generation failed',
+    failedUnknownReason: 'No failure reason recorded, please retry',
+    cancelledTitle: 'Task cancelled',
+    cancelledHint: 'This generation task was cancelled or the record was removed'
   },
 
   // Configuration Guide Modal

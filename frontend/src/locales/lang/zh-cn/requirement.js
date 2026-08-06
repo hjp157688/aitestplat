@@ -729,6 +729,8 @@ export default {
     statusReviewing: '用例评审中',
     statusCompleted: '已完成',
     statusFailed: '失败',
+    statusRevising: '用例改进中',
+    statusCancelled: '已取消',
 
     // 批量操作
     selectAll: '全选',
@@ -821,7 +823,19 @@ export default {
 
     // Excel 导出
     excelSheetName: '测试用例',
-    excelFileName: '测试用例_{taskId}_{date}.xlsx'
+    excelFileName: '测试用例_{taskId}_{date}.xlsx',
+    stepGenerating: '生成用例',
+    stepReviewing: 'AI评审',
+    stepRevising: '改进用例',
+    stepComplete: '完成',
+    generatedContent: '生成内容',
+    reviewFeedback: 'AI评审反馈',
+    finalCases: '最终用例',
+    streamInterrupted: '实时连接中断，已切换为轮询模式',
+    failedTitle: '用例生成失败',
+    failedUnknownReason: '未记录失败原因，请刷新重试',
+    cancelledTitle: '任务已取消',
+    cancelledHint: '该生成任务已被取消或任务记录已被清理'
   },
 
   // 配置引导弹框

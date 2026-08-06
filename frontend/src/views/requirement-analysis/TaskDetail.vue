@@ -58,6 +58,55 @@
       </el-collapse>
     </div>
 
+    <!-- 流式生成面板（任务运行中） -->
+    <div v-if="isStreaming" class="streaming-panel">
+      <div class="stream-steps">
+        <div class="mini-step" :class="{ active: currentStep >= 1 }">
+          {{ $t('taskDetail.stepGenerating') }}
+        </div>
+        <div class="mini-step" :class="{ active: currentStep >= 2 }">
+          {{ $t('taskDetail.stepReviewing') }}
+        </div>
+        <div class="mini-step" :class="{ active: currentStep >= 3 }">
+          {{ $t('taskDetail.stepRevising') }}
+        </div>
+        <div class="mini-step" :class="{ active: currentStep >= 4 }">
+          {{ $t('taskDetail.stepComplete') }}
+        </div>
+      </div>
+      <div class="stream-status">
+        {{ getStatusText(task.status) }} · {{ Math.round(task.progress || 0) }}%
+      </div>
+
+      <div v-if="streamedContent" class="stream-section">
+        <div class="stream-section-title">{{ $t('taskDetail.generatedContent') }}</div>
+        <div class="stream-content" v-html="formatMarkdown(formatStreamForDisplay(streamedContent))"></div>
+      </div>
+
+      <div v-if="streamedReviewContent" class="stream-section">
+        <div class="stream-section-title">{{ $t('taskDetail.reviewFeedback') }}</div>
+        <div class="stream-content" v-html="formatMarkdown(streamedReviewContent)"></div>
+      </div>
+
+      <div v-if="finalCasesStream" class="stream-section">
+        <div class="stream-section-title">{{ $t('taskDetail.finalCases') }}（{{ streamedCases.length }}）</div>
+        <div v-if="streamedCases.length" class="stream-cards">
+          <div v-for="(tc, idx) in streamedCases" :key="idx" class="stream-card">
+            <div class="stream-card-head">
+              <span class="stream-card-id">{{ tc.caseId || 'TC' + String(idx + 1).padStart(3, '0') }}</span>
+              <span class="priority-tag" :class="(tc.priority || 'P2').toLowerCase()">{{ tc.priority || 'P2' }}</span>
+            </div>
+            <div class="stream-card-scenario">{{ tc.scenario }}</div>
+            <div class="stream-card-body" v-if="tc.steps || tc.expected">
+              <span v-if="tc.steps">{{ $t('taskDetail.tableSteps') }}：{{ tc.steps }}</span>
+              <span v-if="tc.expected">{{ $t('taskDetail.tableExpected') }}：{{ tc.expected }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="stream-content" v-html="formatMarkdown(formatStreamForDisplay(finalCasesStream))"></div>
+      </div>
+    </div>
+
     <div v-if="isLoading" class="loading-state">
       <p>{{ $t('taskDetail.loading') }}</p>
     </div>
@@ -68,6 +117,25 @@
     </div>
 
     <div v-else class="task-content">
+      <!-- 完成态：AI评审反馈 -->
+      <div v-if="!isStreaming && showReviewFeedback && task.review_feedback" class="review-feedback-section">
+        <div class="review-feedback-title">{{ $t('taskDetail.reviewFeedback') }}</div>
+        <div class="stream-content" v-html="formatMarkdown(task.review_feedback)"></div>
+      </div>
+
+      <!-- 失败态 -->
+      <div v-if="task.status === 'failed'" class="error-state terminal-state">
+        <h3>{{ $t('taskDetail.failedTitle') }}</h3>
+        <p class="error-message">{{ task.error_message || $t('taskDetail.failedUnknownReason') }}</p>
+        <router-link to="/ai-generation/generated-testcases">{{ $t('taskDetail.backToList') }}</router-link>
+      </div>
+      <!-- 取消态 -->
+      <div v-else-if="task.status === 'cancelled'" class="error-state terminal-state">
+        <h3>{{ $t('taskDetail.cancelledTitle') }}</h3>
+        <p>{{ $t('taskDetail.cancelledHint') }}</p>
+        <router-link to="/ai-generation/generated-testcases">{{ $t('taskDetail.backToList') }}</router-link>
+      </div>
+      <template v-else>
       <!-- 批量操作区域 -->
       <div class="batch-actions" v-if="testCases.length > 0">
         <div class="selection-info">
@@ -110,15 +178,15 @@
           <div class="header-cell">{{ $t('taskDetail.tablePriority') }}</div>
           <div class="header-cell">{{ $t('taskDetail.tableActions') }}</div>
         </div>
-        
+
         <div class="table-body">
-          <div 
-            v-for="(testCase, index) in paginatedTestCases" 
+          <div
+            v-for="(testCase, index) in paginatedTestCases"
             :key="testCase.id || index"
             class="table-row">
             <div class="body-cell checkbox-cell">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 :value="testCase"
                 v-model="selectedCases"
                 @change="updateSelectAll">
@@ -174,6 +242,7 @@
           </div>
         </div>
       </div>
+      </template>
     </div>
 
     <!-- 用例详情弹窗 -->
@@ -297,7 +366,17 @@ export default {
         steps: '',
         expected: '',
         priority: 'P2'
-      }
+      },
+      // 流式生成相关
+      isStreaming: false,        // 任务是否运行中（展示流式面板）
+      currentStep: 0,            // 1生成 2评审 3改进 4完成
+      streamedContent: '',       // 流式原始生成内容
+      streamedReviewContent: '', // 流式评审反馈
+      finalCasesStream: '',      // 流式最终用例（原始文本）
+      streamedCases: [],         // 流式解析出的用例卡片预览
+      eventSource: null,         // SSE 连接
+      pollTimer: null,           // 轮询降级定时器
+      showReviewFeedback: false, // 完成态是否展示评审反馈
     }
   },
 
@@ -330,6 +409,10 @@ export default {
     this.loadTaskDetail()
   },
 
+  beforeUnmount() {
+    this.cleanupStreaming()
+  },
+
   methods: {
     // 复制需求描述文本
     async copyRequirementText() {
@@ -360,16 +443,171 @@ export default {
         const taskResponse = await api.get(`/requirement-analysis/testcase-generation/${this.taskId}/`)
         this.task = taskResponse.data
 
-        // 解析最终测试用例
-        if (this.task.final_test_cases) {
-          this.testCases = this.parseTestCases(this.task.final_test_cases)
+        // 运行中：进入流式/轮询模式
+        if (['pending', 'generating', 'reviewing', 'revising'].includes(this.task.status)) {
+          this.isStreaming = true
+          this.$nextTick(() => {
+            if (this.task.output_mode === 'stream') {
+              this.startStreaming()
+            } else {
+              this.startPolling()
+            }
+          })
+        } else if (this.task.status === 'completed') {
+          // 完成态：解析最终用例
+          if (this.task.final_test_cases) {
+            this.testCases = this.parseTestCases(this.task.final_test_cases)
+          }
+          if (this.task.review_feedback) {
+            this.showReviewFeedback = true
+          }
         }
+        // failed / cancelled：模板直接渲染终态卡片
       } catch (error) {
         console.error('Failed to load task details:', error)
         ElMessage.error(this.$t('taskDetail.loadFailed'))
       } finally {
         this.isLoading = false
       }
+    },
+
+    startStreaming() {
+      // EventSource 不用 axios 代理，直接指向后端
+      const currentOrigin = window.location.origin
+      const url = `${currentOrigin}/api/requirement-analysis/testcase-generation/${this.taskId}/stream_progress/`
+      this.eventSource = new EventSource(url, { withCredentials: true })
+
+      this.eventSource.onmessage = (event) => {
+        let data
+        try {
+          data = JSON.parse(event.data)
+        } catch (e) {
+          return
+        }
+
+        if (data.type === 'progress') {
+          // 仅更新步骤与进度，不直接赋值 task.status（最终以 progress 接口为准）
+          this.task.progress = data.progress
+          if (data.status === 'generating') {
+            this.currentStep = 2
+          } else if (data.status === 'reviewing') {
+            this.currentStep = 3
+          } else if (data.status === 'revising') {
+            this.currentStep = 3
+          }
+        } else if (data.type === 'content') {
+          this.streamedContent += data.content
+          this.streamedCases = this.parseStreamingTestCases(this.streamedContent)
+          this.currentStep = 2
+        } else if (data.type === 'review_content') {
+          this.streamedReviewContent += data.content
+          this.streamedReviewContent = this.streamedReviewContent.replace(/\n+$/, '')
+          this.currentStep = 3
+        } else if (data.type === 'final_content') {
+          this.finalCasesStream += data.content
+          this.streamedCases = this.parseStreamingTestCases(this.finalCasesStream)
+          this.currentStep = 3
+        } else if (data.type === 'status') {
+          if (data.status === 'completed') {
+            this.finalizeTask()
+          } else if (data.status === 'failed' || data.status === 'cancelled') {
+            this.finalizeTask()
+          }
+        } else if (data.type === 'done') {
+          if (this.eventSource) {
+            this.eventSource.close()
+            this.eventSource = null
+          }
+          this.finalizeTask()
+        }
+      }
+
+      this.eventSource.onerror = () => {
+        // readyState=2 为永久关闭，降级轮询；readyState=0 等待自动重连
+        if (!this.eventSource) return
+        if (this.eventSource.readyState === 2) {
+          this.eventSource.close()
+          this.eventSource = null
+          ElMessage.warning(this.$t('taskDetail.streamInterrupted'))
+          this.startPolling()
+        } else if (this.eventSource.readyState === 0) {
+          setTimeout(() => {
+            if (this.eventSource && this.eventSource.readyState === 0) {
+              this.eventSource.close()
+              this.eventSource = null
+              ElMessage.warning(this.$t('taskDetail.streamInterrupted'))
+              this.startPolling()
+            }
+          }, 5000)
+        }
+      }
+    },
+
+    startPolling() {
+      if (this.pollTimer) clearInterval(this.pollTimer)
+      this.pollTimer = setInterval(async () => {
+        try {
+          const response = await api.get(`/requirement-analysis/testcase-generation/${this.taskId}/progress/`)
+          const task = response.data
+          this.task = { ...this.task, ...task }
+          if (task.status === 'completed' || task.status === 'failed' || task.status === 'cancelled') {
+            clearInterval(this.pollTimer)
+            this.pollTimer = null
+            this.finalizeTask()
+          }
+        } catch (e) {
+          console.error('轮询任务进度失败:', e)
+        }
+      }, 2000)
+    },
+
+    async finalizeTask() {
+      try {
+        const response = await api.get(`/requirement-analysis/testcase-generation/${this.taskId}/progress/`)
+        this.task = response.data
+      } catch (e) {
+        console.error('获取最终任务结果失败:', e)
+      }
+      if (this.eventSource) {
+        this.eventSource.close()
+        this.eventSource = null
+      }
+      if (this.pollTimer) {
+        clearInterval(this.pollTimer)
+        this.pollTimer = null
+      }
+      this.isStreaming = false
+      this.currentStep = 4
+
+      if (this.task.status === 'completed') {
+        if (this.task.final_test_cases) {
+          this.finalCasesStream = this.task.final_test_cases
+          this.testCases = this.parseTestCases(this.task.final_test_cases)
+        }
+        if (this.task.review_feedback) {
+          this.showReviewFeedback = true
+        }
+        if (!this.streamedReviewContent && this.task.review_feedback) {
+          this.streamedReviewContent = this.task.review_feedback
+        }
+      }
+      // failed / cancelled：模板已用 task.status 渲染终态
+    },
+
+    cleanupStreaming() {
+      if (this.eventSource) {
+        this.eventSource.close()
+        this.eventSource = null
+      }
+      if (this.pollTimer) {
+        clearInterval(this.pollTimer)
+        this.pollTimer = null
+      }
+    },
+
+    formatStreamForDisplay(content) {
+      if (!content) return ''
+      return content.replace(/\n{3,}/g, '\n\n').trim()
     },
 
     parseTestCases(content) {
@@ -462,22 +700,177 @@ export default {
       return text.replace(/<br\s*\/?>/gi, '\n')
     },
 
-    // 格式化文本，去除markdown标记并保留格式
-    formatMarkdown(text) {
-      if (!text) return ''
+    // 格式化Markdown为HTML（简化版）
+    formatMarkdown(content) {
+      if (!content) return '';
 
-      // 先转义HTML标签，防止XSS
-      let formatted = text.replace(/&/g, '&amp;')
-                         .replace(/</g, '&lt;')
-                         .replace(/>/g, '&gt;')
+      // 先去除"新增"标记，在markdown转换之前处理
+      // 这样可以避免markdown转换后无法匹配的问题
+      let html = content
+          .replace(/\*\*新增\*\*-/g, '')  // **新增**-xxx -> xxx (保留xxx的原有格式)
+          .replace(/新增-/g, '');  // 新增-xxx -> xxx (保留xxx的原有格式)
 
-      // 去除markdown加粗标记 **text**，保留纯文本
-      formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '$1')
+      // 转义HTML特殊字符
+      html = html
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
 
-      // 转换换行符为<br>
-      formatted = formatted.replace(/\n/g, '<br>')
+      // 转换Markdown语法
+      // 标题 #
+      html = html.replace(/^#{6}\s+(.+)$/gm, '<h6>$1</h6>');
+      html = html.replace(/^#{5}\s+(.+)$/gm, '<h5>$1</h5>');
+      html = html.replace(/^#{4}\s+(.+)$/gm, '<h4>$1</h4>');
+      html = html.replace(/^#{3}\s+(.+)$/gm, '<h3>$1</h3>');
+      html = html.replace(/^#{2}\s+(.+)$/gm, '<h2>$1</h2>');
+      html = html.replace(/^#{1}\s+(.+)$/gm, '<h1>$1</h1>');
 
-      return formatted
+      // 粗体 **text** 或 __text__
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+
+      // 斜体 *text* 或 _text_
+      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+
+      // 代码块 ```code```
+      html = html.replace(/```([\s\S]+?)```/g, '<pre><code>$1</code></pre>');
+
+      // 行内代码 `code`
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      // 换行符转换为<br>
+      html = html.replace(/\n/g, '<br>');
+
+      return html;
+    },
+
+    // 增量解析流式文本为用例卡片数据
+    parseStreamingTestCases(content) {
+      if (!content) return []
+
+      // 去除 markdown 加粗标记
+      const cleanContent = content.replace(/\*\*([^*]+)\*\*/g, '$1')
+      const lines = cleanContent.split('\n').filter(line => line.trim())
+      if (lines.length === 0) return []
+
+      // 检测表格格式 (| col1 | col2 | ...)
+      const tableLines = lines.filter(l => l.includes('|') && !l.includes('---'))
+      if (tableLines.length >= 2) {
+        return this.parseTableToCards(tableLines)
+      }
+
+      // 检测结构化格式
+      return this.parseStructuredToCards(lines)
+    },
+
+    // 解析表格格式为卡片数据
+    parseTableToCards(tableLines) {
+      const headers = tableLines[0].split('|').map(c => c.trim()).filter(c => c)
+      const cases = []
+
+      const cleanBr = (text) => {
+        if (!text) return ''
+        return text.replace(/<br\s*\/?>/gi, '\n')
+      }
+
+      for (let i = 1; i < tableLines.length; i++) {
+        const cells = tableLines[i].split('|').map(c => c.trim()).filter(c => c)
+        const tc = { _incomplete: false, _justArrived: false }
+
+        // 如果当前行单元格数不匹配，标记为不完整
+        if (cells.length < headers.length && i === tableLines.length - 1) {
+          tc._incomplete = true
+        }
+
+        headers.forEach((header, index) => {
+          const value = cleanBr(cells[index] || '')
+          const cleanHeader = header.trim().toLowerCase()
+
+          if (cleanHeader === '优先级' || cleanHeader === 'priority' || cleanHeader.includes('优先级')) {
+            tc.priority = value || 'P2'
+          } else if (cleanHeader === '用例id' || cleanHeader === '编号' || cleanHeader === 'id' || cleanHeader.includes('用例id')) {
+            tc.caseId = value
+          } else if (cleanHeader === '测试目标' || cleanHeader === '测试场景' || cleanHeader === '场景' || cleanHeader === '标题' || cleanHeader.includes('测试目标') || cleanHeader.includes('测试场景')) {
+            tc.scenario = value
+          } else if (cleanHeader === '前置条件' || cleanHeader === '前置' || cleanHeader === '前提条件') {
+            tc.precondition = value
+          } else if (cleanHeader === '测试步骤' || cleanHeader === '操作步骤' || cleanHeader === '步骤') {
+            if (!cleanHeader.includes('预期') && !cleanHeader.includes('结果')) {
+              tc.steps = value
+            }
+          } else if (cleanHeader === '预期结果' || cleanHeader === '预期' || cleanHeader === '结果' || cleanHeader.includes('预期结果')) {
+            tc.expected = value
+          }
+        })
+
+        // 只添加有实际内容的卡片
+        if (tc.scenario || tc.caseId || tc.precondition || tc.steps || tc.expected) {
+          if (!tc.priority) tc.priority = 'P2'
+          cases.push(tc)
+        }
+      }
+
+      return cases
+    },
+
+    // 解析结构化文本格式为卡片数据
+    parseStructuredToCards(lines) {
+      const cases = []
+      let currentCase = null
+      let caseNumber = 1
+
+      for (const line of lines) {
+        const trimmed = line.trim()
+
+        // 检测新用例开始
+        if (trimmed.includes('测试用例') || trimmed.includes('Test Case') ||
+            trimmed.match(/^(\d+\.|\*|\-|\d+、)/)) {
+
+          if (currentCase && Object.keys(currentCase).length > 1) {
+            cases.push(currentCase)
+            caseNumber++
+          }
+
+          currentCase = {
+            caseId: `TC${String(caseNumber).padStart(3, '0')}`,
+            scenario: trimmed.replace(/^(\d+\.|\*|\-|\d+、)\s*/, '').replace(/测试用例\d*[:：]?\s*/, '').replace(/Test Case\s*\d*[:：]?\s*/i, ''),
+            precondition: '',
+            steps: '',
+            expected: '',
+            priority: 'P2',
+            _incomplete: true,
+            _justArrived: false
+          }
+        } else if (currentCase) {
+          // 匹配字段
+          if (trimmed.includes('前置条件') || trimmed.includes('前提') || trimmed.includes('Precondition')) {
+            currentCase.precondition = trimmed.replace(/.*?[:：]\s*/, '')
+            currentCase._incomplete = false
+          } else if ((trimmed.includes('测试步骤') || trimmed.includes('操作步骤') || trimmed.includes('步骤')) &&
+                     !trimmed.includes('预期') && !trimmed.includes('结果')) {
+            currentCase.steps = trimmed.replace(/.*?[:：]\s*/, '')
+            currentCase._incomplete = false
+          } else if (trimmed.includes('预期结果') || trimmed.includes('Expected') || trimmed.includes('期望')) {
+            currentCase.expected = trimmed.replace(/.*?[:：]\s*/, '')
+            currentCase._incomplete = false
+          } else if (trimmed.includes('优先级') || trimmed.includes('Priority')) {
+            currentCase.priority = trimmed.replace(/.*?[:：]\s*/, '')
+            currentCase._incomplete = false
+          }
+          // 如果用例至少有了场景和步骤/预期，就标记为完成
+          if (currentCase.scenario && (currentCase.steps || currentCase.expected)) {
+            currentCase._incomplete = false
+          }
+        }
+      }
+
+      // 保存最后一个
+      if (currentCase && Object.keys(currentCase).length > 1) {
+        cases.push(currentCase)
+      }
+
+      return cases
     },
 
     toggleSelectAll() {
@@ -1402,6 +1795,110 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 流式生成面板 */
+.streaming-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.stream-steps {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+.mini-step {
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+.mini-step.active {
+  background: var(--aitest-primary, #409eff);
+  color: #fff;
+  border-color: transparent;
+}
+.stream-status {
+  font-size: 0.8rem;
+  color: #475569;
+  margin-bottom: 12px;
+}
+.stream-section {
+  margin-top: 12px;
+}
+.stream-section-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  color: #334155;
+}
+.stream-content {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: #475569;
+  max-height: 320px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.stream-cards {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.stream-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid var(--aitest-primary, #409eff);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+.stream-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.stream-card-id {
+  font-weight: 600;
+  color: #334155;
+}
+.stream-card-scenario {
+  color: #475569;
+  margin-bottom: 4px;
+}
+.stream-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #64748b;
+}
+.review-feedback-section {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.review-feedback-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #075985;
+  margin-bottom: 8px;
+}
+.terminal-state {
+  padding: 24px;
+  text-align: center;
 }
 </style>
 
