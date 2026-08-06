@@ -769,6 +769,19 @@
             </template>
           </el-tabs>
 
+          <!-- 用例变量 -->
+          <div
+            v-if="selectedRequest && selectedRequest.variables && Object.keys(selectedRequest.variables).length"
+            class="case-variables-section"
+          >
+            <h4>用例变量</h4>
+            <div class="variables-tags">
+              <el-tag v-for="(v, k) in selectedRequest.variables" :key="k" class="var-tag">
+                {{ k }} = {{ v }}
+              </el-tag>
+            </div>
+          </div>
+
           <!-- 响应区域 -->
           <div v-if="response" class="response-section">
             <div class="response-header">
@@ -4856,6 +4869,12 @@ const useLocalVariableCategories = () => {
 .schema-status-group h5 { margin: 8px 0 4px; font-size: 13px; color: var(--aitest-primary); }
 .schema-tree { margin-top: 8px; }
 .empty-tip { color: var(--aitest-text-3); font-size: 13px; padding: 16px 0; }
+
+/* 用例变量展示 */
+.case-variables-section { padding: 12px 16px; border-top: 1px solid var(--el-border-color-light); }
+.case-variables-section h4 { margin: 0 0 8px; font-size: 14px; font-weight: 500; color: var(--el-text-color-primary); }
+.variables-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.var-tag { font-family: monospace; font-size: 12px; }
 
 /* Deprecated tree node styles */
 .deprecated-node .node-label {
