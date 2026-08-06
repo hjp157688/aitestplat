@@ -386,10 +386,15 @@ def execute_api_request(api_request, environment, executed_by):
         variables = {}
         if environment:
             variables.update(environment.variables)
-        
+
+        # 用例级变量优先于环境变量
+        variables = merge_variables(variables, getattr(api_request, 'variables', None) or {})
+
         # 替换URL中的变量（先解析动态函数，再替换环境变量）
         url = _replace_variables(api_request.url, variables)
         url = resolver.resolve(url)
+        # 缺 scheme 时自动用环境 base_url 补齐；仍无 base 则抛出清晰错误
+        url = normalize_base_url(url, variables)
         
         # 准备请求头
         headers = {}
@@ -412,23 +417,43 @@ def execute_api_request(api_request, environment, executed_by):
             params[key] = _replace_variables(str(value), variables)
             params[key] = resolver.resolve(params[key])
         
-        # 准备请求体
+        # 准备请求体（按 body type 正确处理 urlencoded/form-data/raw/json）
         body_data = None
+        body_type = 'none'
         if api_request.body and api_request.method in ['POST', 'PUT', 'PATCH']:
-            if api_request.body.get('type') == 'json':
-                body_data = api_request.body.get('data', {})
-                body_data = _replace_variables_in_dict(body_data, variables)
-                body_data = _resolve_variables_in_dict(body_data, resolver)
-        
+            body_type = api_request.body.get('type', 'none')
+            body_content = api_request.body.get('data')
+            if body_type == 'json':
+                if isinstance(body_content, dict):
+                    body_data = _replace_variables_in_dict(body_content, variables)
+                    body_data = _resolve_variables_in_dict(body_data, resolver)
+                else:
+                    body_data = body_content
+            elif body_type == 'raw':
+                if isinstance(body_content, str):
+                    body_data = _replace_variables(body_content, variables)
+                    body_data = resolver.resolve(body_data)
+                else:
+                    body_data = body_content
+            elif body_type in ('form-data', 'x-www-form-urlencoded'):
+                if isinstance(body_content, list):
+                    body_data = _replace_variables_in_dict(body_content, variables)
+                    body_data = _resolve_variables_in_dict(body_data, resolver)
+                else:
+                    body_data = body_content
+            else:
+                body_data = body_content
+
         # 执行请求
         start_time = time.time()
+        send_kwargs = request_body_kwargs(body_type, body_data)
         response = requests.request(
             method=api_request.method,
             url=url,
             headers=headers,
             params=params,
-            json=body_data,
-            timeout=30
+            timeout=30,
+            **send_kwargs
         )
         end_time = time.time()
         response_time = (end_time - start_time) * 1000
