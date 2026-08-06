@@ -738,18 +738,11 @@ export default {
     },
 
     viewTaskDetail(task) {
-      if (['pending', 'generating', 'reviewing'].includes(task.status)) {
-        ElMessage.info(this.$t('generatedTestCases.generatingWait'))
-        return
-      }
-      
-      if (task.status === 'completed') {
-        // 应用内跳转任务详情，避免新开标签页
-        this.$router.push({
-          name: 'TaskDetail',
-          params: { taskId: task.task_id }
-        })
-      }
+      // 运行中/完成/失败/取消的任务均可进入详情：运行中看流式过程，失败看原因
+      this.$router.push({
+        name: 'TaskDetail',
+        params: { taskId: task.task_id }
+      })
     },
 
     async batchAdoptTask(task) {
