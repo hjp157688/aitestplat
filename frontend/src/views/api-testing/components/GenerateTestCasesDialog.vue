@@ -35,6 +35,13 @@
             </el-select>
           </div>
           <div class="option-item">
+            <span class="label">{{ $t('apiTesting.generateTestCases.environment') }}:</span>
+            <el-select v-model="environmentId" clearable placeholder="-"
+                       style="width: 300px;">
+              <el-option v-for="env in environments" :key="env.id" :label="env.name" :value="env.id" />
+            </el-select>
+          </div>
+          <div class="option-item">
             <span class="label">{{ $t('apiTesting.generateTestCases.scenarios') }}:</span>
             <el-checkbox-group v-model="scenarios">
               <el-checkbox value="positive" label="positive">{{ $t('apiTesting.generateTestCases.positive') }}</el-checkbox>
@@ -221,6 +228,14 @@ const selectAllCases = ref(true)
 const suiteName = ref('')
 const saving = ref(false)
 
+// 环境选择
+const environments = ref([])
+const environmentId = ref(null)
+
+// 保存摘要
+const pendingVariables = ref([])
+const variablesCount = ref(0)
+
 const canGenerate = computed(() => {
   return props.selectedRequests.length > 0
 })
@@ -264,6 +279,20 @@ async function loadAiConfigs() {
   }
 }
 
+async function loadEnvironments() {
+  if (!props.projectId) return
+  try {
+    const res = await api.get('/api-testing/environments/', {})
+    const all = res.data.results || res.data || []
+    environments.value = all.filter(env =>
+      env.scope === 'GLOBAL' || (env.scope === 'LOCAL' && env.project === props.projectId))
+    const active = environments.value.find(e => e.is_active)
+    environmentId.value = active ? active.id : (environments.value[0]?.id ?? null)
+  } catch (e) {
+    // 忽略，环境可选
+  }
+}
+
 function progressStageLabel(p) {
   if (p < 10) return t('apiTesting.generateTestCases.generating')
   if (p < 30) return t('apiTesting.generateTestCases.progressPreparing')
@@ -285,6 +314,7 @@ async function startGeneration() {
     const res = await api.post('/api-testing/requests/generate-testcases/', {
       request_ids: props.selectedRequests.map(r => r.id),
       ai_config_id: aiConfigId.value,
+      environment_id: environmentId.value,
     })
     taskId.value = res.data.task_id
     startPolling()
@@ -427,7 +457,7 @@ async function saveCases() {
       }
     }
 
-    await api.post('/api-testing/requests/save-testcases/', {
+    const res = await api.post('/api-testing/requests/save-testcases/', {
       task_id: taskId.value,
       cases,
       suite_name: suiteName.value || null,
@@ -435,11 +465,18 @@ async function saveCases() {
       project_id: props.projectId,
     })
 
-    ElMessage.success(`成功保存 ${cases.length} 条测试用例`)
+    pendingVariables.value = res.data.pending_variables || []
+    variablesCount.value = res.data.variables_count || 0
+
+    const msg = t('apiTesting.generateTestCases.saveSuccess', { count: cases.length }) +
+      (variablesCount.value ? '，' + t('apiTesting.generateTestCases.variablesWritten', { count: variablesCount.value }) : '') +
+      (pendingVariables.value.length ? '，' + t('apiTesting.generateTestCases.pendingVariablesList', { variables: pendingVariables.value.join(', ') }) : '')
+
+    ElMessage[pendingVariables.value.length ? 'warning' : 'success'](msg)
     emit('saved')
     handleClose()
   } catch (e) {
-    ElMessage.error('保存失败: ' + (e.response?.data?.error || e.message))
+    ElMessage.error(t('apiTesting.generateTestCases.saveFailed') + (e.response?.data?.error || e.message))
   } finally {
     saving.value = false
   }
@@ -464,6 +501,8 @@ function resetState() {
   expandedCases.value = {}
   selectAllCases.value = true
   suiteName.value = ''
+  pendingVariables.value = []
+  variablesCount.value = 0
   if (pollingTimer) {
     clearInterval(pollingTimer)
     pollingTimer = null
@@ -479,6 +518,7 @@ function retryGeneration() {
 watch(visible, (val) => {
   if (val) {
     loadAiConfigs()
+    loadEnvironments()
     resetState()
   }
 })
