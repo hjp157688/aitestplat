@@ -526,21 +526,23 @@ class ApiTestCaseGenerator:
     """使用 AI 为选中的 ApiRequest 生成测试用例变体"""
 
     @staticmethod
-    def build_prompt(requests_data: list[dict]) -> str:
-        """构建 AI prompt（system prompt 从 Prompt 注册表取，未 seed 时回退代码默认）"""
-        requests_json = json.dumps(requests_data, ensure_ascii=False, indent=2)
+    def build_prompt(requests_data: list[dict], known_data: dict = None) -> tuple:
+        """构建 AI prompt（system 从 Prompt 注册表取，未 seed 时回退代码默认）。
 
+        known_data: Task 2 collect_known_data 的输出，拼进 user_message。
+        """
         from apps.ai.prompt_registry import get_prompt_content_raw
         from apps.ai.prompt_seeds import API_TESTCASE_GENERATOR_PROMPT
         system_prompt = get_prompt_content_raw(
             'api_testcase_generator', default=API_TESTCASE_GENERATOR_PROMPT)
 
-        user_message = f"""请为以下API接口生成测试用例：
-
-{requests_json}
-
-请为每个接口生成正向用例、异常用例和边界值用例，严格按照JSON格式返回。"""
-
+        requests_json = json.dumps(requests_data, ensure_ascii=False, indent=2)
+        user_parts = [f"请为以下API接口生成测试用例：\n\n{requests_json}"]
+        if known_data:
+            from .known_data import build_known_data_prompt
+            user_parts.append(build_known_data_prompt(known_data))
+        user_parts.append("请为每个接口生成正向用例、异常用例和边界值用例，严格按照JSON格式返回。")
+        user_message = '\n\n'.join(user_parts)
         return system_prompt, user_message
 
     @staticmethod
