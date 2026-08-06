@@ -585,7 +585,7 @@ class ZentaoService:
                     raise Exception(f"禅道API返回错误: {data.get('error')}")
                 return data
             else:
-                raise Exception(f"HTTP {resp.status_code}: {resp.text[:500]}")
+                raise Exception(f"HTTP {resp.status_code} ({endpoint}): {resp.text[:300]}")
         except requests.exceptions.SSLError:
             raise Exception(
                 f"HTTPS 连接被中断 ({endpoint})，可能是 VPN/代理/防火墙拦截了请求；"
@@ -634,16 +634,30 @@ class ZentaoService:
     # ==================== 测试用例读写 ====================
 
     @staticmethod
-    def get_story_testcases(config, story_id: int) -> list:
-        """获取需求(story)下的测试用例列表"""
+    def get_product_testcases(config, product_id: int, page: int = 1, limit: int = 10000) -> list:
+        """获取产品下的测试用例列表（该禅道版本的用例资源路径为 /testcases）"""
         data = ZentaoService._call_api(
-            config, f'/api.php/v1/stories/{story_id}/cases?page=1&limit=10000'
+            config, f'/api.php/v1/products/{product_id}/testcases?page={page}&limit={limit}'
         )
-        # 禅道返回键名可能是 cases 或 testcases
-        return data.get('cases') or data.get('testcases') or []
+        return data.get('testcases') or []
 
     @staticmethod
-    def get_testcase_detail(config, case_id: int) -> dict:
+    def get_story_testcases(config, story_id: int, product_id=None) -> list:
+        """获取需求(story)下的测试用例列表。
+
+        该禅道版本没有 story->cases 的直接端点，改为列出产品下全部用例再按 story 过滤。
+        product_id 由调用方从 story 详情取得；推断失败时返回空。
+        """
+        if not product_id:
+            try:
+                product_id = ZentaoService.get_story_detail(config, story_id).get('product')
+            except Exception:
+                return []
+        cases = ZentaoService.get_product_testcases(config, product_id)
+        return [c for c in cases if c.get('story') == story_id]
+
+    @staticmethod
+    def get_testcase_detail(config, case_id) -> dict:
         """获取单个测试用例详情"""
         return ZentaoService._call_api(config, f'/api.php/v1/testcases/{case_id}')
 

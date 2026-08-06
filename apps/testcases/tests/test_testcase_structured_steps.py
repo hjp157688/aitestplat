@@ -18,13 +18,13 @@ class TestCaseModelFieldsTests(TestCase):
             project=self.project, author=self.user, title='t',
             steps='[]', priority='medium',
         )
-        tc.zentao_case_id = 500
+        tc.zentao_case_id = 'case_500'
         tc.product_id = 1
         tc.module_id = 2
         tc.story_id = 3
         tc.save()
         tc.refresh_from_db()
-        self.assertEqual(tc.zentao_case_id, 500)
+        self.assertEqual(tc.zentao_case_id, 'case_500')
         self.assertEqual(tc.product_id, 1)
         self.assertEqual(tc.module_id, 2)
         self.assertEqual(tc.story_id, 3)

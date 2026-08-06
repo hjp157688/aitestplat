@@ -42,7 +42,9 @@ class TestCase(models.Model):
         'requirement_analysis.Requirement', on_delete=models.SET_NULL,
         null=True, blank=True, related_name='testcases', verbose_name='关联需求'
     )
-    zentao_case_id = models.IntegerField(null=True, blank=True, unique=True, verbose_name='禅道用例ID')
+    zentao_case_id = models.CharField(
+        max_length=50, null=True, blank=True, unique=True, verbose_name='禅道用例ID'
+    )
     product_id = models.IntegerField(null=True, blank=True, verbose_name='禅道产品ID')
     module_id = models.IntegerField(null=True, blank=True, verbose_name='禅道模块ID')
     story_id = models.IntegerField(null=True, blank=True, verbose_name='禅道需求ID')

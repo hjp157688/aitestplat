@@ -347,17 +347,28 @@ class TestCaseZentaoImportView(APIView):
         failures = []
 
         for story_id in story_ids:
+            story = None
             try:
                 # 自动同步需求（若本地不存在则创建 Requirement）
-                story = ZentaoService.get_story_detail(config, story_id)
+                try:
+                    story = ZentaoService.get_story_detail(config, story_id)
+                except Exception as e:
+                    failures.append({
+                        'story_id': story_id,
+                        'error': f'获取需求详情失败，跳过该需求(需先在禅道确认该需求存在且有权限): {e}',
+                    })
+                    continue
                 zentao_id = story.get('id', story_id)
+                product_id = story.get('product') or (
+                    scope_id if scope_type == 'product' else None
+                )
                 req = Requirement.objects.filter(zentao_id=zentao_id).first()
                 if not req:
                     req = Requirement.objects.create(
                         project=project,
                         source_type='zentao',
                         zentao_id=zentao_id,
-                        product_id=story.get('product'),
+                        product_id=product_id,
                         module_id=story.get('module'),
                         title=story.get('title', f'禅道需求{zentao_id}'),
                         spec=story.get('spec', ''),
@@ -367,11 +378,11 @@ class TestCaseZentaoImportView(APIView):
                         created_by=request.user if request.user.is_authenticated else None,
                     )
                 else:
-                    req.product_id = req.product_id or story.get('product')
+                    req.product_id = req.product_id or product_id
                     req.module_id = req.module_id or story.get('module')
                     req.save(update_fields=['product_id', 'module_id'])
 
-                cases = ZentaoService.get_story_testcases(config, zentao_id)
+                cases = ZentaoService.get_story_testcases(config, zentao_id, product_id)
                 for zc in cases:
                     try:
                         case_id = zc.get('id')

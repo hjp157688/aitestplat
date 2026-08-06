@@ -156,21 +156,37 @@ class ZentaoPublicMethodsTests(SimpleTestCase):
 class ZentaoTestCaseMethodsTests(SimpleTestCase):
     """禅道用例读写与字段映射测试"""
 
-    def test_get_story_testcases_returns_cases(self):
+    def test_get_story_testcases_filters_by_story(self):
+        """给定 product 时列出产品用例并按 story 过滤"""
+        cases = [
+            {'id': 'a', 'title': 'c1', 'story': 99},
+            {'id': 'b', 'title': 'c2', 'story': 99},
+            {'id': 'c', 'title': 'c3', 'story': 88},
+        ]
         with mock.patch.object(
-            ZentaoService, '_call_api', return_value={'cases': [{'id': 1, 'title': 'c1'}]}
+            ZentaoService, 'get_product_testcases', return_value=cases
         ) as m:
-            cases = ZentaoService.get_story_testcases(_cfg(), 99)
-        m.assert_called_once_with(
-            _cfg(), '/api.php/v1/stories/99/cases?page=1&limit=10000'
-        )
-        self.assertEqual(cases, [{'id': 1, 'title': 'c1'}])
+            result = ZentaoService.get_story_testcases(_cfg(), 99, product_id=7)
+        m.assert_called_once_with(_cfg(), 7)
+        self.assertEqual([c['id'] for c in result], ['a', 'b'])
 
-    def test_get_story_testcases_fallback_testcases_key(self):
+    def test_get_story_testcases_infers_product_from_detail(self):
+        """未给 product 时从 story 详情推断"""
         with mock.patch.object(
-            ZentaoService, '_call_api', return_value={'testcases': [{'id': 2}]}
+            ZentaoService, 'get_story_detail', return_value={'product': 7}
+        ), mock.patch.object(
+            ZentaoService, 'get_product_testcases',
+            return_value=[{'id': 'a', 'story': 99}],
+        ) as m:
+            result = ZentaoService.get_story_testcases(_cfg(), 99)
+        m.assert_called_once_with(_cfg(), 7)
+        self.assertEqual(len(result), 1)
+
+    def test_get_story_testcases_empty_when_detail_fails(self):
+        with mock.patch.object(
+            ZentaoService, 'get_story_detail', side_effect=Exception('boom')
         ):
-            self.assertEqual(ZentaoService.get_story_testcases(_cfg(), 1), [{'id': 2}])
+            self.assertEqual(ZentaoService.get_story_testcases(_cfg(), 4859), [])
 
     def test_get_testcase_detail(self):
         with mock.patch.object(

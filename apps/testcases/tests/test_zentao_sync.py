@@ -22,8 +22,8 @@ class ZentaoExportViewTests(BaseZentaoTestCase):
         from apps.testcases.models import TestCase
         from apps.projects.models import Project
         mock_cfg.return_value = mock.MagicMock()
-        mock_create.return_value = {'id': 100}
-        mock_update.return_value = {'id': 200}
+        mock_create.return_value = {'id': 'case_100'}
+        mock_update.return_value = {'id': 'case_200'}
         p = Project.objects.create(name='p', owner=self.user)
         new_case = TestCase.objects.create(
             project=p, author=self.user, title='new',
@@ -31,7 +31,7 @@ class ZentaoExportViewTests(BaseZentaoTestCase):
         )
         existing_case = TestCase.objects.create(
             project=p, author=self.user, title='ex',
-            steps='[]', priority='medium', zentao_case_id=200,
+            steps='[]', priority='medium', zentao_case_id='case_200',
         )
 
         resp = self.client.post(
@@ -46,7 +46,7 @@ class ZentaoExportViewTests(BaseZentaoTestCase):
         mock_create.assert_called_once()
         mock_update.assert_called_once()
         new_case.refresh_from_db()
-        self.assertEqual(new_case.zentao_case_id, 100)
+        self.assertEqual(new_case.zentao_case_id, 'case_100')
         self.assertEqual(new_case.product_id, 7)
 
     @mock.patch('apps.testcases.views.ZentaoConfig.get_active_config')
@@ -81,7 +81,7 @@ class ZentaoImportViewTests(BaseZentaoTestCase):
             'title': '需求X', 'spec': '描述',
         }
         mock_cases.return_value = [{
-            'id': 300, 'title': 'c1', 'precondition': '',
+            'id': 'case_300', 'title': 'c1', 'precondition': '',
             'steps': [{'desc': 's', 'expect': 'e'}], 'type': 'feature', 'pri': 2,
         }]
 
@@ -96,7 +96,7 @@ class ZentaoImportViewTests(BaseZentaoTestCase):
         self.assertEqual(body['created'], 1)
         self.assertEqual(body['updated'], 0)
 
-        tc = TestCase.objects.get(zentao_case_id=300)
+        tc = TestCase.objects.get(zentao_case_id='case_300')
         self.assertEqual(tc.title, 'c1')
         self.assertIsNotNone(tc.requirement_id)
         self.assertEqual(tc.requirement.zentao_id, 55)
@@ -114,7 +114,7 @@ class ZentaoImportViewTests(BaseZentaoTestCase):
             'id': 55, 'product': 7, 'module': 8, 'title': 'X', 'spec': '',
         }
         mock_cases.return_value = [{
-            'id': 300, 'title': 'c1-updated', 'precondition': '',
+            'id': 'case_300', 'title': 'c1-updated', 'precondition': '',
             'steps': [], 'type': 'feature', 'pri': 2,
         }]
         p = Project.objects.create(name='p', owner=self.user)
@@ -123,7 +123,7 @@ class ZentaoImportViewTests(BaseZentaoTestCase):
         )
         TestCase.objects.create(
             project=p, author=self.user, title='old', steps='[]',
-            priority='medium', zentao_case_id=300, requirement=req,
+            priority='medium', zentao_case_id='case_300', requirement=req,
         )
 
         resp = self.client.post(
@@ -134,7 +134,7 @@ class ZentaoImportViewTests(BaseZentaoTestCase):
         body = resp.json()
         self.assertEqual(body['updated'], 1)
         self.assertEqual(body['created'], 0)
-        self.assertEqual(TestCase.objects.get(zentao_case_id=300).title, 'c1-updated')
+        self.assertEqual(TestCase.objects.get(zentao_case_id='case_300').title, 'c1-updated')
 
     @mock.patch('apps.testcases.views.ZentaoConfig.get_active_config')
     def test_import_requires_args(self, mock_cfg):
