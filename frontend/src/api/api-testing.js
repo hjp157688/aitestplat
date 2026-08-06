@@ -157,6 +157,33 @@ export function batchDeleteRequestHistory(ids) {
   })
 }
 
+// 批量删除集合/接口（接口管理树）
+export function batchDeleteRequests(data) {
+  return request({
+    url: '/api-testing/requests/batch-delete/',
+    method: 'post',
+    data
+  })
+}
+
+// 从选中的接口创建测试套件
+export function createTestSuiteFromRequests(data) {
+  return request({
+    url: '/api-testing/test-suites/create-from-requests/',
+    method: 'post',
+    data
+  })
+}
+
+// 添加请求到已有测试套件
+export function addRequestsToTestSuite(id, data) {
+  return request({
+    url: `/api-testing/test-suites/${id}/add-requests/`,
+    method: 'post',
+    data
+  })
+}
+
 // 获取用户列表
 export function getUsers(params) {
   return request({
