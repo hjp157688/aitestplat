@@ -45,6 +45,9 @@
             <el-button size="small" type="warning" @click="openBatchGenerateTestCases" :disabled="checkedRequests.length === 0">
               {{ $t('apiTesting.interface.batchActions.batchGenerate') }}
             </el-button>
+            <el-button size="small" type="primary" @click="showCreateSuiteDialog = true" :disabled="checkedRequests.length === 0">
+              {{ $t('apiTesting.interface.batchActions.createSuite') }}
+            </el-button>
             <el-button size="small" text @click="clearChecked">{{ $t('apiTesting.interface.batchActions.clear') }}</el-button>
           </div>
         </div>
@@ -1072,6 +1075,15 @@
       :project-id="selectedProject"
       @saved="onTestCasesSaved"
     />
+
+    <!-- 创建测试套件对话框 -->
+    <CreateSuiteDialog
+      v-model="showCreateSuiteDialog"
+      :project-id="selectedProject"
+      :request-ids="checkedRequests.map(n => n.id)"
+      @created="onSuiteCreated"
+      @added="onSuiteCreated"
+    />
   </div>
 </template>
 
@@ -1086,6 +1098,7 @@ import DataFactorySelector from '@/components/DataFactorySelector.vue'
 import { RequestModelParser } from '@/utils/requestModel'
 import ImportOpenApiDialog from './components/ImportOpenApiDialog.vue'
 import GenerateTestCasesDialog from './components/GenerateTestCasesDialog.vue'
+import CreateSuiteDialog from './components/CreateSuiteDialog.vue'
 import { batchDeleteRequests } from '@/api/api-testing'
 import { getVariableFunctions } from '@/api/data-factory'
 import { CodeGenerator } from '@/utils/codeGenerator'
@@ -1173,6 +1186,7 @@ const showImportOpenApiDialog = ref(false)
 
 // 测试用例生成相关
 const showGenerateTestCasesDialog = ref(false)
+const showCreateSuiteDialog = ref(false)
 const selectedRequestsForGeneration = ref([])
 
 // WebSocket相关
@@ -2495,6 +2509,10 @@ const onTestCasesSaved = () => {
   ElMessage.success('测试用例保存成功')
   clearChecked()
   loadCollections(selectedProject.value)
+}
+
+const onSuiteCreated = () => {
+  clearChecked()
 }
 
 // 辅助函数：将对象格式转换为数组格式
