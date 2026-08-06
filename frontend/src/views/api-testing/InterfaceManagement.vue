@@ -35,12 +35,30 @@
           </div>
         </div>
 
+        <!-- 批量操作栏：有勾选时显示 -->
+        <div v-if="!searchKeyword && checkedNodes.length > 0" class="batch-actions-bar">
+          <span class="batch-count">{{ $t('apiTesting.interface.batchActions.selected', { count: checkedRequests.length }) }}</span>
+          <div class="batch-buttons">
+            <el-button size="small" type="danger" @click="batchDelete">
+              {{ $t('apiTesting.interface.batchActions.batchDelete') }}
+            </el-button>
+            <el-button size="small" type="warning" @click="openBatchGenerateTestCases" :disabled="checkedRequests.length === 0">
+              {{ $t('apiTesting.interface.batchActions.batchGenerate') }}
+            </el-button>
+            <el-button size="small" type="primary" @click="showCreateSuiteDialog = true" :disabled="checkedRequests.length === 0">
+              {{ $t('apiTesting.interface.batchActions.createSuite') }}
+            </el-button>
+            <el-button size="small" text @click="clearChecked">{{ $t('apiTesting.interface.batchActions.clear') }}</el-button>
+          </div>
+        </div>
+
         <div class="collection-tree" v-show="!searchKeyword || searchKeyword.trim() === ''">
           <el-tree
             ref="treeRef"
             :data="collections"
             :props="treeProps"
-            node-key="id"
+            node-key="key"
+            show-checkbox
             :expand-on-click-node="false"
             :default-expanded-keys="expandedKeys"
             draggable
@@ -51,6 +69,7 @@
             @node-expand="onNodeExpand"
             @node-collapse="onNodeCollapse"
             @node-drop="handleDrop"
+            @check="handleCheck"
           >
             <template #default="{ node, data }">
               <div class="tree-node" :class="{ 'testcase-node': data.type === 'testcase', 'deprecated-node': data.deprecated }">
@@ -1056,6 +1075,15 @@
       :project-id="selectedProject"
       @saved="onTestCasesSaved"
     />
+
+    <!-- 创建测试套件对话框 -->
+    <CreateSuiteDialog
+      v-model="showCreateSuiteDialog"
+      :project-id="selectedProject"
+      :request-ids="checkedRequests.map(n => n.id)"
+      @created="onSuiteCreated"
+      @added="onSuiteCreated"
+    />
   </div>
 </template>
 
@@ -1070,6 +1098,8 @@ import DataFactorySelector from '@/components/DataFactorySelector.vue'
 import { RequestModelParser } from '@/utils/requestModel'
 import ImportOpenApiDialog from './components/ImportOpenApiDialog.vue'
 import GenerateTestCasesDialog from './components/GenerateTestCasesDialog.vue'
+import CreateSuiteDialog from './components/CreateSuiteDialog.vue'
+import { batchDeleteRequests } from '@/api/api-testing'
 import { getVariableFunctions } from '@/api/data-factory'
 import { CodeGenerator } from '@/utils/codeGenerator'
 import { debounce } from 'lodash-es'
@@ -1114,6 +1144,22 @@ const treeProps = {
   label: 'name'
 }
 
+// ---- 批量操作勾选状态 ----
+const checkedNodes = ref([])
+const checkedRequests = computed(() => checkedNodes.value.filter(n => n.type === 'request'))
+const checkedCollections = computed(() => checkedNodes.value.filter(n => n.type === 'collection'))
+
+const handleCheck = () => {
+  checkedNodes.value = treeRef.value?.getCheckedNodes?.() || []
+}
+
+const clearChecked = () => {
+  if (treeRef.value && typeof treeRef.value.setCheckedNodes === 'function') {
+    treeRef.value.setCheckedNodes([])
+  }
+  checkedNodes.value = []
+}
+
 // 数据工厂选择器相关
 const showDataFactorySelector = ref(false)
 const showVariableHelper = ref(false)
@@ -1140,6 +1186,7 @@ const showImportOpenApiDialog = ref(false)
 
 // 测试用例生成相关
 const showGenerateTestCasesDialog = ref(false)
+const showCreateSuiteDialog = ref(false)
 const selectedRequestsForGeneration = ref([])
 
 // WebSocket相关
@@ -1334,6 +1381,7 @@ const buildTree = (items) => {
     map[item.id] = {
       ...item,
       type: 'collection',
+      key: `collection:${item.id}`,
       children: []
     }
   })
@@ -1407,6 +1455,7 @@ const loadRequests = async () => {
       const requestNode = {
         ...request,
         type: 'request',
+        key: `request:${request.id}`,
         name: request.name,
         children: [],
       }
@@ -1416,6 +1465,7 @@ const loadRequests = async () => {
         requestNode.children = childRequests[request.id].map(child => ({
           ...child,
           type: 'testcase',
+          key: `testcase:${child.id}`,
           name: child.name,
         }))
       } else if (request.test_cases_count > 0) {
@@ -1558,11 +1608,11 @@ const onNodeRightClick = (event, node, treeNode) => {
 }
 
 const onNodeExpand = (node) => {
-  expandedKeys.value.push(node.id)
+  expandedKeys.value.push(node.key)
 }
 
 const onNodeCollapse = (node) => {
-  expandedKeys.value = expandedKeys.value.filter(key => key !== node.id)
+  expandedKeys.value = expandedKeys.value.filter(key => key !== node.key)
 }
 
 const createEmptyRequest = () => {
@@ -1714,6 +1764,41 @@ const deleteNode = (node = rightClickedNode.value) => {
     // 取消删除
     showContextMenu.value = false
   })
+}
+
+// 批量删除（勾选的集合 + 非集合节点）
+const batchDelete = () => {
+  const collectionCount = checkedCollections.value.length
+  const nonCollectionNodes = checkedNodes.value.filter(n => n.type !== 'collection')
+
+  ElMessageBox.confirm(
+    t('apiTesting.interface.batchActions.batchDeleteConfirm', {
+      collections: collectionCount,
+      requests: nonCollectionNodes.length,
+    }),
+    t('apiTesting.interface.batchActions.batchDeleteTitle'),
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(async () => {
+    try {
+      const { data } = await batchDeleteRequests({
+        collection_ids: checkedCollections.value.map(n => n.id),
+        request_ids: nonCollectionNodes.map(n => n.id),
+      })
+      ElMessage.success(t('apiTesting.interface.batchActions.batchDeleteSuccess', {
+        collections: data.deleted_collections,
+        requests: data.deleted_requests,
+      }))
+      clearChecked()
+      await loadCollections(selectedProject.value)
+    } catch (error) {
+      ElMessage.error(t('apiTesting.interface.batchActions.batchDeleteFailed'))
+      console.error('批量删除失败:', error)
+    }
+  }).catch(() => {})
 }
 
 const copyRequest = async (node) => {
@@ -2403,9 +2488,31 @@ const openGenerateTestCases = () => {
   showGenerateTestCasesDialog.value = true
 }
 
+const MAX_BATCH_GENERATE = 20
+
+// 批量生成用例（顶部操作栏入口）
+const openBatchGenerateTestCases = () => {
+  const requests = checkedRequests.value
+  if (requests.length === 0) {
+    ElMessage.warning(t('apiTesting.interface.batchActions.noRequestSelected'))
+    return
+  }
+  if (requests.length > MAX_BATCH_GENERATE) {
+    ElMessage.warning(t('apiTesting.interface.batchActions.exceedLimit', { max: MAX_BATCH_GENERATE }))
+    return
+  }
+  selectedRequestsForGeneration.value = requests
+  showGenerateTestCasesDialog.value = true
+}
+
 const onTestCasesSaved = () => {
   ElMessage.success('测试用例保存成功')
+  clearChecked()
   loadCollections(selectedProject.value)
+}
+
+const onSuiteCreated = () => {
+  clearChecked()
 }
 
 // 辅助函数：将对象格式转换为数组格式
@@ -4743,6 +4850,26 @@ const useLocalVariableCategories = () => {
 .deprecated-node .node-label {
   color: #c0c4cc;
   text-decoration: line-through;
+}
+
+.batch-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px 8px;
+  flex-wrap: wrap;
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  margin-bottom: 4px;
+}
+.batch-count {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+}
+.batch-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 </style>
