@@ -196,6 +196,18 @@ body {
   > .el-row {
     width: 100%;
   }
+
+  /* el-form 作为 flex item 同样需要撑满；inline 表单变 flex 容器给 form-item 间距 */
+  > .el-form {
+    width: 100%;
+
+    &.el-form--inline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--aitest-space-3);
+    }
+  }
 }
 
 /* ============ 状态/优先级标签 ============ */
