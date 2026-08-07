@@ -1,17 +1,16 @@
 <template>
   <div class="test-case-manager">
-    <div class="page-header">
-      <h1 class="page-title">{{ t('uiAutomation.testCase.title') }}</h1>
-      <div class="header-actions">
-        <el-select v-model="projectId" :placeholder="t('uiAutomation.project.selectProject')" style="width: 200px; margin-right: 15px" @change="onProjectChange">
+    <PageHeader :title="t('uiAutomation.testCase.title')">
+      <template #actions>
+        <el-select v-model="projectId" :placeholder="t('uiAutomation.project.selectProject')" style="width: 200px" @change="onProjectChange">
           <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
         </el-select>
         <el-button type="primary" @click="showCreateDialog = true">
           <el-icon><Plus /></el-icon>
           {{ t('uiAutomation.testCase.newTestCase') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="main-content">
       <!-- 左侧：测试用例列表 -->
@@ -508,6 +507,7 @@ import {
 } from '@element-plus/icons-vue'
 import draggable from 'vuedraggable'
 import DataFactorySelector from '@/components/DataFactorySelector.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -1217,22 +1217,10 @@ onMounted(async () => {
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 20px;
   border-bottom: 1px solid #e6e6e6;
   background: white;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
+  margin-bottom: 0;
 }
 
 .main-content {

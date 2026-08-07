@@ -1,8 +1,6 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('uiAutomation.ai.title') }}</h1>
-    </div>
+    <PageHeader :title="$t('uiAutomation.ai.title')" />
 
     <div class="card-container">
       <el-row :gutter="20">
@@ -140,6 +138,7 @@ import { ref, reactive, nextTick, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { VideoPlay, DocumentAdd, CircleCheckFilled, CircleCheck, Loading, SwitchButton } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {
   runAdhocAITask,
   createAICase,
@@ -299,19 +298,6 @@ const confirmSaveCase = async () => {
 <style lang="scss" scoped>
 .page-container {
   padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  
-  .page-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0;
-  }
 }
 
 .card-container {

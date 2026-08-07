@@ -1,19 +1,22 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('uiAutomation.suite.title') }}</h1>
-      <el-select v-model="projectId" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px; margin-right: 15px" @change="onProjectChange">
-        <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
-      </el-select>
-      <el-button type="primary" @click="handleNewSuite">
-        <el-icon><Plus /></el-icon>
-        {{ $t('uiAutomation.suite.newSuite') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('uiAutomation.suite.title')">
+      <template #actions>
+        <el-button type="primary" @click="handleNewSuite">
+          <el-icon><Plus /></el-icon>
+          {{ $t('uiAutomation.suite.newSuite') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
     <div class="card-container">
       <div class="filter-bar">
         <el-row :gutter="20">
+          <el-col :span="4">
+            <el-select v-model="projectId" :placeholder="$t('uiAutomation.common.selectProject')" clearable @change="onProjectChange">
+              <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
+            </el-select>
+          </el-col>
           <el-col :span="6">
             <el-input
               v-model="searchText"
@@ -278,6 +281,7 @@ import {
   runTestSuite
 } from '@/api/ui_automation'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 
@@ -768,21 +772,6 @@ const handleNewSuite = async () => {
   padding: 20px;
   background: var(--aitest-canvas);
   min-height: 100vh;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  background: white;
-  padding: 20px;
-  border-radius: 4px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
 }
 
 .card-container {

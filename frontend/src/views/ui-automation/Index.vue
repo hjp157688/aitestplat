@@ -1,10 +1,7 @@
 <template>
   <div class="ui-automation-container">
     <!-- 页面头部 -->
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('uiAutomation.nav.title') }}</h1>
-      <p class="page-subtitle">{{ $t('uiAutomation.nav.subtitle') }}</p>
-    </div>
+    <PageHeader :title="$t('uiAutomation.nav.title')" />
 
     <!-- 子路由内容显示区域 -->
     <router-view></router-view>
@@ -13,6 +10,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 // 初始化国际化
 const { t } = useI18n()
@@ -25,24 +23,6 @@ const { t } = useI18n()
   padding: 20px;
   height: 100%;
   overflow-y: auto;
-}
-
-.page-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.page-title {
-  font-size: 36px;
-  font-weight: bold;
-  margin: 0 0 10px 0;
-  color: #1a1a1a;
-}
-
-.page-subtitle {
-  font-size: 18px;
-  color: #666;
-  margin: 0;
 }
 
 .stats-section {

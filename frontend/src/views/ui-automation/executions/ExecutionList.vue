@@ -1,15 +1,15 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('uiAutomation.execution.title') }}</h1>
-      <el-select v-model="projectId" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px; margin-right: 15px" @change="onProjectChange">
-        <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
-      </el-select>
-    </div>
+    <PageHeader :title="$t('uiAutomation.execution.title')" />
 
     <div class="card-container">
       <div class="filter-bar">
         <el-form :inline="true" :model="queryParams" class="demo-form-inline">
+          <el-form-item :label="$t('uiAutomation.common.project')">
+            <el-select v-model="projectId" :placeholder="$t('uiAutomation.common.selectProject')" clearable style="width: 200px" @change="onProjectChange">
+              <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
+            </el-select>
+          </el-form-item>
           <el-form-item :label="$t('uiAutomation.common.search')">
             <el-input
               v-model="queryParams.search"
@@ -266,6 +266,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, View, WarningFilled, Refresh } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {
   getTestCaseExecutions,
   getUiProjects,
@@ -626,22 +627,6 @@ onMounted(async () => {
   height: 100%;
   overflow-y: auto;
   background: var(--aitest-canvas);
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  background: white;
-  padding: 20px;
-  border-radius: 4px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
-  color: var(--aitest-text-1);
 }
 
 .card-container {

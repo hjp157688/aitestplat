@@ -1,17 +1,16 @@
 <template>
   <div class="script-list">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('uiAutomation.script.title') }}</h1>
-      <div class="header-actions">
-        <el-select v-model="selectedProject" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px; margin-right: 15px" @change="onProjectChange">
+    <PageHeader :title="$t('uiAutomation.script.title')">
+      <template #actions>
+        <el-select v-model="selectedProject" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px" @change="onProjectChange">
           <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
         </el-select>
         <el-button type="primary" @click="goToScriptEditor">
           <el-icon><Plus /></el-icon>
           {{ $t('uiAutomation.script.newScript') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="main-content">
       <el-table :data="scripts" stripe style="width: 100%">
@@ -149,6 +148,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, View, Edit, Delete, EditPen } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 import {
   getUiProjects,
@@ -389,22 +389,10 @@ onMounted(async () => {
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 20px;
   border-bottom: 1px solid #e6e6e6;
   background: white;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
+  margin-bottom: 0;
 }
 
 .main-content {

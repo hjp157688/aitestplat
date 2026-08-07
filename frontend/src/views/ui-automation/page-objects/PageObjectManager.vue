@@ -1,17 +1,16 @@
 <template>
   <div class="page-object-manager">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('uiAutomation.pageObject.title') }}</h1>
-      <div class="header-actions">
-        <el-select v-model="projectId" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px; margin-right: 15px" @change="onProjectChange">
+    <PageHeader :title="$t('uiAutomation.pageObject.title')">
+      <template #actions>
+        <el-select v-model="projectId" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px" @change="onProjectChange">
           <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
         </el-select>
         <el-button type="primary" @click="showCreateDialog = true">
           <el-icon><Plus /></el-icon>
           {{ $t('uiAutomation.pageObject.newPageObject') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="main-content">
       <!-- 页面对象列表 -->
@@ -305,6 +304,7 @@ import {
   Plus, Search, Edit, Delete, Document,
   Operation, Folder, Warning
 } from '@element-plus/icons-vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 import {
   getUiProjects,
@@ -747,16 +747,9 @@ onMounted(async () => {
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 20px;
   border-bottom: 1px solid #e6e6e6;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
+  margin-bottom: 0;
 }
 
 .header-actions {

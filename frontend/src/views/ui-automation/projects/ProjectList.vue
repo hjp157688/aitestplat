@@ -1,12 +1,13 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('uiAutomation.project.title') }}</h1>
-      <el-button type="primary" @click="showCreateDialog = true">
-        <el-icon><Plus /></el-icon>
-        {{ $t('uiAutomation.project.newProject') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('uiAutomation.project.title')">
+      <template #actions>
+        <el-button type="primary" @click="showCreateDialog = true">
+          <el-icon><Plus /></el-icon>
+          {{ $t('uiAutomation.project.newProject') }}
+        </el-button>
+      </template>
+    </PageHeader>
     
     <div class="card-container">
       <div class="filter-bar">
@@ -213,6 +214,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, View, Edit, Delete } from '@element-plus/icons-vue'
 import { getUiProjects, createUiProject, updateUiProject, deleteUiProject } from '@/api/ui_automation'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 
@@ -524,18 +526,6 @@ onMounted(() => {
   padding: 20px;
   height: 100%;
   overflow-y: auto;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
 }
 
 .card-container {

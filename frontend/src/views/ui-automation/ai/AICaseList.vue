@@ -1,8 +1,6 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('uiAutomation.ai.caseList.title') }}</h1>
-    </div>
+    <PageHeader :title="$t('uiAutomation.ai.caseList.title')" />
 
     <div class="card-container">
       <div class="filter-bar">
@@ -89,6 +87,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, VideoPlay, Edit, Delete } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {
   getAICases,
   updateAICase,
@@ -241,19 +240,6 @@ onMounted(() => {
 <style lang="scss" scoped>
 .page-container {
   padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-
-  .page-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0;
-  }
 }
 
 .card-container {

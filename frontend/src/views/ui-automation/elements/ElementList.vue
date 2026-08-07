@@ -1,19 +1,22 @@
 <template>
   <div class="page-container">
-    <div class="page-header" style="display: flex; align-items: center;">
-      <h1 class="page-title" style="margin-right: 20px; margin-bottom: 0;">{{ $t('uiAutomation.element.title') }}</h1>
-      <el-select v-model="projectId" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px; margin-right: 15px" @change="onProjectChange">
-        <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
-      </el-select>
-      <el-button type="primary" @click="handleShowCreateDialog">
-        <el-icon><Plus /></el-icon>
-        {{ $t('uiAutomation.element.newElement') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('uiAutomation.element.title')">
+      <template #actions>
+        <el-button type="primary" @click="handleShowCreateDialog">
+          <el-icon><Plus /></el-icon>
+          {{ $t('uiAutomation.element.newElement') }}
+        </el-button>
+      </template>
+    </PageHeader>
     
     <div class="card-container">
       <div class="filter-bar">
         <el-row :gutter="20">
+          <el-col :span="4">
+            <el-select v-model="projectId" :placeholder="$t('uiAutomation.common.selectProject')" clearable @change="onProjectChange">
+              <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
+            </el-select>
+          </el-col>
           <el-col :span="6">
             <el-input
               v-model="searchText"
@@ -228,6 +231,7 @@ import {
   getLocatorStrategies
 } from '@/api/ui_automation'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 
@@ -603,18 +607,6 @@ onMounted(async () => {
   padding: 20px;
   height: 100%;
   overflow-y: auto;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
 }
 
 .card-container {

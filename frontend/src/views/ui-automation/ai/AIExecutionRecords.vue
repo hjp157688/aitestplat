@@ -1,8 +1,7 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('uiAutomation.ai.executionRecords.title') }}</h1>
-      <div class="header-actions">
+    <PageHeader :title="$t('uiAutomation.ai.executionRecords.title')">
+      <template #actions>
         <el-button
           type="danger"
           :disabled="selectedRecords.length === 0"
@@ -12,8 +11,8 @@
           <el-icon><Delete /></el-icon>
           {{ $t('uiAutomation.common.batchDelete') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="card-container">
       <el-table
@@ -132,6 +131,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete } from '@element-plus/icons-vue'
 import { getAIExecutionRecords, batchDeleteAIExecutionRecords } from '@/api/ui_automation'
+import PageHeader from '@/components/common/PageHeader.vue'
 import AIExecutionReport from './AIExecutionReport.vue'
 
 const { t } = useI18n()
@@ -323,24 +323,6 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .page-container {
   padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-
-  .page-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0;
-  }
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-  }
 }
 
 .card-container {

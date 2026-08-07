@@ -1,17 +1,16 @@
 <template>
   <div class="report-view">
-    <div class="header">
-      <h3>{{ $t('uiAutomation.report.title') }}</h3>
-      <div class="actions">
-        <el-select v-model="selectedProject" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px; margin-right: 15px" @change="onProjectChange">
+    <PageHeader :title="$t('uiAutomation.report.title')">
+      <template #actions>
+        <el-select v-model="selectedProject" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px" @change="onProjectChange">
           <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
         </el-select>
         <el-button type="primary" @click="refreshReports">
           <el-icon><Refresh /></el-icon>
           {{ $t('uiAutomation.report.refreshReport') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="content">
       <el-table :data="reports" v-loading="loading" style="width: 100%">
@@ -293,6 +292,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh, Document, Delete, WarningFilled } from '@element-plus/icons-vue'
 import {
@@ -522,27 +522,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   background: var(--aitest-canvas);
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  background: white;
-  padding: 20px;
-  border-radius: 4px;
-
-  h3 {
-    margin: 0;
-    color: var(--aitest-text-1);
-    font-size: 24px;
-  }
-
-  .actions {
-    display: flex;
-    align-items: center;
-  }
 }
 
 .content {
