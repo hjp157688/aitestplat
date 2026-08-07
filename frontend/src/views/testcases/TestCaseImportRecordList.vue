@@ -1,18 +1,15 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">{{ $t('testcase.importRecordTitle') }}</h1>
-      </div>
-      <div class="header-actions">
+    <PageHeader :title="$t('testcase.importRecordTitle')">
+      <template #actions>
         <el-button @click="router.push('/ai-generation/testcases')">
           {{ $t('testcase.backToList') }}
         </el-button>
         <el-button type="primary" @click="fetchRecords">
           {{ $t('common.refresh') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="card-container">
       <div class="table-container">
@@ -136,6 +133,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -267,26 +265,6 @@ onBeforeUnmount(() => {
   padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-shrink: 0;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--aitest-text-1);
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
 }
 
 .card-container {

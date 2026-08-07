@@ -1,16 +1,15 @@
 <template>
   <div class="app-package-list">
-    <div class="page-header">
-      <h3>{{ $t('appAutomation.packages.title') }}</h3>
-      <div class="header-actions">
+    <PageHeader :title="$t('appAutomation.packages.title')">
+      <template #actions>
         <el-button :icon="Refresh" :loading="loading" @click="loadPackages">
           {{ $t('appAutomation.common.refresh') }}
         </el-button>
         <el-button type="primary" :icon="Plus" @click="openCreateDialog">
           {{ $t('appAutomation.packages.newPackage') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <el-table
       v-loading="loading"
@@ -100,6 +99,7 @@ import {
   deletePackage
 } from '@/api/app-automation'
 import { formatDateTime } from '@/utils/app-automation-helpers'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 
@@ -224,16 +224,5 @@ onMounted(() => {
 <style scoped lang="scss">
 .app-package-list {
   padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
 }
 </style>

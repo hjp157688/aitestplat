@@ -1,12 +1,13 @@
 <template>
   <div class="scheduled-tasks">
-    <div class="header">
-      <h3>{{ $t('appAutomation.scheduledTask.title') }}</h3>
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>
-        {{ $t('appAutomation.scheduledTask.newTask') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('appAutomation.scheduledTask.title')">
+      <template #actions>
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          {{ $t('appAutomation.scheduledTask.newTask') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
     <!-- 筛选 -->
     <div class="filters">
@@ -250,6 +251,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 import { Plus, ArrowDown } from '@element-plus/icons-vue'
 import {
   getAppScheduledTasks,
@@ -435,7 +437,6 @@ const formatDateTime = (s) => {
 
 <style scoped>
 .scheduled-tasks { padding: 20px; display: flex; flex-direction: column; height: 100%; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .filters { margin-bottom: 20px; background: #f8f9fa; padding: 20px; border-radius: 8px; }
 .pagination { margin-top: 20px; display: flex; justify-content: flex-end; }
 .cron-help { margin-top: 8px; font-size: 12px; }

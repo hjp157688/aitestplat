@@ -1,9 +1,8 @@
 <template>
   <div class="ui-flow-case-list">
     <!-- 页面标题 -->
-    <div class="page-header">
-      <h3>{{ $t('appAutomation.testCase.title') }}</h3>
-      <div class="header-actions">
+    <PageHeader :title="$t('appAutomation.testCase.title')">
+      <template #actions>
         <el-button
           type="primary"
           size="small"
@@ -13,8 +12,8 @@
         >
           {{ $t('appAutomation.common.refresh') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- 设备和应用选择 -->
     <el-card class="device-card">
@@ -259,6 +258,7 @@ import {
 } from '@/api/app-automation'
 import { getDeviceList } from '@/api/app-automation'
 import { getExecutionStatusType, getExecutionStatusText, getDisplayStatus, formatDateTime } from '@/utils/app-automation-helpers'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -824,29 +824,6 @@ onBeforeUnmount(() => {
   }
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  background: white;
-  padding: 16px 20px;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-
-  h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--aitest-text-1);
-  }
-
-  .header-actions {
-    display: flex;
-    gap: 12px;
-  }
-}
-
 .device-card {
   margin-bottom: 16px;
 
@@ -918,10 +895,6 @@ onBeforeUnmount(() => {
 
 // 响应式设计
 @media screen and (max-width: 1366px) {
-  .page-header h3 {
-    font-size: 16px;
-  }
-
   .device-card :deep(.el-form-item__label) {
     font-size: 13px;
   }

@@ -1,8 +1,7 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('testcase.title') }}</h1>
-      <div class="header-actions">
+    <PageHeader :title="$t('testcase.title')">
+      <template #actions>
         <el-button
           v-if="selectedTestCases.length > 0"
           type="danger"
@@ -41,8 +40,8 @@
           <el-icon><Plus /></el-icon>
           {{ $t('testcase.newCase') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
     
     <div class="card-container">
       <div class="filter-bar">
@@ -333,6 +332,7 @@ import api from '@/utils/api'
 import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getRequirements } from '@/api/requirement'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -932,27 +932,6 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-shrink: 0;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--aitest-text-1);
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .card-container {
   display: flex;
   flex-direction: column;
@@ -1047,21 +1026,11 @@ onMounted(() => {
   .page-container {
     padding: 10px;
   }
-  
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .header-actions {
-    width: 100%;
-  }
-  
+
   .filter-bar {
     padding: 15px;
   }
-  
+
   .pagination-container {
     padding: 15px;
   }

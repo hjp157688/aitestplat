@@ -1,12 +1,7 @@
 <template>
   <div class="app-settings">
+    <PageHeader :title="$t('appAutomation.settings.title')" />
     <el-card>
-      <template #header>
-        <div class="card-header">
-          <span><el-icon><Setting /></el-icon> {{ $t('appAutomation.settings.title') }}</span>
-        </div>
-      </template>
-
       <el-form
         ref="formRef"
         :model="form"
@@ -66,9 +61,10 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { Setting, FolderOpened, Check, RefreshLeft } from '@element-plus/icons-vue'
+import { FolderOpened, Check, RefreshLeft } from '@element-plus/icons-vue'
 import { getAppConfig, updateAppConfig } from '@/api/app-automation'
 import { formatDateTime } from '@/utils/app-automation-helpers'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 
@@ -145,18 +141,6 @@ onMounted(() => {
 <style scoped lang="scss">
 .app-settings {
   padding: 20px;
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-    
-    span {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-  }
 
   .form-item-tip {
     margin-top: 8px;

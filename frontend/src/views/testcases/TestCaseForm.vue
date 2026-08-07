@@ -1,8 +1,6 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('testcase.create') }}</h1>
-    </div>
+    <PageHeader :title="$t('testcase.create')" />
 
     <div class="card-container">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -128,6 +126,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 const router = useRouter()

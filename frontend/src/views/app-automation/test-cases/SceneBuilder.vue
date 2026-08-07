@@ -1,8 +1,7 @@
 <template>
     <div class="ui-test-scene-builder">
-        <div class="page-header">
-            <h3>{{ $t('appAutomation.sceneBuilder.header.title') }}</h3>
-            <div class="header-actions">
+        <PageHeader :title="$t('appAutomation.sceneBuilder.header.title')">
+            <template #actions>
                 <el-button
                     type="primary"
                     size="small"
@@ -15,8 +14,8 @@
                 <el-button size="small" :icon="Refresh" @click="resetScene">
                     {{ $t('appAutomation.common.reset') }}
                 </el-button>
-            </div>
-        </div>
+            </template>
+        </PageHeader>
 
         <el-card class="scene-config">
             <el-form :model="sceneForm" label-width="120px" size="small">
@@ -906,6 +905,7 @@ import { useI18n } from 'vue-i18n'
 import { Upload, Download, FolderAdd, DocumentCopy, Check, Search, Link, Refresh, Camera } from '@element-plus/icons-vue'
 import draggable from "vuedraggable"
 import CaptureElementDialog from '../elements/components/CaptureElementDialog.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {
   getComponents,
   getCustomComponents,
@@ -2898,22 +2898,6 @@ defineExpose({
 <style scoped>
 .ui-test-scene-builder {
     padding: 16px;
-}
-
-.page-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 16px;
-}
-
-.page-header h3 {
-    margin: 0;
-}
-
-.header-actions {
-    display: flex;
-    gap: 8px;
 }
 
 .scene-config {

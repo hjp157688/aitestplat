@@ -1,9 +1,8 @@
 <template>
   <div class="device-management">
     <!-- 页面标题和操作按钮 -->
-    <div class="device-header">
-      <h3>{{ $t('appAutomation.device.title') }}</h3>
-      <div class="device-actions">
+    <PageHeader :title="$t('appAutomation.device.title')">
+      <template #actions>
         <el-button
           type="primary"
           :icon="Refresh"
@@ -19,8 +18,8 @@
         >
           {{ $t('appAutomation.device.addRemoteDevice') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- 设备列表 -->
     <el-table
@@ -284,6 +283,7 @@ import {
 } from '@/api/app-automation'
 import { getDeviceStatusType, getDeviceStatusText, formatDateTime } from '@/utils/app-automation-helpers'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 
@@ -588,24 +588,6 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 .device-management {
   padding: 20px;
-}
-
-.device-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-
-  h3 {
-    margin: 0;
-    font-size: 20px;
-    color: var(--aitest-text-1);
-  }
-}
-
-.device-actions {
-  display: flex;
-  gap: 10px;
 }
 
 .dialog-footer {

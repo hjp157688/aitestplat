@@ -1,12 +1,11 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('testcase.detail') }}</h1>
-      <div>
+    <PageHeader :title="$t('testcase.detail')">
+      <template #actions>
         <el-button @click="$router.back()">{{ $t('common.back') }}</el-button>
         <el-button type="primary" @click="editTestCase">{{ $t('common.edit') }}</el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="card-container" v-if="testcase">
       <el-descriptions :column="2" border>
@@ -60,6 +59,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import api from '@/utils/api'
 import dayjs from 'dayjs'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 const route = useRoute()

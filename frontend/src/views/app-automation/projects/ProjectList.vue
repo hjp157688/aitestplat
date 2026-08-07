@@ -1,11 +1,12 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h2 class="page-title">{{ $t('appAutomation.project.title') }}</h2>
-      <el-button type="primary" @click="openCreateDialog">
-        <el-icon><Plus /></el-icon>{{ $t('appAutomation.project.newProject') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('appAutomation.project.title')">
+      <template #actions>
+        <el-button type="primary" @click="openCreateDialog">
+          <el-icon><Plus /></el-icon>{{ $t('appAutomation.project.newProject') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
     <div class="card-container">
       <!-- 筛选 -->
@@ -145,6 +146,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
 import { getAppProjects, createAppProject, updateAppProject, deleteAppProject } from '@/api/app-automation.js'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 
@@ -265,8 +267,6 @@ function formatDateTime(dt) {
 
 <style scoped>
 .page-container { padding: 20px; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.page-title { margin: 0; font-size: 20px; }
 .card-container { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .filter-bar { margin-bottom: 20px; }
 .pagination-container { margin-top: 20px; display: flex; justify-content: flex-end; }
