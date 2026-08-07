@@ -437,7 +437,7 @@ export default {
   },
 
   mounted() {
-    this.taskId = this.$route.params.taskId
+    this.taskId = String(this.$route.params.taskId)
     this.loadTaskDetail()
   },
 
