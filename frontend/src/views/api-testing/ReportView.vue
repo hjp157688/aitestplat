@@ -1,12 +1,11 @@
 <template>
   <div class="report-view">
-    <div class="header">
-      <h3>{{ $t('apiTesting.report.title') }}</h3>
-      <div class="actions">
+    <PageHeader :title="$t('apiTesting.report.title')">
+      <template #actions>
         <el-button type="primary" @click="refreshReports">{{ $t('apiTesting.report.refreshReport') }}</el-button>
         <el-button @click="openAllureReport">{{ $t('apiTesting.report.viewAllureReport') }}</el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="content">
       <el-table :data="reports" v-loading="loading" style="width: 100%">
@@ -51,6 +50,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 import dayjs from 'dayjs'
 
 const { t } = useI18n()
@@ -134,18 +134,6 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.header h3 {
-  margin: 0;
-  color: var(--aitest-text-1);
 }
 
 .content {

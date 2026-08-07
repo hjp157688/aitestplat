@@ -1,12 +1,13 @@
 <template>
   <div class="environment-management">
-    <div class="header">
-      <h3>{{ $t('apiTesting.environment.title') }}</h3>
-      <el-button type="primary" @click="showCreateDialog = true">
-        <el-icon><Plus /></el-icon>
-        {{ $t('apiTesting.environment.createEnvironment') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('apiTesting.environment.title')">
+      <template #actions>
+        <el-button type="primary" @click="showCreateDialog = true">
+          <el-icon><Plus /></el-icon>
+          {{ $t('apiTesting.environment.createEnvironment') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
     <el-tabs v-model="activeTab" @tab-change="onTabChange">
       <el-tab-pane :label="$t('apiTesting.environment.scopeTypes.global')" name="GLOBAL">
@@ -187,6 +188,7 @@ import { useI18n } from 'vue-i18n'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import api from '@/utils/api'
 import EnvironmentTable from './components/EnvironmentTable.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 const activeTab = ref('GLOBAL')
@@ -499,18 +501,6 @@ onMounted(async () => {
 <style scoped>
 .environment-management {
   padding: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.header h3 {
-  margin: 0;
-  color: var(--aitest-text-1);
 }
 
 .local-env-header {

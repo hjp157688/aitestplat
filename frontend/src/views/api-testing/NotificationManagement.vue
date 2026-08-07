@@ -1,9 +1,7 @@
 <template>
   <div class="notification-management">
     <!-- 顶部标题 -->
-    <div class="header">
-      <h3>{{ $t('apiTesting.notification.title') }}</h3>
-    </div>
+    <PageHeader :title="$t('apiTesting.notification.title')" />
 
     <!-- Tab页 -->
     <el-tabs v-model="activeTab" class="notification-tabs">
@@ -323,6 +321,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { Search, Refresh, Plus } from '@element-plus/icons-vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 const activeTab = ref('list')
@@ -593,15 +592,6 @@ onMounted(() => {
   padding: 20px;
   background: var(--aitest-canvas);
   min-height: 100%;
-}
-
-.header {
-  margin-bottom: 20px;
-}
-
-.header h3 {
-  margin: 0;
-  color: var(--aitest-text-1);
 }
 
 .notification-tabs {

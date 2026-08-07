@@ -1,26 +1,25 @@
 <template>
   <div class="request-history">
-    <div class="header">
-      <h3>{{ $t('apiTesting.history.title') }}</h3>
-      <div class="filters">
-        <el-input
-          v-model="searchText"
-          :placeholder="$t('apiTesting.history.searchRequest')"
-          style="width: 200px"
-          clearable
-          @input="loadHistory"
-        />
-        <el-button
-          type="danger"
-          :disabled="selectedIds.length === 0"
-          @click="handleBatchDelete"
-        >
-          {{ $t('apiTesting.history.batchDelete') }}
-        </el-button>
-        <el-button @click="clearHistory" type="danger" plain>
-          {{ $t('apiTesting.history.clearHistory') }}
-        </el-button>
-      </div>
+    <PageHeader :title="$t('apiTesting.history.title')" />
+
+    <div class="filters">
+      <el-input
+        v-model="searchText"
+        :placeholder="$t('apiTesting.history.searchRequest')"
+        style="width: 200px"
+        clearable
+        @input="loadHistory"
+      />
+      <el-button
+        type="danger"
+        :disabled="selectedIds.length === 0"
+        @click="handleBatchDelete"
+      >
+        {{ $t('apiTesting.history.batchDelete') }}
+      </el-button>
+      <el-button @click="clearHistory" type="danger" plain>
+        {{ $t('apiTesting.history.clearHistory') }}
+      </el-button>
     </div>
 
     <el-tabs v-model="activeTab" @tab-change="onTabChange">
@@ -173,6 +172,7 @@ import api from '@/utils/api'
 import { deleteRequestHistory, batchDeleteRequestHistory } from '@/api/api-testing'
 import dayjs from 'dayjs'
 import HistoryTable from './components/HistoryTable.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 const activeTab = ref('HTTP')
@@ -394,22 +394,11 @@ onMounted(() => {
   flex-direction: column;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.header h3 {
-  margin: 0;
-  color: var(--aitest-text-1);
-}
-
 .filters {
   display: flex;
   gap: 10px;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 .pagination {

@@ -1,12 +1,13 @@
 <template>
   <div class="project-management">
-    <div class="header">
-      <h2>{{ $t('apiTesting.project.title') }}</h2>
-      <el-button type="primary" @click="showCreateDialog = true">
-        <el-icon><Plus /></el-icon>
-        {{ $t('apiTesting.project.createProject') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('apiTesting.project.title')">
+      <template #actions>
+        <el-button type="primary" @click="showCreateDialog = true">
+          <el-icon><Plus /></el-icon>
+          {{ $t('apiTesting.project.createProject') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
 
     <!-- 项目列表 -->
@@ -205,6 +206,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, ElDescriptions, ElDescriptionsItem } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { Plus } from '@element-plus/icons-vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import api from '@/utils/api'
 import dayjs from 'dayjs'
 
@@ -408,18 +410,6 @@ onMounted(async () => {
 <style scoped>
 .project-management {
   padding: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.header h2 {
-  margin: 0;
-  color: var(--aitest-text-1);
 }
 
 .pagination {

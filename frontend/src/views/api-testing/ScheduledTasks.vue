@@ -1,12 +1,13 @@
 <template>
   <div class="scheduled-tasks">
-    <div class="header">
-      <h3>{{ $t('apiTesting.scheduledTask.title') }}</h3>
-      <el-button type="primary" @click="handleCreateClick">
-        <el-icon><Plus /></el-icon>
-        {{ $t('apiTesting.scheduledTask.createTask') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('apiTesting.scheduledTask.title')">
+      <template #actions>
+        <el-button type="primary" @click="handleCreateClick">
+          <el-icon><Plus /></el-icon>
+          {{ $t('apiTesting.scheduledTask.createTask') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
     <!-- 筛选条件 -->
     <div class="filters">
@@ -310,6 +311,7 @@ import {
   getEnvironments,
   getUsers
 } from '@/api/api-testing.js'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 
@@ -699,13 +701,6 @@ const deleteTask = async (task) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: px;
 }
 
 .filters {

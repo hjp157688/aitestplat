@@ -1,12 +1,13 @@
 <template>
   <div class="automation-testing">
-    <div class="header">
-      <h3>{{ $t('apiTesting.automation.title') }}</h3>
-      <el-button type="primary" @click="showCreateSuiteDialog = true">
-        <el-icon><Plus /></el-icon>
-        {{ $t('apiTesting.automation.createSuite') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('apiTesting.automation.title')">
+      <template #actions>
+        <el-button type="primary" @click="showCreateSuiteDialog = true">
+          <el-icon><Plus /></el-icon>
+          {{ $t('apiTesting.automation.createSuite') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
     <div class="content-layout">
       <!-- 左侧项目选择和测试套件列表 -->
@@ -371,6 +372,7 @@ import {
   Folder, Document
 } from '@element-plus/icons-vue'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 import dayjs from 'dayjs'
 
 const { t } = useI18n()
@@ -897,18 +899,6 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.header h3 {
-  margin: 0;
-  color: var(--aitest-text-1);
 }
 
 .content-layout {
