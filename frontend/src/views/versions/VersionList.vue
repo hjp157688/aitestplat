@@ -1,8 +1,7 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('version.title') }}</h1>
-      <div class="header-actions">
+    <PageHeader :title="$t('version.title')">
+      <template #actions>
         <el-button
           v-if="selectedVersions.length > 0"
           type="danger"
@@ -15,11 +14,11 @@
           <el-icon><Plus /></el-icon>
           {{ $t('version.newVersion') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="card-container">
-      <div class="filter-bar">
+      <FilterBar>
         <el-row :gutter="20">
           <el-col :span="6">
             <el-input
@@ -50,7 +49,7 @@
             </el-select>
           </el-col>
         </el-row>
-      </div>
+      </FilterBar>
       
       <el-table
         :data="versions"
@@ -63,7 +62,7 @@
           <template #default="{ row }">
             <div class="version-name">
               <span>{{ row.name }}</span>
-              <el-tag v-if="row.is_baseline" type="warning" size="small" class="baseline-tag">{{ $t('version.baseline') }}</el-tag>
+              <StatusTag v-if="row.is_baseline" status="warning" :text="$t('version.baseline')" class="baseline-tag" />
             </div>
           </template>
         </el-table-column>
@@ -174,6 +173,9 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Delete } from '@element-plus/icons-vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import FilterBar from '@/components/common/FilterBar.vue'
+import StatusTag from '@/components/common/StatusTag.vue'
 import api from '@/utils/api'
 import dayjs from 'dayjs'
 
@@ -403,44 +405,35 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.filter-bar {
-  margin-bottom: 20px;
-}
-
 .pagination-container {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: center;
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
 }
 
 .version-name {
   display: flex;
   align-items: center;
-  gap: 8px;
-  
+  gap: var(--aitest-space-2);
+
   .baseline-tag {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
   }
 }
 
 .project-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  
+  gap: var(--aitest-space-1);
+
   .project-tag {
     margin: 0;
   }
 }
 
 .no-project {
-  color: #909399;
-  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  font-size: var(--aitest-font-size-sm);
   font-style: italic;
 }
 </style>
