@@ -65,6 +65,45 @@ body {
   --el-font-family: var(--aitest-font-sans);
 }
 
+/* ============ Element Plus 表格/弹窗全局覆写（成品一致密度） ============ */
+.el-table {
+  --el-table-header-bg-color: var(--aitest-surface-subtle);
+  --el-table-header-text-color: var(--aitest-text-2);
+  --el-table-row-hover-bg-color: var(--aitest-surface-subtle);
+  --el-table-border-color: var(--aitest-border);
+  --el-table-tr-bg-color: var(--aitest-surface);
+  font-size: var(--aitest-font-size-base);
+
+  th.el-table__cell {
+    font-size: var(--aitest-font-size-sm);
+    font-weight: 600;
+    padding: 8px 0;
+  }
+
+  .el-table__cell { padding: 8px 0; }
+
+  .el-table__row--striped td.el-table__cell,
+  .el-table__row--striped { background-color: var(--aitest-surface); }
+
+  .el-table__row.is-selected > td.el-table__cell {
+    background-color: var(--aitest-primary-subtle);
+    box-shadow: inset 3px 0 0 var(--aitest-primary);
+  }
+}
+
+.el-dialog {
+  --el-dialog-border-radius: var(--aitest-radius-lg);
+  box-shadow: var(--aitest-shadow-md);
+
+  .el-dialog__title {
+    font-size: var(--aitest-font-size-lg);
+    font-weight: 600;
+    color: var(--aitest-text-1);
+  }
+}
+
+.el-pagination { --el-pagination-font-size: var(--aitest-font-size-base); }
+
 /* ============ 公共页面骨架 ============ */
 .page-container {
   padding: var(--aitest-space-page);
