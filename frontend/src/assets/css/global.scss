@@ -185,6 +185,12 @@ body {
   margin-bottom: var(--aitest-space-section);
 
   .el-form--inline .el-form-item { margin-right: 0; }
+
+  /* 修复：el-row 作为 flex item 默认塌缩到内容宽（EP .el-row 无 width:100%），
+     导致内部 el-col 的百分比宽度以塌缩宽度计算；强制撑满恢复块级行为 */
+  > .el-row {
+    width: 100%;
+  }
 }
 
 /* ============ 状态/优先级标签 ============ */
