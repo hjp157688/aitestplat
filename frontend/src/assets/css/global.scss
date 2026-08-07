@@ -117,6 +117,17 @@ body {
   box-shadow: var(--aitest-card-shadow);
 }
 
+/* ============ 筛选/工具栏统一容器 ============ */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--aitest-space-2);
+  margin-bottom: var(--aitest-space-section);
+
+  .el-form--inline .el-form-item { margin-right: 0; }
+}
+
 /* ============ 状态/优先级标签 ============ */
 .status-tag {
   /* 主导航/通用状态：淡色背景 + 文字色 */
