@@ -118,6 +118,11 @@ body {
 
     &.has-actions { align-items: center; }
 
+    .page-header__text {
+      flex: 1;
+      min-width: 0;
+    }
+
     .page-eyebrow {
       font-size: var(--aitest-font-size-sm);
       font-weight: 500;

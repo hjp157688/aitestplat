@@ -2866,7 +2866,7 @@ export default {
 .retrieve-knowledge-btn {
   width: 100%;
   padding: 10px 16px;
-  background: var(--aitest-accent);
+  background: var(--aitest-primary);
   color: var(--aitest-surface);
   border: none;
   border-radius: 8px;
@@ -2877,8 +2877,8 @@ export default {
 }
 
 .retrieve-knowledge-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--aitest-accent) 88%, #000);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--aitest-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--aitest-primary) 88%, #000);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--aitest-primary) 35%, transparent);
   transform: translateY(-1px);
 }
 
