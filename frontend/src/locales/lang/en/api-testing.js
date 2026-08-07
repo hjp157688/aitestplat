@@ -184,6 +184,7 @@ export default {
     confirmDeleteBtn: 'Confirm Delete',
     collection: 'collection',
     request: 'interface',
+    testcase: 'test case',
     url: 'URL',
     searchResults: 'Search results ({count})',
     name: 'Name',
@@ -255,6 +256,18 @@ export default {
       header: 'Response Header',
       equals: 'Exact Match'
     },
+    assertionOperators: {
+      equals: 'Equals',
+      not_equals: 'Not Equals',
+      contains: 'Contains',
+      not_contains: 'Not Contains',
+      exists: 'Exists',
+      not_exists: 'Not Exists',
+      greater_than: 'Greater Than',
+      less_than: 'Less Than',
+      greater_or_equal: 'Greater or Equal',
+      less_or_equal: 'Less or Equal'
+    },
     expectedStatusCode: 'Expected Status Code',
     maxResponseTime: 'Max Response Time(ms)',
     jsonPathExtract: 'JSONPath Extract',
@@ -287,6 +300,7 @@ export default {
       exceedLimit: 'At most {max} interfaces per batch, please reduce your selection',
       batchDeleteTitle: 'Confirm Batch Delete',
       batchDeleteConfirm: 'This will delete {collections} collections (cascading all interfaces and generated cases within) and {requests} interfaces/cases. Continue?',
+      batchDeleteKeptParents: '({count} parent interface(s) will be kept since they contain generated cases; only their cases are deleted)',
       batchDeleteSuccess: 'Deleted {collections} collections and {requests} interfaces',
       batchDeleteFailed: 'Batch delete failed',
       suiteNamePlaceholder: 'Enter suite name',
@@ -310,7 +324,13 @@ export default {
     authHint: 'Auth config auto-generated from OpenAPI security schemes. Replace variable values for your environment.',
     requestSchema: 'Request Schema',
     responseSchema: 'Response Schema',
+    responseExamples: 'Response Examples',
     noSchema: 'No Schema Available',
+    // Path params / description / param row metadata
+    pathParams: 'Path Params',
+    requestDescription: 'API Description',
+    paramType: 'Type',
+    requiredTag: 'Required',
     switchToRaw: 'Switch to Raw',
     switchToTable: 'Switch to Table'
   },

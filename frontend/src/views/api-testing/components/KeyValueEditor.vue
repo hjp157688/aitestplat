@@ -16,12 +16,16 @@
       >
         <div class="column key-column">
           <el-checkbox v-model="row.enabled" @change="updateValue" />
+          <span v-if="showRequired && row.required" class="required-mark" title="required">*</span>
           <el-input
             v-model="row.key"
             :placeholder="placeholderKey"
             size="small"
             @input="updateValue"
           />
+          <span v-if="showType && row.param_type" class="type-tag">
+            <el-tag size="small" :type="typeTagType(row.param_type)">{{ row.param_type }}</el-tag>
+          </span>
         </div>
 
         <div class="column value-column">
@@ -164,6 +168,16 @@ const props = defineProps({
     default: 'Value'
   },
   showFile: {
+    type: Boolean,
+    default: false
+  },
+  // 是否显示参数类型 tag（读 row.param_type，导入/保存 OpenAPI 参数行时使用）
+  showType: {
+    type: Boolean,
+    default: false
+  },
+  // 是否显示必填标记（读 row.required）
+  showRequired: {
     type: Boolean,
     default: false
   }
@@ -349,6 +363,8 @@ const initializeRows = () => {
       value: item.value || '',
       description: item.description || '',
       type: item.type || 'text',
+      param_type: item.param_type || '',
+      required: !!item.required,
       file: item.file || null
     })))
   } else {
@@ -362,12 +378,14 @@ const initializeRows = () => {
           value: data[key],
           description: '',
           type: 'text',
+          param_type: '',
+          required: false,
           file: null
         })
       }
     })
   }
-  
+
   // 确保至少有一个空行
   if (newRows.length === 0) {
     newRows.push({
@@ -376,6 +394,8 @@ const initializeRows = () => {
       value: '',
       description: '',
       type: 'text',
+      param_type: '',
+      required: false,
       file: null
     })
   }
@@ -391,12 +411,14 @@ const updateValue = () => {
     value: row.value || '',
     description: row.description || '',
     enabled: row.enabled !== false,
-    type: row.type || 'text'
+    type: row.type || 'text',
+    param_type: row.param_type || '',
+    required: !!row.required
   }))
-  
+
   console.log('KeyValueEditor updateValue result (full format):', result)
   emit('update:modelValue', result)
-  
+
   // 如果最后一行有内容，自动添加新行
   const lastRow = rows.value[rows.value.length - 1]
   if (lastRow.key || lastRow.value) {
@@ -411,6 +433,8 @@ const addRow = () => {
     value: '',
     description: '',
     type: 'text',
+    param_type: '',
+    required: false,
     file: null
   })
 }
@@ -420,6 +444,12 @@ const removeRow = (index) => {
     rows.value.splice(index, 1)
     updateValue()
   }
+}
+
+// OpenAPI 参数类型 → Element Plus tag 颜色
+const typeTagType = (type) => {
+  const map = { string: '', integer: 'warning', number: 'warning', boolean: 'success', array: 'danger', object: 'danger' }
+  return map[type] || 'info'
 }
 
 const handleFileChange = (index, file) => {
@@ -608,6 +638,18 @@ defineExpose({
   font-size: 12px;
   color: #606266;
   margin-left: 8px;
+}
+
+.required-mark {
+  color: #f56c6c;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 2px;
+}
+
+.type-tag {
+  display: inline-flex;
+  margin-left: 6px;
 }
 
 .footer {

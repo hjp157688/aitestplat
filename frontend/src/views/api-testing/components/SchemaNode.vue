@@ -5,12 +5,16 @@
       <span class="schema-prop-name">{{ name }}</span>
       <span class="schema-prop-type">{{ typeLabel }}</span>
       <el-tag v-if="isRequired" size="small" type="danger">required</el-tag>
+      <span v-if="exampleText" class="schema-prop-example">example: {{ exampleText }}</span>
+      <span v-if="defaultText !== undefined" class="schema-prop-default">default: {{ defaultText }}</span>
       <span v-if="description" class="schema-prop-desc">{{ description }}</span>
     </div>
     <div class="schema-node-leaf" v-else>
       <span class="schema-prop-name">{{ name }}</span>
       <span class="schema-prop-type">{{ typeLabel }}</span>
       <el-tag v-if="isRequired" size="small" type="danger">required</el-tag>
+      <span v-if="exampleText" class="schema-prop-example">example: {{ exampleText }}</span>
+      <span v-if="defaultText !== undefined" class="schema-prop-default">default: {{ defaultText }}</span>
       <span v-if="description" class="schema-prop-desc">{{ description }}</span>
     </div>
     <div v-if="expanded && hasChildren" class="schema-node-children">
@@ -39,6 +43,17 @@ const expanded = ref(true)
 
 const isRequired = computed(() => props.requiredFields.includes(props.name))
 const description = computed(() => props.schema.description || '')
+
+// 示例/默认值展示：object → JSON 字符串，其余 → String
+const stringifyValue = (v) => {
+  if (v === undefined || v === null) return undefined
+  return typeof v === 'object' ? JSON.stringify(v) : String(v)
+}
+const exampleText = computed(() => {
+  const ex = props.schema.example ?? props.schema['x-example']
+  return stringifyValue(ex) || ''
+})
+const defaultText = computed(() => stringifyValue(props.schema.default))
 
 const schemaType = computed(() => {
   if (props.schema.enum) return 'enum'
@@ -71,6 +86,8 @@ const children = computed(() => {
 .schema-prop-name { font-weight: 500; color: #268bd2; }
 .schema-prop-type { color: #909399; font-family: monospace; }
 .schema-prop-desc { color: #606266; font-size: 12px; margin-left: 8px; }
+.schema-prop-example { color: #909399; font-size: 12px; margin-left: 8px; font-family: monospace; }
+.schema-prop-default { color: #909399; font-size: 12px; margin-left: 8px; font-family: monospace; }
 .schema-node-children { border-left: 1px dashed #e4e7ed; }
 .schema-section { margin-bottom: 16px; }
 .schema-section h4 { margin: 0 0 8px; font-size: 14px; }

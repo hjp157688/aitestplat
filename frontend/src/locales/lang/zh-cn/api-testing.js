@@ -184,6 +184,7 @@ export default {
     confirmDeleteBtn: '确定删除',
     collection: '集合',
     request: '接口',
+    testcase: '测试用例',
     url: 'URL',
     searchResults: '搜索结果 ({count})',
     name: '名称',
@@ -239,6 +240,18 @@ export default {
       jsonPath: 'JSON路径',
       header: '响应头',
       equals: '完全匹配'
+    },
+    assertionOperators: {
+      equals: '等于',
+      not_equals: '不等于',
+      contains: '包含',
+      not_contains: '不包含',
+      exists: '存在',
+      not_exists: '不存在',
+      greater_than: '大于',
+      less_than: '小于',
+      greater_or_equal: '大于等于',
+      less_or_equal: '小于等于'
     },
     expectedStatusCode: '期望状态码',
     maxResponseTime: '最大响应时间(ms)',
@@ -300,6 +313,7 @@ export default {
       exceedLimit: '单次最多生成 {max} 个接口的用例，请精简选择',
       batchDeleteTitle: '批量删除确认',
       batchDeleteConfirm: '将删除 {collections} 个集合（级联删除其下所有接口与生成用例）、{requests} 个接口/用例，是否继续？',
+      batchDeleteKeptParents: '（其中 {count} 个原接口因含生成用例予以保留，仅删除其用例）',
       batchDeleteSuccess: '已删除 {collections} 个集合、{requests} 个接口',
       batchDeleteFailed: '批量删除失败',
       suiteNamePlaceholder: '请输入套件名称',
@@ -323,7 +337,13 @@ export default {
     authHint: '认证配置由 OpenAPI 文档的安全方案自动生成，变量值请根据实际环境替换',
     requestSchema: '请求体 Schema',
     responseSchema: '响应 Schema',
+    responseExamples: '响应示例',
     noSchema: '无 Schema 信息',
+    // 路径参数 / 描述 / 参数行元数据
+    pathParams: '路径参数',
+    requestDescription: '接口描述',
+    paramType: '类型',
+    requiredTag: '必填',
     switchToRaw: '切换到 Raw',
     switchToTable: '切换到表格'
   },

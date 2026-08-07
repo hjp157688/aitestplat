@@ -3,6 +3,8 @@
 import json
 import logging
 
+from .example_generator import FORMAT_EXAMPLES, first_example_value
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,25 +56,37 @@ class RequestConverter:
             'enabled': True, 'description': '',
         })
 
-        # 构建 params (query 参数)
+        # 构建 params (query 参数) 与 path_params (路径参数)
         params = []
+        path_params = []
         for param in endpoint.get('parameters', []):
             param_in = param.get('in', 'query')
             if param_in == 'query':
-                example_val = self._param_example(param)
                 params.append({
                     'key': param['name'],
-                    'value': example_val,
+                    'value': self._param_example(param),
                     'enabled': param.get('required', False),
                     'description': param.get('description', ''),
+                    'param_type': self._param_type(param),
+                    'required': param.get('required', False),
+                })
+            elif param_in == 'path':
+                path_params.append({
+                    'key': param['name'],
+                    'value': self._param_example(param),
+                    'enabled': param.get('required', True),
+                    'description': param.get('description', ''),
+                    'param_type': self._param_type(param),
+                    'required': param.get('required', True),
                 })
             elif param_in == 'header':
-                example_val = self._param_example(param)
                 headers.append({
                     'key': param['name'],
-                    'value': example_val,
+                    'value': self._param_example(param),
                     'enabled': param.get('required', False),
                     'description': param.get('description', ''),
+                    'param_type': self._param_type(param),
+                    'required': param.get('required', False),
                 })
 
         # 构建 body
@@ -90,24 +104,91 @@ class RequestConverter:
             'url': url,
             'headers': headers,
             'params': params,
+            'path_params': path_params,
             'body': body,
             'auth_spec': auth_spec,
             'request_schema': request_schema,
             'response_schemas': endpoint.get('response_schemas', {}),
+            'response_examples': endpoint.get('response_examples', {}),
             'deprecated': endpoint.get('deprecated', False),
             'description': self._build_description(endpoint),
             'assertions': [],
         }
 
+    @staticmethod
+    def _param_type(param: dict) -> str:
+        """参数类型：Swagger2 直接在参数上标 type，OpenAPI3 在 schema 里"""
+        return param.get('type') or (param.get('schema') or {}).get('type') or ''
+
     def _param_example(self, param: dict) -> str:
-        if param.get('example') is not None:
-            return str(param['example'])
-        schema = param.get('schema', {})
-        if schema.get('type') == 'integer':
-            return str(schema.get('default', '0'))
-        if schema.get('type') == 'boolean':
-            return str(schema.get('default', 'false'))
+        """解析参数的示例值，导入的是文档自带的示例内容而不是空占位符
+
+        优先级（越高越先用文档里真实定义的示例内容）:
+        1. 参数级 x-example（YApi 等导出的扩展字段）
+        2. 参数级 example（OpenAPI 3）
+        3. 参数级 examples 映射（命名示例 / 媒体类型 → 值）
+        4. 参数级 default / enum[0]（Swagger 2.0 直接挂在参数上）
+        5. schema 级 example > default > enum[0]
+        6. format 级示例（date/email/uuid/...）与类型兜底（string 无提示时留空）
+        """
+        for key in ('x-example', 'example'):
+            if param.get(key) is not None:
+                return self._row_value(param[key])
+        named = first_example_value(param.get('examples'))
+        if named is not None:
+            return self._row_value(named)
+        if param.get('default') is not None:
+            return self._row_value(param['default'])
+        if param.get('enum'):
+            return self._row_value(param['enum'][0])
+
+        schema = param.get('schema') or {}
+        if schema:
+            if schema.get('example') is not None:
+                return self._row_value(schema['example'])
+            if schema.get('default') is not None:
+                return self._row_value(schema['default'])
+            if schema.get('enum'):
+                return self._row_value(schema['enum'][0])
+            schema_type = schema.get('type')
+            if schema_type == 'integer':
+                return str(schema.get('minimum')) if schema.get('minimum') is not None else '0'
+            if schema_type == 'number':
+                return str(schema.get('minimum')) if schema.get('minimum') is not None else '1'
+            if schema_type == 'boolean':
+                return str(schema.get('default', False)).lower()
+            if schema_type == 'string':
+                return FORMAT_EXAMPLES.get(schema.get('format'), '')
+
+        # 无 schema：Swagger 2.0 直接在参数上标类型，做类型兜底
+        param_type = param.get('type')
+        if param_type == 'integer':
+            return '0'
+        if param_type == 'number':
+            return '1'
+        if param_type == 'boolean':
+            return 'false'
         return ''
+
+    @staticmethod
+    def _row_value(value):
+        """form 字段值序列化为字符串：嵌套对象/数组 → JSON 字符串，其余 → str"""
+        if value is None:
+            return ''
+        if isinstance(value, (dict, list)):
+            return json.dumps(value, ensure_ascii=False)
+        if isinstance(value, bool):
+            return str(value).lower()
+        return str(value)
+
+    def _rows_from_example(self, example) -> list:
+        """把 form 的 {key: value} 示例转成表格行数组格式（同前端 body.data 格式）"""
+        if not example or not isinstance(example, dict):
+            return []
+        return [
+            {'key': k, 'value': self._row_value(v), 'enabled': True, 'description': '', 'type': 'text'}
+            for k, v in example.items()
+        ]
 
     def _build_body(self, request_body: dict | None) -> dict:
         if not request_body:
@@ -122,12 +203,12 @@ class RequestConverter:
         elif 'form-urlencoded' in ct:
             return {
                 'type': 'x-www-form-urlencoded',
-                'data': example or {},
+                'data': self._rows_from_example(example),
             }
         elif 'form-data' in ct:
             return {
                 'type': 'form-data',
-                'data': example or {},
+                'data': self._rows_from_example(example),
             }
         # 其余 content-type（text/plain、xml、octet-stream 等）按 raw 保留原始 example，
         # 避免 body 数据在导入时丢失

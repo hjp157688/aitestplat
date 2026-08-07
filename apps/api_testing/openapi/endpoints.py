@@ -1,11 +1,50 @@
 # apps/api_testing/openapi/endpoints.py
 """从 dereferenced spec 中提取所有端点"""
 import logging
-from .example_generator import generate_example
+from .example_generator import first_example_value, generate_example
 
 logger = logging.getLogger(__name__)
 
 HTTP_METHODS = {'get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace'}
+
+
+def _pick_body_example(source: dict, schema: dict):
+    """优先取请求体自带的示例内容，否则按 schema 生成
+
+    示例载体优先级: example > examples 映射 > x-example（YApi 等导出）
+    > 按 schema 生成（example > default > enum[0] > 类型默认值，见
+    example_generator.generate_example）。
+    """
+    if source.get('example') is not None:
+        return source['example']
+    named = first_example_value(source.get('examples'))
+    if named is not None:
+        return named
+    if source.get('x-example') is not None:
+        return source['x-example']
+    if isinstance(schema, dict) and schema:
+        return generate_example(schema)
+    return None
+
+
+def _pick_response_example(response: dict, schema: dict):
+    """各 status code 的响应示例：OpenAPI3 content.example > content.examples
+    映射 > Swagger2 response['examples'] 媒体类型映射 > 按 schema 生成"""
+    content = response.get('content') or {}
+    entry = content.get('application/json') or content.get('*/*')
+    if isinstance(entry, dict):
+        if entry.get('example') is not None:
+            return entry['example']
+        named = first_example_value(entry.get('examples'))
+        if named is not None:
+            return named
+    # Swagger 2.0: response['examples'] = {'application/json': {...}}
+    named = first_example_value(response.get('examples'))
+    if named is not None:
+        return named
+    if isinstance(schema, dict) and schema:
+        return generate_example(schema)
+    return None
 
 
 class EndpointExtractor:
@@ -64,6 +103,9 @@ class EndpointExtractor:
         # 提取响应 schema
         response_schemas = self._extract_response_schemas(spec, operation)
 
+        # 提取响应示例（按 status code 索引）
+        response_examples = self._extract_response_examples(spec, operation)
+
         # 操作级 servers 覆盖全局
         op_servers = operation.get('servers') or global_servers
         servers = [{'url': s.get('url', '')} for s in op_servers if isinstance(s, dict)]
@@ -82,6 +124,7 @@ class EndpointExtractor:
             'parameters': parameters,
             'request_body': request_body,
             'response_schemas': response_schemas,
+            'response_examples': response_examples,
             'security': security,
             'servers': servers,
         }
@@ -100,8 +143,16 @@ class EndpointExtractor:
                 'in': param_in,
                 'required': param.get('required', False),
                 'description': param.get('description', ''),
+                'type': param.get('type'),
+                'format': param.get('format'),
                 'schema': param.get('schema', {}),
+                # 示例载体：OpenAPI 3 的 example、YApi 等导出的 x-example、
+                # examples 映射，以及 Swagger 2.0 参数级 default/enum
                 'example': param.get('example'),
+                'x-example': param.get('x-example'),
+                'examples': param.get('examples'),
+                'default': param.get('default'),
+                'enum': param.get('enum'),
             })
         return result
 
@@ -139,11 +190,10 @@ class EndpointExtractor:
         if body_params:
             body_param = body_params[0]
             schema = body_param.get('schema', {})
-            example = generate_example(schema) if schema else {}
             return {
                 'content_type': 'application/json',
                 'schema': schema,
-                'example': example if example is not None else {},
+                'example': _pick_body_example(body_param, schema),
                 'required': body_param.get('required', False),
                 'description': body_param.get('description', ''),
             }
@@ -170,6 +220,12 @@ class EndpointExtractor:
                     prop['enum'] = p['enum']
                 if p.get('default') is not None:
                     prop['default'] = p['default']
+                # 表单字段的示例值（example / YApi 的 x-example）
+                field_example = p.get('example')
+                if field_example is None:
+                    field_example = p.get('x-example')
+                if field_example is not None:
+                    prop['example'] = field_example
                 properties[name] = prop
                 if p.get('required'):
                     required.append(name)
@@ -192,9 +248,7 @@ class EndpointExtractor:
     def _parse_content_entry(self, content_type: str, entry: dict,
                              request_body: dict) -> dict:
         schema = entry.get('schema', {})
-        example = entry.get('example')
-        if example is None and isinstance(schema, dict):
-            example = generate_example(schema)
+        example = _pick_body_example(entry, schema)
         return {
             'content_type': content_type,
             'schema': schema,
@@ -221,4 +275,30 @@ class EndpointExtractor:
             schema = response.get('schema')
             if schema:
                 result[str(status_code)] = schema
+        return result
+
+    def _extract_response_examples(self, spec: dict, operation: dict) -> dict:
+        """提取各 status code 的响应示例，兼容 OpenAPI 3 / Swagger 2.0。
+
+        优先级（与 _pick_response_example 一致）：OpenAPI3 content.example
+        > content.examples 映射 > Swagger2 response['examples'] 媒体类型映射
+        > 按响应 schema 生成。无示例的状态码跳过。
+        """
+        result = {}
+        responses = operation.get('responses', {})
+        for status_code, response in responses.items():
+            if not isinstance(response, dict):
+                continue
+            content = response.get('content', {})
+            json_content = content.get('application/json') or content.get('*/*')
+            schema = {}
+            entry = json_content if isinstance(json_content, dict) else None
+            if entry:
+                schema = entry.get('schema', {})
+            elif response.get('schema'):
+                schema = response['schema']
+
+            example = _pick_response_example(response, schema)
+            if example is not None:
+                result[str(status_code)] = example
         return result

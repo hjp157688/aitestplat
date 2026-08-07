@@ -77,3 +77,120 @@ class ExecuteFlowTests(TestCase):
         msg = str(resp.data.get('error_message', ''))
         self.assertIn('base_url', msg)
         self.assertIn('协议', msg)
+
+    @patch('apps.api_testing.views.requests.request', return_value=FakeResponse())
+    def test_auth_spec_header_injected_when_not_overridden(self, mock_request):
+        """auth_spec 配置的认证头在执行时补进请求头（接口显式同名头优先）"""
+        self.req.auth_spec = {'header_name': 'Authorization', 'header_value': 'Bearer {{token}}'}
+        self.req.variables = {'token': 'abc123'}
+        self.req.save()
+        resp = self.client.post(
+            f'/api/api-testing/requests/{self.req.id}/execute/',
+            {'environment_id': self.env.id}, format='json')
+        self.assertEqual(resp.status_code, 200, resp.data)
+        headers = mock_request.call_args.kwargs['headers']
+        self.assertEqual(headers.get('Authorization'), 'Bearer abc123')
+
+    @patch('apps.api_testing.views.requests.request', return_value=FakeResponse())
+    def test_auth_spec_does_not_override_explicit_header(self, mock_request):
+        self.req.auth_spec = {'header_name': 'Authorization', 'header_value': 'Bearer {{token}}'}
+        self.req.variables = {'token': 'abc123'}
+        self.req.headers = [{'key': 'Authorization', 'value': 'Bearer explicit', 'enabled': True}]
+        self.req.save()
+        resp = self.client.post(
+            f'/api/api-testing/requests/{self.req.id}/execute/',
+            {'environment_id': self.env.id}, format='json')
+        self.assertEqual(resp.status_code, 200, resp.data)
+        headers = mock_request.call_args.kwargs['headers']
+        self.assertEqual(headers.get('Authorization'), 'Bearer explicit')
+
+    @patch('apps.api_testing.views.requests.request', return_value=FakeResponse())
+    def test_payload_variables_preferred_over_db(self, mock_request):
+        """前端本次发送的 variables 优先于 DB 旧值（改完直接发送也生效）"""
+        self.req.variables = {'login_user': 'db_user'}
+        self.req.body = {'type': 'x-www-form-urlencoded', 'data': [
+            {'key': 'userName', 'value': '{{login_user}}', 'enabled': True},
+        ]}
+        self.req.save()
+        resp = self.client.post(
+            f'/api/api-testing/requests/{self.req.id}/execute/',
+            {'environment_id': self.env.id,
+             'variables': {'login_user': 'live_user'}}, format='json')
+        self.assertEqual(resp.status_code, 200, resp.data)
+        self.assertEqual(mock_request.call_args.kwargs['data'], {'userName': 'live_user'})
+
+    @patch('apps.api_testing.views.requests.request', return_value=FakeResponse())
+    def test_json_body_content_type_corrected(self, mock_request):
+        """JSON body 即使带了遗留的 urlencoded Content-Type 头，也按 application/json 发出"""
+        self.req.body = {'type': 'json', 'data': {'username': 'admin'}}
+        self.req.headers = [
+            {'key': 'Content-Type', 'value': 'application/x-www-form-urlencoded', 'enabled': True}]
+        self.req.save()
+        resp = self.client.post(
+            f'/api/api-testing/requests/{self.req.id}/execute/',
+            {'environment_id': self.env.id}, format='json')
+        self.assertEqual(resp.status_code, 200, resp.data)
+        kwargs = mock_request.call_args.kwargs
+        self.assertEqual(kwargs['headers'].get('Content-Type'), 'application/json')
+        self.assertEqual(kwargs['json'], {'username': 'admin'})
+
+    @patch('apps.api_testing.views.requests.request', return_value=FakeResponse())
+    def test_path_params_substituted_in_url(self, mock_request):
+        """path_params 行数组应替换 URL 里的 {name} 模板"""
+        self.req.url = '{{base_url}}/users/{id}/orders?x=1'
+        self.req.params = []
+        self.req.path_params = [
+            {'key': 'id', 'value': '42', 'enabled': True, 'required': True},
+        ]
+        self.req.save()
+        resp = self.client.post(
+            f'/api/api-testing/requests/{self.req.id}/execute/',
+            {'environment_id': self.env.id}, format='json')
+        self.assertEqual(resp.status_code, 200, resp.data)
+        url = mock_request.call_args.kwargs['url']
+        self.assertEqual(url, 'https://192.168.1.10:9993/users/42/orders?x=1')
+
+    @patch('apps.api_testing.views.requests.request', return_value=FakeResponse())
+    def test_path_params_from_payload_preferred(self, mock_request):
+        """前端本次发送的 path_params 优先于 DB 值"""
+        self.req.url = '{{base_url}}/users/{id}'
+        self.req.params = []
+        self.req.path_params = [{'key': 'id', 'value': 'db', 'enabled': True}]
+        self.req.save()
+        resp = self.client.post(
+            f'/api/api-testing/requests/{self.req.id}/execute/',
+            {'environment_id': self.env.id,
+             'path_params': [{'key': 'id', 'value': 'live', 'enabled': True}]}, format='json')
+        self.assertEqual(resp.status_code, 200, resp.data)
+        self.assertEqual(
+            mock_request.call_args.kwargs['url'],
+            'https://192.168.1.10:9993/users/live')
+
+    @patch('apps.api_testing.views.requests.request', return_value=FakeResponse())
+    def test_empty_path_value_keeps_placeholder(self, mock_request):
+        """空值的路径参数不替换，保留 {name} 模板避免生成畸形 URL"""
+        self.req.url = '{{base_url}}/users/{id}'
+        self.req.params = []
+        self.req.path_params = [{'key': 'id', 'value': '', 'enabled': True}]
+        self.req.save()
+        resp = self.client.post(
+            f'/api/api-testing/requests/{self.req.id}/execute/',
+            {'environment_id': self.env.id}, format='json')
+        self.assertEqual(resp.status_code, 200, resp.data)
+        self.assertEqual(
+            mock_request.call_args.kwargs['url'],
+            'https://192.168.1.10:9993/users/{id}')
+
+    @patch('apps.api_testing.views.requests.request', return_value=FakeResponse())
+    def test_list_params_normalized_and_disabled_skipped(self, mock_request):
+        """DB 里 params 存行数组时：仅启用且有 key 的行进 query 参数"""
+        self.req.params = [
+            {'key': 'a', 'value': '1', 'enabled': True},
+            {'key': 'b', 'value': '2', 'enabled': False},
+        ]
+        self.req.save()
+        resp = self.client.post(
+            f'/api/api-testing/requests/{self.req.id}/execute/',
+            {'environment_id': self.env.id}, format='json')
+        self.assertEqual(resp.status_code, 200, resp.data)
+        self.assertEqual(mock_request.call_args.kwargs['params'], {'a': '1'})

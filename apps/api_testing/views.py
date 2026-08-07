@@ -48,7 +48,8 @@ logger = logging.getLogger(__name__)
 # 批量生成用例单次上限
 MAX_BATCH_GENERATE = 20
 
-from .utils import execute_assertions, merge_variables, normalize_base_url, request_body_kwargs
+from .utils import (_params_to_dict, _replace_path_params, execute_assertions,
+                    merge_variables, normalize_base_url, request_body_kwargs)
 from .operation_logger import log_operation
 from .variable_resolver import VariableResolver
 
@@ -284,7 +285,7 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = StandardPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['collection', 'method', 'request_type']
+    filterset_fields = ['collection', 'method', 'request_type', 'parent_request']
     search_fields = ['name', 'url']
     
     def get_queryset(self):
@@ -367,8 +368,11 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
                 env = Environment.objects.get(id=environment_id)
                 variables.update(env.variables)
 
-            # 用例级变量优先于环境变量
-            variables = merge_variables(variables, getattr(api_request, 'variables', None) or {})
+            # 用例级变量优先于环境变量（优先使用前端本次发送的最新值，未发送才用 DB）
+            case_vars = request.data.get('variables')
+            if case_vars is None:
+                case_vars = getattr(api_request, 'variables', None) or {}
+            variables = merge_variables(variables, case_vars)
 
             # 使用前端发送的更新后的数据，如果没有则使用数据库中的数据
             request_params = request.data.get('params', api_request.params)
@@ -380,6 +384,10 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
             # 替换URL中的变量（先解析动态函数，再替换环境变量）
             url = self._replace_variables(request_url or '', variables)
             url = resolver.resolve(url)
+            # 替换路径参数 {name}（值来自前端最新的 path_params，未发送用 DB）
+            path_params = request.data.get(
+                'path_params', getattr(api_request, 'path_params', None) or [])
+            url = _replace_path_params(url, path_params, variables, resolver)
             # 缺 scheme 时自动用环境 base_url 补齐；仍无 base 则抛出清晰错误
             url = normalize_base_url(url, variables)
             
@@ -398,8 +406,18 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
                     headers[key] = self._replace_variables(str(value), variables)
                     headers[key] = resolver.resolve(headers[key])
 
+            # 合并认证配置 auth_spec（导入时从 OpenAPI security 生成）：认证头默认填进请求，
+            # 接口显式声明了同名 header 时以显式为准（auth_spec 不覆盖）
+            auth_spec = request.data.get('auth_spec', api_request.auth_spec) or {}
+            if isinstance(auth_spec, dict) and auth_spec.get('header_name'):
+                auth_key = auth_spec['header_name']
+                if auth_key not in headers:
+                    auth_val = self._replace_variables(str(auth_spec.get('header_value', '') or ''), variables)
+                    auth_val = resolver.resolve(auth_val)
+                    headers[auth_key] = auth_val
+
             # 准备请求参数
-            params = request_params.copy() if request_params else {}
+            params = _params_to_dict(request_params)
             for key, value in params.items():
                 params[key] = self._replace_variables(str(value), variables)
                 params[key] = resolver.resolve(params[key])
@@ -431,18 +449,36 @@ class ApiRequestViewSet(viewsets.ModelViewSet):
                         body_data = body_content
                 else:
                     body_data = body_content
-            
+
+            # 按 body 类型校正 Content-Type，避免 JSON body 带着遗留的 urlencoded 旧头发送
+            ct_keys = [k for k in headers if k.lower() == 'content-type']
+            if body_type == 'json':
+                if ct_keys and not headers[ct_keys[0]].lower().startswith('application/json'):
+                    headers[ct_keys[0]] = 'application/json'
+                elif not ct_keys:
+                    headers['Content-Type'] = 'application/json'
+            elif body_type == 'x-www-form-urlencoded':
+                if ct_keys and not headers[ct_keys[0]].lower().startswith('application/x-www-form-urlencoded'):
+                    headers[ct_keys[0]] = 'application/x-www-form-urlencoded'
+                elif not ct_keys:
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded'
+            elif body_type == 'form-data':
+                # 去掉不匹配的 Content-Type，让 requests 按 multipart 自动生成（含 boundary）
+                if ct_keys and not headers[ct_keys[0]].lower().startswith('multipart/form-data'):
+                    del headers[ct_keys[0]]
+
             # 执行请求
             start_time = time.time()
 
             # 根据请求体类型组装发送参数（urlencoded/form-data 做正确编码）
             send_kwargs = request_body_kwargs(body_type, body_data)
+            send_kwargs['verify'] = request.data.get('verify', True)
+            send_kwargs['timeout'] = request.data.get('timeout', 30)
             response = requests.request(
                 method=request_method,
                 url=url,
                 headers=headers,
                 params=params,
-                timeout=30,
                 **send_kwargs
             )
             end_time = time.time()
@@ -844,6 +880,9 @@ class TestSuiteViewSet(viewsets.ModelViewSet):
                     # 替换URL中的变量（先解析动态函数，再替换环境变量）
                     url = self._replace_variables(api_request.url, variables)
                     url = resolver.resolve(url)
+                    # 替换路径参数 {name}（值来自 path_params 行）
+                    url = _replace_path_params(
+                        url, getattr(api_request, 'path_params', None), variables, resolver)
 
                     # 准备请求头
                     headers = {}
@@ -863,7 +902,7 @@ class TestSuiteViewSet(viewsets.ModelViewSet):
                             headers[key] = self._replace_variables(str(value), variables)
                             headers[key] = resolver.resolve(headers[key])
 
-                    params = api_request.params.copy()
+                    params = _params_to_dict(api_request.params)
                     for key, value in params.items():
                         params[key] = self._replace_variables(str(value), variables)
                         params[key] = resolver.resolve(params[key])

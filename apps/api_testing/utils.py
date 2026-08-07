@@ -18,6 +18,9 @@ def _base_url_from_variables(variables) -> str:
     for key, value in (variables or {}).items():
         norm = re.sub(r'[^a-z0-9]', '', str(key).lower())
         if norm == 'baseurl':
+            if isinstance(value, dict):
+                # 环境变量支持 {currentValue, initialValue} 结构，取当前值
+                return str(value.get('currentValue') or value.get('initialValue') or '')
             return str(value) if value is not None else ''
     return ''
 
@@ -44,6 +47,52 @@ def normalize_base_url(url, variables) -> str:
         '请在所选环境中配置 base_url，或在请求 URL 里填写完整地址（如 https://host/path）。')
 
 
+def _params_to_dict(params):
+    """归一化 query 参数：行数组或字典 → {key: value}（仅启用且有 key 的行）。
+
+    前端保存/导入会以行数组（[{key,value,enabled,description,param_type,required}]）
+    持久化 params，执行链的 DB 兜底需要此归一化；字典形态原样返回。
+    """
+    if isinstance(params, dict):
+        return dict(params)
+    result = {}
+    for row in (params or []):
+        if isinstance(row, dict) and row.get('enabled', True) and row.get('key'):
+            result[row['key']] = row.get('value') or ''
+    return result
+
+
+def _replace_path_params(url, path_params, variables, resolver):
+    """把 URL 里的 {name} 路径参数模板替换成 path_params 行值。
+
+    - 负向后视 (?<!\{) 只匹配单花括号 {name}，绝不破坏 {{var}} / {{{...}}} 序列；
+    - 参数值本身先做变量替换与函数解析（支持 {{var}} / ${func()}）；
+    - 仅替换启用且值非空的行；没有对应行的占位符原样保留（避免误删 token）。
+    """
+    if not isinstance(url, str) or not path_params:
+        return url
+    if isinstance(path_params, dict):
+        mapping = dict(path_params)
+    else:
+        mapping = {}
+        for row in (path_params or []):
+            if isinstance(row, dict) and row.get('enabled', True) and row.get('key'):
+                mapping[row['key']] = row.get('value')
+    result = url
+    for key, value in mapping.items():
+        raw = str(value or '')
+        if not key or not raw:
+            continue
+        resolved = resolver.resolve(_replace_variables(raw, variables))
+        if resolved == '':
+            continue
+        # 负向后视 (?<!\{) 只匹配 {key}，不碰 {{var}} / {{{...}}}；
+        # 用函数替换避免替换串里的 $ / \ 被当作 re 组展开
+        pattern = r'(?<!\{)\{' + re.escape(key) + r'\}'
+        result = re.sub(pattern, lambda m: resolved, result)
+    return result
+
+
 def request_body_kwargs(body_type, body_content) -> dict:
     """把解析后的 body 组装成 requests.request 的发送参数。
 
@@ -51,7 +100,15 @@ def request_body_kwargs(body_type, body_content) -> dict:
     - form-data：列表 → files（multipart 文本字段）
     - raw：字符串原样 → data
     - 其余（json 等）：→ json
+
+    兼容历史导入的字典格式 body（{"key": "value"}），统一转成行列表再处理。
     """
+    if body_type in ('x-www-form-urlencoded', 'form-data'):
+        if isinstance(body_content, dict):
+            body_content = [
+                {'key': k, 'value': str(v), 'enabled': True}
+                for k, v in body_content.items()
+            ]
     if body_type == 'x-www-form-urlencoded':
         enabled = [it for it in (body_content or []) if it.get('enabled', True) and it.get('key')]
         return {'data': {it['key']: it.get('value') or '' for it in enabled}}
@@ -63,64 +120,186 @@ def request_body_kwargs(body_type, body_content) -> dict:
     return {'json': body_content}
 
 
+# 断言支持的 JSONPath 操作符（AI 生成格式与系统执行语义统一）
+JSON_PATH_OPERATOR_CN = {
+    'equals': '等于',
+    'not_equals': '不等于',
+    'contains': '包含',
+    'not_contains': '不包含',
+    'exists': '存在',
+    'not_exists': '不存在',
+    'greater_than': '大于',
+    'less_than': '小于',
+    'greater_or_equal': '大于等于',
+    'less_or_equal': '小于等于',
+}
+
+
+def _values_equal(actual, expected):
+    """宽松相等：数值按数值比，其余按字符串比，布尔不误等数字。"""
+    if actual is None or expected is None:
+        return actual is expected
+    if isinstance(actual, bool) or isinstance(expected, bool):
+        return str(actual) == str(expected)
+    if isinstance(actual, (int, float)) and isinstance(expected, (int, float)):
+        return float(actual) == float(expected)
+    return str(actual) == str(expected)
+
+
+def _compare(actual, expected, operator):
+    """按操作符比较 actual/expected；数值类操作符尽力转 float。"""
+    operator = operator or 'equals'
+    if operator == 'equals':
+        return _values_equal(actual, expected)
+    if operator == 'not_equals':
+        return not _values_equal(actual, expected)
+    if operator == 'contains':
+        return expected is not None and str(expected) in str(actual if actual is not None else '')
+    if operator == 'not_contains':
+        return not (expected is not None and str(expected) in str(actual if actual is not None else ''))
+    try:
+        a = float(actual)
+        e = float(expected)
+    except (TypeError, ValueError):
+        return False
+    if operator == 'greater_than':
+        return a > e
+    if operator == 'less_than':
+        return a < e
+    if operator == 'greater_or_equal':
+        return a >= e
+    if operator == 'less_or_equal':
+        return a <= e
+    return False
+
+
+def describe_assertion(assertion: dict) -> str:
+    """根据断言字段生成可读名称（name 缺失时兜底）。"""
+    a_type = assertion.get('type') or ''
+    op = assertion.get('operator') or 'equals'
+    op_cn = JSON_PATH_OPERATOR_CN.get(op, op)
+    if a_type == 'status_code':
+        return f'状态码{op_cn}{assertion.get("expected", "")}'
+    if a_type == 'response_time':
+        return f'响应时间不超过 {assertion.get("expected", "")}ms'
+    if a_type == 'json_path':
+        path = assertion.get('json_path') or assertion.get('path') or ''
+        if op in ('exists', 'not_exists'):
+            return f'JSON {path} {op_cn}'.strip()
+        return (f'JSON {path} {op_cn} {assertion.get("expected", "")}').strip()
+    if a_type == 'header':
+        name = assertion.get('header_name') or assertion.get('path') or ''
+        val = assertion.get('expected_value', assertion.get('expected', ''))
+        return (f'响应头 {name} {op_cn} {val}').strip()
+    if a_type == 'contains':
+        return f'响应包含 {assertion.get("expected", "")}'
+    if a_type == 'equals':
+        return f'响应等于 {assertion.get("expected", "")}'
+    return (f'{a_type} {op_cn} {assertion.get("json_path") or assertion.get("path") or ""} '
+            f'{assertion.get("expected", "")}').strip()
+
+
+def normalize_assertions(assertions) -> list:
+    """把 AI/外部输入的断言统一成系统 schema，幂等。
+
+    AI 生成格式：{"type","operator","path","expected"}（见 API_TESTCASE_GENERATOR_PROMPT）
+    系统 schema ：{"name","type","json_path","operator","expected"}（接口编辑器 + execute_assertions）
+    这里做：path→json_path、补 name、operator 默认 equals。修复"生成用例断言
+    存储后 json_path 为空、name 为空、operator 语义丢失"的问题。
+    """
+    normalized = []
+    for a in assertions or []:
+        if not isinstance(a, dict):
+            continue
+        out = dict(a)
+        a_type = out.get('type')
+        if a_type == 'json_path':
+            if not out.get('json_path') and out.get('path'):
+                out['json_path'] = str(out.pop('path', '')) or ''
+            out.pop('path', None)
+        elif a_type == 'header':
+            if not out.get('header_name') and out.get('path'):
+                out['header_name'] = str(out.pop('path', '')) or ''
+            if out.get('expected_value') is None and out.get('expected') is not None:
+                out['expected_value'] = out['expected']
+        op = out.get('operator') or 'equals'
+        if op not in JSON_PATH_OPERATOR_CN:
+            op = 'equals'
+        out['operator'] = op
+        if not out.get('name'):
+            out['name'] = describe_assertion(out)
+        normalized.append(out)
+    return normalized
+
+
 def execute_assertions(response, assertions):
     """执行断言验证"""
     results = []
-    
+
     for assertion in assertions:
+        if not isinstance(assertion, dict):
+            continue
+        assertion_type = assertion.get('type')
+        expected = assertion.get('expected')
+        operator = assertion.get('operator') or 'equals'
         result = {
             'name': assertion.get('name', '未命名断言'),
-            'type': assertion.get('type'),
+            'type': assertion_type,
             'passed': False,
-            'expected': assertion.get('expected'),
+            'expected': expected,
             'actual': None,
             'error': None
         }
-        
+
         try:
-            assertion_type = assertion.get('type')
-            expected = assertion.get('expected')
             actual = None
             passed = False
-            
+
             if assertion_type == 'status_code':
                 actual = response.status_code
-                passed = actual == expected
-                
+                passed = _compare(actual, expected, operator)
+
             elif assertion_type == 'response_time':
-                # 响应时间断言在调用方处理
+                # 响应时间断言在调用方处理（actual_time 由调用方写入）
                 actual = assertion.get('actual_time')
-                passed = actual <= expected if actual else False
-                
+                # 默认语义"不超过期望时间"
+                passed = _compare(actual, expected, operator if operator != 'equals' else 'less_or_equal')
+
             elif assertion_type == 'contains':
                 text = response.text or ''
                 pattern = str(expected)
                 actual = text[:200] + '...' if len(text) > 200 else text
                 passed = pattern in str(text)
-                
+
             elif assertion_type == 'json_path':
-                json_path = assertion.get('json_path', '')
+                # 兼容 AI 生成的 path 字段以及归一化后的 json_path 字段
+                json_path = assertion.get('json_path', '') or assertion.get('path', '')
                 expected_value = assertion.get('expected')
                 actual = None
                 passed = False
-                
+
                 try:
                     # 检查响应是否为JSON格式
                     content_type = response.headers.get('content-type', '').lower()
                     if 'application/json' not in content_type:
                         raise ValueError(f"响应不是JSON格式，Content-Type: {content_type}")
-                    
+
                     response_json = json.loads(response.text)
-                    
+
                     # 检查JSONPath表达式是否为空
                     if not json_path:
                         raise ValueError("JSON路径表达式不能为空")
-                    
+
                     from jsonpath_ng import parse
                     matches = parse(json_path).find(response_json)
                     actual = matches[0].value if matches else None
-                    passed = str(actual) == str(expected_value)
-                    
+                    if operator in ('exists', 'not_exists'):
+                        # 存在性断言不需要期望值
+                        exists = bool(matches)
+                        passed = exists if operator == 'exists' else (not exists)
+                    else:
+                        passed = _compare(actual, expected_value, operator)
+
                     # 确保actual值被正确设置到result中
                     result['actual'] = actual
                 except json.JSONDecodeError as e:
@@ -138,16 +317,16 @@ def execute_assertions(response, assertions):
                     passed = False
                     result['error'] = f"执行错误: {str(e)}"
                     result['actual'] = actual
-                    
+
             elif assertion_type == 'header':
                 header_name = assertion.get('header_name', '')
-                expected_value = assertion.get('expected_value')
+                expected_value = assertion.get('expected_value', assertion.get('expected'))
                 actual = response.headers.get(header_name)
-                passed = actual == expected_value
-                
+                passed = _compare(actual, expected_value, operator)
+
             elif assertion_type == 'equals':
                 actual = response.text.strip()
-                passed = actual == str(expected).strip()
+                passed = _values_equal(actual, str(expected).strip() if expected is not None else None)
             
             # 确保在所有情况下都设置actual值
             if 'actual' not in result or result['actual'] is None:
@@ -207,6 +386,9 @@ def execute_test_suite(test_suite, environment, executed_by):
                 # 替换URL中的变量（先解析动态函数，再替换环境变量）
                 url = _replace_variables(api_request.url, variables)
                 url = resolver.resolve(url)
+                # 替换路径参数 {name}（值来自 path_params 行）
+                url = _replace_path_params(
+                    url, getattr(api_request, 'path_params', None), variables, resolver)
                 # 缺 scheme 时自动用环境 base_url 补齐；仍无 base 则抛出清晰错误
                 url = normalize_base_url(url, variables)
                 
@@ -226,7 +408,7 @@ def execute_test_suite(test_suite, environment, executed_by):
                         headers[key] = resolver.resolve(headers[key])
                 
                 # 准备请求参数
-                params = api_request.params.copy() if api_request.params else {}
+                params = _params_to_dict(api_request.params)
                 for key, value in params.items():
                     params[key] = _replace_variables(str(value), variables)
                     params[key] = resolver.resolve(params[key])
@@ -393,6 +575,9 @@ def execute_api_request(api_request, environment, executed_by):
         # 替换URL中的变量（先解析动态函数，再替换环境变量）
         url = _replace_variables(api_request.url, variables)
         url = resolver.resolve(url)
+        # 替换路径参数 {name}（值来自 path_params 行）
+        url = _replace_path_params(
+            url, getattr(api_request, 'path_params', None), variables, resolver)
         # 缺 scheme 时自动用环境 base_url 补齐；仍无 base 则抛出清晰错误
         url = normalize_base_url(url, variables)
         
@@ -412,7 +597,7 @@ def execute_api_request(api_request, environment, executed_by):
                 headers[key] = resolver.resolve(headers[key])
         
         # 准备请求参数
-        params = api_request.params.copy() if api_request.params else {}
+        params = _params_to_dict(api_request.params)
         for key, value in params.items():
             params[key] = _replace_variables(str(value), variables)
             params[key] = resolver.resolve(params[key])

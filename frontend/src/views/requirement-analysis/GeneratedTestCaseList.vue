@@ -1295,7 +1295,12 @@ export default {
 .body-cell.requirement-name-cell { justify-content: flex-start; }
 
 .status-cell { width: 100px; flex-shrink: 0; }
-.body-cell.status-cell { justify-content: center; }
+.body-cell.status-cell {
+  justify-content: center;
+  /* 状态标签与进度条纵向堆叠，避免横向溢出 100px 列宽 */
+  flex-direction: column;
+  gap: 4px;
+}
 
 .count-cell { justify-content: center; width: 100px; flex-shrink: 0; }
 .time-cell { width: 180px; flex-shrink: 0; }
@@ -1372,11 +1377,14 @@ export default {
 .task-progress {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  margin-top: 4px;
+  width: 100%;
 }
 .progress-track {
-  width: 72px;
+  flex: 1;
+  min-width: 0;
+  max-width: 72px;
   height: 4px;
   border-radius: 2px;
   background: #e5e7eb;

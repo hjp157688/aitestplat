@@ -98,6 +98,8 @@ class ApiRequest(models.Model):
     auth_spec = models.JSONField(default=dict, verbose_name='认证配置')
     request_schema = models.JSONField(default=dict, verbose_name='请求体Schema')
     response_schemas = models.JSONField(default=dict, verbose_name='响应Schema')
+    path_params = models.JSONField(default=list, verbose_name='路径参数')
+    response_examples = models.JSONField(default=dict, verbose_name='响应示例')
     deprecated = models.BooleanField(default=False, verbose_name='是否已废弃')
     order = models.IntegerField(default=0, verbose_name='排序')
     parent_request = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,

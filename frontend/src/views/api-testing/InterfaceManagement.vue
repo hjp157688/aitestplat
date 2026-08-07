@@ -259,6 +259,23 @@
                 </el-dropdown>
               </div>
             </div>
+
+            <!-- 接口描述（导入自 OpenAPI 的 summary/description） -->
+            <div v-if="selectedRequest && selectedRequest.description" class="request-description">
+              {{ selectedRequest.description }}
+            </div>
+
+            <!-- 路径参数编辑区（导入自 OpenAPI 的 in:path 参数，值在执行时替换 URL 的 {name}） -->
+            <div v-if="hasPathParams" class="path-params-section">
+              <h4>{{ $t('apiTesting.interface.pathParams') }}</h4>
+              <KeyValueEditor
+                v-model="selectedRequest.path_params"
+                :placeholder-key="$t('apiTesting.interface.paramName')"
+                :placeholder-value="$t('apiTesting.interface.paramValue')"
+                :show-type="true"
+                :show-required="true"
+              />
+            </div>
           </div>
 
           <!-- 请求配置 -->
@@ -268,6 +285,8 @@
                 v-model="selectedRequest.params"
                 :placeholder-key="$t('apiTesting.interface.paramName')"
                 :placeholder-value="$t('apiTesting.interface.paramValue')"
+                :show-type="true"
+                :show-required="true"
               />
             </el-tab-pane>
 
@@ -277,6 +296,8 @@
                 v-model="selectedRequest.headers"
                 :placeholder-key="$t('apiTesting.interface.headerName')"
                 :placeholder-value="$t('apiTesting.interface.headerValue')"
+                :show-type="true"
+                :show-required="true"
                 @update:modelValue="onHeadersUpdate"
               />
             </el-tab-pane>
@@ -307,6 +328,8 @@
                     :placeholder-key="$t('apiTesting.interface.key')"
                     :placeholder-value="$t('apiTesting.interface.value')"
                     :show-file="true"
+                    :show-type="true"
+                    :show-required="true"
                   />
                 </div>
 
@@ -315,6 +338,8 @@
                     v-model="formUrlEncoded"
                     :placeholder-key="$t('apiTesting.interface.key')"
                     :placeholder-value="$t('apiTesting.interface.value')"
+                    :show-type="true"
+                    :show-required="true"
                   />
                 </div>
 
@@ -368,8 +393,7 @@
                 <div class="auth-header-row">
                   <span class="auth-label">{{ selectedRequest.auth_spec.header_name }}</span>
                   <el-input
-                    :model-value="selectedRequest.auth_spec.header_value"
-                    readonly
+                    v-model="selectedRequest.auth_spec.header_value"
                     class="auth-value-input"
                   />
                   <el-tooltip :content="$t('apiTesting.interface.authSource')" placement="top">
@@ -405,6 +429,20 @@
                       :name="schema.title || 'response'"
                       :required-fields="schema.required || []"
                     />
+                  </div>
+                </div>
+
+                <!-- 响应示例（按状态码展示文档自带的示例内容） -->
+                <div v-if="selectedRequest.response_examples && Object.keys(selectedRequest.response_examples).length > 0" class="schema-section">
+                  <h4>{{ $t('apiTesting.interface.responseExamples') }}</h4>
+                  <div v-for="(example, statusCode) in selectedRequest.response_examples" :key="statusCode" class="schema-status-group">
+                    <div class="response-example-header">
+                      <h5>Status: {{ statusCode }}</h5>
+                      <el-button size="small" text type="primary" @click="copyExample(example)">
+                        {{ $t('apiTesting.interface.copy') }}
+                      </el-button>
+                    </div>
+                    <pre class="response-example-json">{{ formatResponseExample(example) }}</pre>
                   </div>
                 </div>
 
@@ -526,6 +564,21 @@
                         </el-select>
 
                         <div class="assertion-params" v-if="assertion.type">
+                          <!-- 比较操作符（status_code / json_path / header 支持；与后端 utils._compare 一致） -->
+                          <el-select
+                            v-if="assertionOperators(assertion.type).length"
+                            v-model="assertion.operator"
+                            size="small"
+                            class="assertion-operator"
+                          >
+                            <el-option
+                              v-for="op in assertionOperators(assertion.type)"
+                              :key="op"
+                              :label="assertionOperatorLabel(op)"
+                              :value="op"
+                            />
+                          </el-select>
+
                           <!-- 状态码断言 -->
                           <div v-if="assertion.type === 'status_code'">
                             <el-input-number
@@ -582,7 +635,7 @@
                               size="small"
                               class="assertion-input"
                             />
-                            <div style="display: flex; align-items: center; width: 100%">
+                            <div v-if="!isExistenceOperator(assertion.operator)" style="display: flex; align-items: center; width: 100%">
                               <el-input
                                 v-model="assertion.expected"
                                 :placeholder="$t('apiTesting.interface.expectedValue')"
@@ -769,17 +822,17 @@
             </template>
           </el-tabs>
 
-          <!-- 用例变量 -->
-          <div
-            v-if="selectedRequest && selectedRequest.variables && Object.keys(selectedRequest.variables).length"
-            class="case-variables-section"
-          >
+          <!-- 用例变量（可编辑，保存后作为本接口的用例级变量） -->
+          <div v-if="selectedRequest" class="case-variables-section">
             <h4>用例变量</h4>
-            <div class="variables-tags">
-              <el-tag v-for="(v, k) in selectedRequest.variables" :key="k" class="var-tag">
-                {{ k }} = {{ v }}
-              </el-tag>
+            <div class="variables-editor">
+              <KeyValueEditor
+                v-model="caseVariablesRows"
+                :placeholder-key="$t('apiTesting.interface.paramName')"
+                :placeholder-value="$t('apiTesting.interface.paramValue')"
+              />
             </div>
+            <p class="variables-hint">启用状态且有变量名的行会作为本接口的用例级变量，执行时替换请求里的 &#123;&#123;变量名&#125;&#125;，且覆盖环境变量中的同名变量。</p>
           </div>
 
           <!-- 响应区域 -->
@@ -951,7 +1004,7 @@
 
       <template #footer>
         <el-button @click="closeEditCollectionDialog">{{ $t('apiTesting.common.cancel') }}</el-button>
-        <el-button type="primary" @click="editCollection">{{ $t('apiTesting.common.save') }}</el-button>
+        <el-button type="primary" @click="updateCollection">{{ $t('apiTesting.common.save') }}</el-button>
       </template>
     </el-dialog>
 
@@ -1234,14 +1287,67 @@ const formUrlEncoded = ref([])
 const rawBody = ref('')
 const _originalJsonBody = ref(null)  // 保存原始 JSON body，用于保存时恢复
 
+// 用例级变量编辑表格（行数组格式，保存时转回 {key: value} 字典）
+const caseVariablesRows = ref([])
+
+// 把后端返回的 body.data 归一化为表格行数组 [{key, value, enabled, description, type}]
+// 兼容导入接口里存成 {key: value} 字典的历史数据
+const toRowArray = (data) => {
+  if (Array.isArray(data)) return data
+  if (data && typeof data === 'object') {
+    return Object.entries(data).map(([key, value]) => {
+      let val = value
+      if (value !== null && typeof value === 'object') {
+        val = JSON.stringify(value)
+      } else if (value !== null && value !== undefined) {
+        val = String(value)
+      } else {
+        val = ''
+      }
+      return { key, value: val, enabled: true, description: '', type: 'text' }
+    })
+  }
+  return []
+}
+
+// 清空所有 body 编辑状态，切换接口 / 新建接口时避免上一个接口的 body 残留
+const resetBodyState = () => {
+  bodyType.value = 'none'
+  rawType.value = 'text'
+  formData.value = []
+  formUrlEncoded.value = []
+  rawBody.value = ''
+  _originalJsonBody.value = null
+  bodySchemaProps.value = {}
+  bodyRequiredFields.value = []
+}
+
+// 当前接口请求体 schema 的 properties（字段名 → {type, ...}）与 required 列表，
+// 用于给 body 行标类型与必填标记
+const bodySchemaProps = ref({})
+const bodyRequiredFields = ref([])
+
+// 按 request_schema 给 body 行补字段类型/必填标识（已有 param_type 则保留）
+const attachBodyTypes = (rows) => (rows || []).map(row => ({
+  ...row,
+  param_type: row.param_type || (bodySchemaProps.value[row.key] && bodySchemaProps.value[row.key].type) || '',
+  required: bodyRequiredFields.value.includes(row.key)
+}))
+
 // 将扁平 JSON 对象转为 form-data 表格格式显示
-const setBodyFromJson = (data) => {
+const setBodyFromJson = (data, schemaProps) => {
   if (!data || typeof data !== 'object') return
+
+  const typeOf = (key) => {
+    const prop = (schemaProps || bodySchemaProps.value)[key]
+    return (prop && prop.type) || ''
+  }
+  const isRequiredOf = (key) => bodyRequiredFields.value.includes(key)
 
   const items = []
   Object.entries(data).forEach(([key, value]) => {
     if (value === null || value === undefined) {
-      items.push({ key, value: '', enabled: true, description: '', type: 'text' })
+      items.push({ key, value: '', enabled: true, description: '', type: 'text', param_type: typeOf(key), required: isRequiredOf(key) })
     } else if (typeof value === 'object') {
       // 嵌套对象/数组：显示为 JSON 字符串
       items.push({
@@ -1249,7 +1355,9 @@ const setBodyFromJson = (data) => {
         value: JSON.stringify(value),
         enabled: true,
         description: 'object/array',
-        type: 'text'
+        type: 'text',
+        param_type: typeOf(key),
+        required: isRequiredOf(key)
       })
     } else {
       items.push({
@@ -1257,7 +1365,9 @@ const setBodyFromJson = (data) => {
         value: String(value),
         enabled: true,
         description: '',
-        type: 'text'
+        type: 'text',
+        param_type: typeOf(key),
+        required: isRequiredOf(key)
       })
     }
   })
@@ -1584,7 +1694,17 @@ const onNodeClick = async (data) => {
         requestData.headers = headersArray
       }
 
-      // 解析body数据
+      // 将 path_params 归一化为行数组（旧数据可能是字典格式）
+      if (requestData.path_params != null) {
+        requestData.path_params = toRowArray(requestData.path_params)
+      }
+
+      // 解析body数据（先清空上一个接口残留的 body 状态）
+      resetBodyState()
+      // 保留请求体 schema 的字段类型/必填，给 body 行标类型与必填标记用
+      const reqSchema = requestData.request_schema || {}
+      bodySchemaProps.value = reqSchema.properties || {}
+      bodyRequiredFields.value = reqSchema.required || []
       if (requestData.body && requestData.body.type) {
         if (requestData.body.type === 'json') {
           const data = requestData.body.data
@@ -1592,7 +1712,7 @@ const onNodeClick = async (data) => {
             // 尝试解析字符串为JSON
             try {
               const parsed = JSON.parse(data)
-              setBodyFromJson(parsed)
+              setBodyFromJson(parsed, bodySchemaProps.value)
             } catch (e) {
               bodyType.value = 'raw'
               rawType.value = 'json'
@@ -1600,7 +1720,7 @@ const onNodeClick = async (data) => {
             }
           } else if (data && typeof data === 'object' && !Array.isArray(data)) {
             // 默认进入表格模式，无论是否有嵌套
-            setBodyFromJson(data)
+            setBodyFromJson(data, bodySchemaProps.value)
           } else {
             bodyType.value = 'raw'
             rawType.value = 'json'
@@ -1612,19 +1732,34 @@ const onNodeClick = async (data) => {
           rawBody.value = typeof requestData.body.data === 'string' ? requestData.body.data : JSON.stringify(requestData.body.data, null, 2)
         } else if (requestData.body.type === 'form-data') {
           bodyType.value = 'form-data'
-          formData.value = requestData.body.data || []
+          formData.value = attachBodyTypes(toRowArray(requestData.body.data))
         } else if (requestData.body.type === 'x-www-form-urlencoded') {
           bodyType.value = 'x-www-form-urlencoded'
-          formUrlEncoded.value = requestData.body.data || []
+          formUrlEncoded.value = attachBodyTypes(toRowArray(requestData.body.data))
         } else if (requestData.body.type === 'binary') {
           bodyType.value = 'binary'
-        } else {
-          bodyType.value = 'none'
-          rawBody.value = ''
         }
-      } else {
-        bodyType.value = 'none'
-        rawBody.value = ''
+      }
+
+      // 用例级变量：字典 → 行数组（可编辑）
+      caseVariablesRows.value = toRowArray(requestData.variables)
+
+      // 兼容 AI 生成的旧格式断言（path→json_path、补 name），保证编辑器展示正常
+      if (Array.isArray(requestData.assertions)) {
+        requestData.assertions = requestData.assertions
+          .filter(a => a && typeof a === 'object')
+          .map(a => {
+            const out = { ...a }
+            if (out.type === 'json_path' && !out.json_path && out.path) {
+              out.json_path = out.path
+            }
+            delete out.path
+            out.operator = normalizeOperator(out.type, out.operator)
+            if (!out.name) {
+              out.name = `${t('apiTesting.interface.assertion')} ${out.type}`
+            }
+            return out
+          })
       }
 
       response.value = null
@@ -1644,8 +1779,35 @@ const onNodeRightClick = (event, node, treeNode) => {
   rightClickedNode.value = node
 }
 
+// 懒加载：展开原接口时按 parent 拉取它下面已生成的测试用例（列表分页可能没带上）
+const loadChildTestCases = async (requestNode) => {
+  if (!requestNode || requestNode.id == null) return
+  try {
+    const res = await api.get('/api-testing/requests/', {
+      params: { parent_request: requestNode.id, page_size: 1000 },
+    })
+    const children = res.data.results || res.data || []
+    requestNode.children = children.map(child => ({
+      ...child,
+      type: 'testcase',
+      key: `testcase:${child.id}`,
+      name: child.name,
+    }))
+  } catch (e) {
+    console.error('加载子用例失败:', e)
+  } finally {
+    requestNode.hasChildren = false
+    requestNode._childrenLoaded = true
+  }
+}
+
 const onNodeExpand = (node) => {
   expandedKeys.value.push(node.key)
+  // 子用例未随主列表加载时（请求很多被分页截断），展开时补拉
+  const data = node.data
+  if (data && data.type === 'request' && data.hasChildren && !data._childrenLoaded) {
+    loadChildTestCases(data)
+  }
 }
 
 const onNodeCollapse = (node) => {
@@ -1657,6 +1819,9 @@ const createEmptyRequest = () => {
     ElMessage.warning('请先选择项目')
     return
   }
+
+  resetBodyState()
+  caseVariablesRows.value = []
 
   const newRequest = {
     id: null,
@@ -1775,8 +1940,15 @@ const deleteNode = (node = rightClickedNode.value) => {
 
   const nodeName = node.name
 
+  // 按节点类型说明删除对象：集合 / 测试用例 / 接口
+  const typeName = node.type === 'collection'
+    ? t('apiTesting.interface.collection')
+    : (node.type === 'testcase'
+        ? t('apiTesting.interface.testcase')
+        : t('apiTesting.interface.request'))
+
   ElMessageBox.confirm(
-    `确定要删除${node.type === 'collection' ? '集合' : '接口'}「${nodeName}」吗？`,
+    `确定要删除${typeName}「${nodeName}」吗？`,
     '确认删除',
     {
       confirmButtonText: '确定',
@@ -1807,12 +1979,26 @@ const deleteNode = (node = rightClickedNode.value) => {
 const batchDelete = () => {
   const collectionCount = checkedCollections.value.length
   const nonCollectionNodes = checkedNodes.value.filter(n => n.type !== 'collection')
+  const checkedIds = new Set(nonCollectionNodes.map(n => n.id))
+
+  // 保护"被级联勾选的父接口"：只要该接口的生成用例也在删除清单里，就只删用例、保留原接口。
+  // （el-tree 全选子节点会级联勾上父节点，否则批量删除会把原接口一并删掉）
+  const keptParents = nonCollectionNodes.filter(n =>
+    n.type === 'request' && (n.children || []).some(k => k.type === 'testcase' && checkedIds.has(k.id)))
+  const keptParentIds = new Set(keptParents.map(n => n.id))
+  const requestIds = nonCollectionNodes
+    .filter(n => !keptParentIds.has(n.id))
+    .map(n => n.id)
+
+  const confirmMsg = t('apiTesting.interface.batchActions.batchDeleteConfirm', {
+    collections: collectionCount,
+    requests: requestIds.length,
+  }) + (keptParents.length
+    ? ' ' + t('apiTesting.interface.batchActions.batchDeleteKeptParents', { count: keptParents.length })
+    : '')
 
   ElMessageBox.confirm(
-    t('apiTesting.interface.batchActions.batchDeleteConfirm', {
-      collections: collectionCount,
-      requests: nonCollectionNodes.length,
-    }),
+    confirmMsg,
     t('apiTesting.interface.batchActions.batchDeleteTitle'),
     {
       confirmButtonText: '确定',
@@ -1823,7 +2009,7 @@ const batchDelete = () => {
     try {
       const { data } = await batchDeleteRequests({
         collection_ids: checkedCollections.value.map(n => n.id),
-        request_ids: nonCollectionNodes.map(n => n.id),
+        request_ids: requestIds,
       })
       ElMessage.success(t('apiTesting.interface.batchActions.batchDeleteSuccess', {
         collections: data.deleted_collections,
@@ -1988,6 +2174,25 @@ const hasBody = computed(() => {
   return selectedRequest.value && selectedRequest.value.method && ['POST', 'PUT', 'PATCH'].includes(selectedRequest.value.method)
 })
 
+// 是否存在可编辑的路径参数（导入自 OpenAPI 的 in:path 参数）
+const hasPathParams = computed(() => {
+  return !!(selectedRequest.value?.path_params && selectedRequest.value.path_params.length)
+})
+
+// 响应示例格式化：对象 → 缩进 JSON，字符串原样展示
+const formatResponseExample = (example) => {
+  if (example === null || example === undefined) return ''
+  return typeof example === 'string' ? example : JSON.stringify(example, null, 2)
+}
+
+const copyText = (text) => {
+  if (!text) return
+  navigator.clipboard.writeText(text)
+  ElMessage.success(`${t('apiTesting.interface.copy')} ✓`)
+}
+
+const copyExample = (example) => copyText(formatResponseExample(example))
+
 const responseBody = computed(() => {
   if (!response.value || !response.value.response_data) return ''
 
@@ -2068,8 +2273,14 @@ const sendRequest = async () => {
   try {
     sending.value = true
 
-    // 发送请求前先自动保存当前的修改
-    // await saveRequest()
+    // 新建未保存接口 id=null：先保存拿到 id，否则 /execute/ 会命中 null 路由 404
+    if (!selectedRequest.value.id) {
+      await saveRequest()
+      if (!selectedRequest.value.id) {
+        ElMessage.warning('请先保存接口再发送')
+        return
+      }
+    }
 
     // 准备请求体数据
     let bodyData = {}
@@ -2096,9 +2307,28 @@ const sendRequest = async () => {
           }
         }
       } else if (bodyType.value === 'form-data') {
-        bodyData = {
-          type: 'form-data',
-          data: formData.value || []
+        if (_originalJsonBody.value) {
+          // 该表格原本是 JSON body：按 JSON 语义还原发送，避免降级成 multipart 后服务端无法解析
+          const jsonData = {}
+          ;(formData.value || []).forEach(item => {
+            if (item.key) {
+              const val = item.value || ''
+              try {
+                jsonData[item.key] = JSON.parse(val)
+              } catch {
+                jsonData[item.key] = val
+              }
+            }
+          })
+          bodyData = {
+            type: 'json',
+            data: jsonData
+          }
+        } else {
+          bodyData = {
+            type: 'form-data',
+            data: formData.value || []
+          }
         }
       } else if (bodyType.value === 'x-www-form-urlencoded') {
         bodyData = {
@@ -2118,9 +2348,12 @@ const sendRequest = async () => {
       method: selectedRequest.value.method,
       params: convertKeyValueArrayToObject(selectedRequest.value.params || []),
       headers: selectedRequest.value.headers,
+      variables: convertKeyValueArrayToObject(caseVariablesRows.value),
+      auth_spec: selectedRequest.value.auth_spec || undefined,
+      path_params: selectedRequest.value.path_params,
       environment_id: selectedEnvironment.value
     }
-    
+
     // 对于GET请求，不发送body字段
     if (hasBody.value) {
       requestData.body = bodyData
@@ -2218,7 +2451,7 @@ const saveRequest = async () => {
       }
     }
 
-    // 直接从KeyValueEditor组件获取当前headers（完整数组格式）
+    // 直接从KeyValueEditor组件获取当前headers（完整数组格式，保留导入的类型/必填元数据）
     let finalHeaders = []
     if (headersEditorRef.value) {
       const rows = headersEditorRef.value.rows || []
@@ -2228,7 +2461,9 @@ const saveRequest = async () => {
           key: row.key.trim(),
           value: row.value || '',
           description: row.description || '',
-          enabled: row.enabled !== false
+          enabled: row.enabled !== false,
+          param_type: row.param_type || '',
+          required: !!row.required
         }))
     } else {
       if (selectedRequest.value.headers && Array.isArray(selectedRequest.value.headers)) {
@@ -2236,9 +2471,26 @@ const saveRequest = async () => {
       }
     }
 
+    // 参数也以行数组持久化（保留 description/param_type/required，不再丢元数据）
+    const finalParams = Array.isArray(selectedRequest.value.params)
+      ? selectedRequest.value.params
+          .filter(row => row.key || row.value || row.description)
+          .map(row => ({
+            key: row.key || '',
+            value: row.value || '',
+            description: row.description || '',
+            enabled: row.enabled !== false,
+            param_type: row.param_type || '',
+            required: !!row.required
+          }))
+      : selectedRequest.value.params  // 旧字典数据原样保留
+
+    // 用例级变量：行数组 → 字典，随保存持久化
+    selectedRequest.value.variables = convertKeyValueArrayToObject(caseVariablesRows.value)
+
     const requestData = {
       ...selectedRequest.value,
-      params: Array.isArray(selectedRequest.value.params) ? convertKeyValueArrayToObject(selectedRequest.value.params || []) : selectedRequest.value.params,
+      params: finalParams,
       headers: finalHeaders
     }
     
@@ -2330,6 +2582,7 @@ const addAssertion = () => {
   selectedRequest.value.assertions.push({
     name: `${t('apiTesting.interface.assertion')}${selectedRequest.value.assertions.length + 1}`,
     type: 'status_code',
+    operator: 'equals',
     expected: 200
   })
 }
@@ -2340,7 +2593,35 @@ const removeAssertion = (index) => {
   selectedRequest.value.assertions.splice(index, 1)
 }
 
+// 各断言类型支持的比较操作符（与后端 utils._compare / JSON_PATH_OPERATOR_CN 保持一致）
+const ASSERTION_OPERATORS = {
+  status_code: ['equals', 'not_equals', 'greater_than', 'less_than', 'greater_or_equal', 'less_or_equal'],
+  response_time: ['less_or_equal', 'less_than'],
+  json_path: ['equals', 'not_equals', 'contains', 'not_contains', 'exists', 'not_exists', 'greater_than', 'less_than', 'greater_or_equal', 'less_or_equal'],
+  header: ['equals', 'not_equals', 'contains', 'not_contains', 'greater_than', 'less_than', 'greater_or_equal', 'less_or_equal'],
+}
+
+function assertionOperators(type) {
+  return ASSERTION_OPERATORS[type] || []
+}
+
+function assertionOperatorLabel(op) {
+  return t(`apiTesting.interface.assertionOperators.${op}`)
+}
+
+function isExistenceOperator(op) {
+  return op === 'exists' || op === 'not_exists'
+}
+
+function normalizeOperator(type, operator) {
+  const ops = ASSERTION_OPERATORS[type] || []
+  if (ops.includes(operator)) return operator
+  return ops[0] || 'equals'
+}
+
 const onAssertionTypeChange = (assertion) => {
+  // 操作符按类型校正（切类型后自动落到该类型首选/原有合法操作符）
+  assertion.operator = normalizeOperator(assertion.type, assertion.operator)
   // 根据断言类型重置相关字段
   if (assertion.type === 'status_code') {
     assertion.expected = 200
@@ -2595,6 +2876,7 @@ const exportRequest = () => {
       }
     }
 
+    /** @type {import('@/utils/requestModel').RequestModel} */
     const requestModel = {
       method: selectedRequest.value?.method || 'GET',
       baseURL: baseURL,
@@ -2630,6 +2912,7 @@ const generateCode = async (language) => {
     codeLanguage.value = language
 
     // 构建完整的 requestModel 对象
+    /** @type {import('@/utils/requestModel').RequestModel['body']['mode']} */
     let bodyMode = 'none'
     let serializedJson = rawBody.value
 
@@ -3704,6 +3987,33 @@ const useLocalVariableCategories = () => {
   flex-wrap: wrap;
 }
 
+/* 接口描述（导入自 OpenAPI 的 summary/description） */
+.request-description {
+  margin-top: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--aitest-text-2, #606266);
+  background: var(--aitest-fill-2, #f5f7fa);
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 路径参数编辑区 */
+.path-params-section {
+  margin-top: 8px;
+}
+.path-params-section h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--aitest-text-1, #303133);
+}
+.path-params-section .key-value-editor {
+  max-width: 760px;
+}
+
 .name-input {
   flex: 1;
   min-width: 200px;
@@ -4167,6 +4477,10 @@ const useLocalVariableCategories = () => {
 .assertion-config .el-select {
   width: 200px;
   border-radius: 6px;
+}
+
+.assertion-config .el-select.assertion-operator {
+  width: 132px;
 }
 
 .assertion-params {
@@ -4907,14 +5221,37 @@ const useLocalVariableCategories = () => {
 .schema-section { margin-bottom: 16px; }
 .schema-section h4 { margin: 0 0 8px; font-size: 14px; }
 .schema-status-group h5 { margin: 8px 0 4px; font-size: 13px; color: var(--aitest-primary); }
+
+/* 响应示例查看器 */
+.response-example-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.response-example-json {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  max-height: 320px;
+  overflow: auto;
+  background: var(--aitest-fill-2, #f5f7fa);
+  border: 1px solid var(--aitest-border, #e4e7ed);
+  border-radius: 4px;
+  font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--aitest-text-1, #303133);
+  white-space: pre;
+  word-break: break-all;
+}
 .schema-tree { margin-top: 8px; }
 .empty-tip { color: var(--aitest-text-3); font-size: 13px; padding: 16px 0; }
 
 /* 用例变量展示 */
 .case-variables-section { padding: 12px 16px; border-top: 1px solid var(--el-border-color-light); }
 .case-variables-section h4 { margin: 0 0 8px; font-size: 14px; font-weight: 500; color: var(--el-text-color-primary); }
-.variables-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.var-tag { font-family: monospace; font-size: 12px; }
+.variables-editor { max-width: 480px; }
+.variables-hint { margin: 6px 0 0; font-size: 12px; color: var(--el-text-color-secondary); }
 
 /* Deprecated tree node styles */
 .deprecated-node .node-label {

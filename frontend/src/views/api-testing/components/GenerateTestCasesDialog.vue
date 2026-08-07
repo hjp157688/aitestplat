@@ -257,12 +257,52 @@ function formatBody(body) {
   return JSON.stringify(body, null, 2)
 }
 
+const ASSERTION_TYPE_LABEL = {
+  status_code: '状态码',
+  response_time: '响应时间',
+  contains: '包含文本',
+  json_path: 'JSON字段',
+  header: '响应头',
+  equals: '响应完全匹配',
+}
+const ASSERTION_OP_LABEL = {
+  equals: '等于',
+  not_equals: '不等于',
+  contains: '包含',
+  not_contains: '不包含',
+  exists: '存在',
+  not_exists: '不存在',
+  greater_than: '大于',
+  less_than: '小于',
+  greater_or_equal: '大于等于',
+  less_or_equal: '小于等于',
+}
+
 function formatAssertion(assertion) {
   if (!assertion) return ''
-  if (assertion.type === 'status_code') {
-    return `${assertion.type} ${assertion.operator} ${assertion.expected}`
+  const type = assertion.type || ''
+  const op = ASSERTION_OP_LABEL[assertion.operator] || ''
+  // 兼容 AI 生成（path）与归一化（json_path）两种字段名
+  const jsonPath = assertion.json_path || assertion.path || ''
+  if (type === 'status_code') {
+    return `${ASSERTION_TYPE_LABEL.status_code} ${op || '等于'} ${assertion.expected ?? ''}`
   }
-  return `${assertion.type} ${assertion.operator} ${assertion.path || ''} ${assertion.expected || ''}`
+  if (type === 'response_time') {
+    return `${ASSERTION_TYPE_LABEL.response_time} 不超过 ${assertion.expected ?? ''}ms`
+  }
+  if (type === 'json_path') {
+    const showExpected = assertion.operator && !['exists', 'not_exists'].includes(assertion.operator)
+    const suffix = showExpected ? ` ${assertion.expected ?? ''}` : ''
+    return `${ASSERTION_TYPE_LABEL.json_path} ${jsonPath} ${op || ''} ${suffix}`.trim()
+  }
+  if (type === 'header') {
+    const headerName = assertion.header_name || assertion.path || ''
+    const val = assertion.expected_value ?? assertion.expected ?? ''
+    return `${ASSERTION_TYPE_LABEL.header} ${headerName} ${op || '等于'} ${val}`.trim()
+  }
+  if (type === 'contains') return `${ASSERTION_TYPE_LABEL.contains} ${assertion.expected ?? ''}`
+  if (type === 'equals') return `${ASSERTION_TYPE_LABEL.equals} ${assertion.expected ?? ''}`
+  return [assertion.type, assertion.operator, jsonPath, assertion.expected ?? ''].filter(Boolean).join(' ')
 }
 
 async function loadAiConfigs() {

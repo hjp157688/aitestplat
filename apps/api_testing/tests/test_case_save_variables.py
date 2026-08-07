@@ -42,3 +42,32 @@ class SaveVariablesTests(TestCase):
         # 只回填"被引用且已知"的键：本用例引用 login_username/login_password/code，
         # 已知池含 login_username、token（token 未被引用）→ 写入 1 个
         self.assertEqual(res['variables_count'], 1)
+
+    def test_save_normalizes_generated_assertions(self):
+        """保存生成用例时统一断言 schema：path→json_path、补 name/operator，编辑器可正常展示"""
+        cases = [{
+            'request_id': self.req.id,
+            'name': '登录-查id',
+            'body_override': {'username': '{{login_username}}'},
+            'assertions': [
+                {'type': 'status_code', 'operator': 'equals', 'expected': 200},
+                {'type': 'json_path', 'operator': 'exists', 'path': '$.id'},
+            ],
+        }]
+        ApiTestCaseGenerator.save_generated_cases(
+            self.task_id, cases, self.user, project_id=self.project.id, suite_name='登录套件')
+
+        new_req = ApiRequest.objects.get(parent_request_id=self.req.id)
+        stored = {a['type']: a for a in new_req.assertions}
+        # json_path 断言字段名归一到 json_path，name/operator 补齐
+        self.assertEqual(stored['json_path'], {
+            'type': 'json_path', 'operator': 'exists', 'json_path': '$.id', 'name': 'JSON $.id 存在',
+        })
+        self.assertEqual(stored['status_code']['name'], '状态码等于200')
+
+        # 套件关联的断言同样归一化
+        from apps.api_testing.models import TestSuiteRequest, TestSuite
+        suite = TestSuite.objects.get(name='登录套件')
+        suite_assertions = TestSuiteRequest.objects.get(test_suite=suite).assertions
+        suite_stored = {a['type']: a for a in suite_assertions}
+        self.assertEqual(suite_stored['status_code']['name'], '状态码等于200')

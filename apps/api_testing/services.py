@@ -15,6 +15,7 @@ from django.db import transaction
 from apps.api_testing.models import (
     ApiCollection, ApiDocument, ApiRequest, ApiProject, TestSuite,
 )
+from apps.api_testing.utils import normalize_assertions
 
 logger = logging.getLogger(__name__)
 
@@ -378,6 +379,8 @@ class OpenAPIParser:
                             auth_spec=rd.get('auth_spec', {}),
                             request_schema=rd.get('request_schema', {}),
                             response_schemas=rd.get('response_schemas', {}),
+                            path_params=rd.get('path_params', []),
+                            response_examples=rd.get('response_examples', {}),
                             deprecated=rd.get('deprecated', False),
                             request_type=sub.project.project_type if sub.project else 'HTTP',
                             order=i, created_by=user,
@@ -393,6 +396,8 @@ class OpenAPIParser:
                         auth_spec=rd.get('auth_spec', {}),
                         request_schema=rd.get('request_schema', {}),
                         response_schemas=rd.get('response_schemas', {}),
+                        path_params=rd.get('path_params', []),
+                        response_examples=rd.get('response_examples', {}),
                         deprecated=rd.get('deprecated', False),
                         request_type=parent_collection.project.project_type if parent_collection.project else 'HTTP',
                         order=i, created_by=user,
@@ -633,7 +638,11 @@ class ApiTestCaseGenerator:
                     'url': req.url,
                     'headers': req.headers,
                     'params': req.params,
+                    'path_params': req.path_params,
                     'body': req.body,
+                    # 响应 schema 与示例：帮助 AI 生成贴近真实响应的断言/期望
+                    'response_schemas': req.response_schemas,
+                    'response_examples': req.response_examples,
                     'description': req.description,
                 })
 
@@ -667,6 +676,15 @@ class ApiTestCaseGenerator:
             test_cases = result.get('test_cases') if isinstance(result, dict) else None
             if not isinstance(test_cases, dict) or not test_cases:
                 raise Exception('AI 未返回有效的测试用例结果，请重试')
+
+            # 统一断言 schema（path→json_path、补 name/operator），保证生成结果、
+            # 前端展示与落库三处一致
+            for cases in test_cases.values():
+                if not isinstance(cases, list):
+                    continue
+                for case in cases:
+                    if isinstance(case, dict):
+                        case['assertions'] = normalize_assertions(case.get('assertions'))
 
             _generation_tasks[task_id]['progress'] = 90
             _generation_tasks[task_id]['result'] = result
@@ -720,6 +738,9 @@ class ApiTestCaseGenerator:
                 request_id = case.get('request_id')
                 parent_request = ApiRequest.objects.get(id=request_id)
 
+                # 统一断言 schema（幂等，覆盖未预归一化的输入）
+                assertions = normalize_assertions(case.get('assertions'))
+
                 # 获取原始请求数据作为基础
                 headers = parent_request.headers
                 params = dict(parent_request.params) if isinstance(parent_request.params, dict) else {}
@@ -744,7 +765,7 @@ class ApiTestCaseGenerator:
                             body = {'type': 'json', 'data': case['body_override']}
 
                 # 收集本用例引用的 {{键}}，回填用例级变量
-                referenced = collect_template_keys(params, body, case.get('assertions') or [])
+                referenced = collect_template_keys(params, body, assertions)
                 case_vars = {}
                 for key in referenced:
                     key_value = pool.get(key)
@@ -765,7 +786,7 @@ class ApiTestCaseGenerator:
                     params=params,
                     body=body,
                     description=f'AI 生成的测试用例\n原始请求: {parent_request.name}',
-                    assertions=case.get('assertions', []),
+                    assertions=assertions,
                     request_type=parent_request.request_type,
                     created_by=user,
                     variables=case_vars,
@@ -778,7 +799,7 @@ class ApiTestCaseGenerator:
                         test_suite=suite,
                         request=new_request,
                         order=created_count,
-                        assertions=case.get('assertions', []),
+                        assertions=assertions,
                     )
 
                 created_count += 1

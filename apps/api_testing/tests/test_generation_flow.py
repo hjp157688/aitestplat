@@ -83,3 +83,27 @@ class GenerationTaskKnownDataTests(TestCase):
         task = services._generation_tasks['APITASK_T']
         self.assertEqual(task['status'], 'completed')
         self.assertEqual(task['known_data']['environment']['token'], 't1')
+
+    @patch.object(ApiTestCaseGenerator, '_call_ai',
+                  return_value={'test_cases': {'1': [{'name': '正向'}]}})
+    def test_run_generation_sends_example_and_schema_to_prompt(self, mock_ai):
+        """生成用例时，响应 schema/示例、路径参数示例都应随请求数据发给 AI"""
+        self.req.path_params = [{'key': 'id', 'value': '42', 'enabled': True, 'required': True}]
+        self.req.params = [{'key': 'kw', 'value': '示例词', 'enabled': True}]
+        self.req.response_schemas = {'200': {'type': 'object', 'properties': {'code': {'type': 'integer'}}}}
+        self.req.response_examples = {'200': {'code': 0, 'msg': '成功'}}
+        self.req.save()
+
+        services._generation_tasks['APITASK_T'] = {
+            'status': 'pending', 'progress': 0, 'result': None, 'error': None, 'known_data': None,
+        }
+        with patch.object(ApiTestCaseGenerator, 'build_prompt',
+                          return_value=('sys', 'user')) as mock_bp:
+            ApiTestCaseGenerator._run_generation('APITASK_T', [self.req.id], None, self.user, environment_id=self.env.id)
+
+        args, _ = mock_bp.call_args
+        rd = args[0][0]
+        self.assertEqual(rd['path_params'][0]['value'], '42')
+        self.assertEqual(rd['params'][0]['value'], '示例词')
+        self.assertEqual(rd['response_examples'], {'200': {'code': 0, 'msg': '成功'}})
+        self.assertEqual(rd['response_schemas']['200']['properties']['code']['type'], 'integer')
