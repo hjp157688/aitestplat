@@ -1,9 +1,6 @@
 <template>
   <div class="zentao-config">
-    <div class="page-header">
-      <h1>禅道配置</h1>
-      <p>配置禅道系统连接信息，用于同步需求数据</p>
-    </div>
+    <PageHeader title="禅道配置" />
 
     <div v-if="loading" class="loading-container">
       <el-skeleton :rows="3" animated />
@@ -174,6 +171,7 @@ import {
   enableZentaoConfig,
   disableZentaoConfig
 } from '@/api/requirement'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const configs = ref([])
 const loading = ref(true)
@@ -376,21 +374,6 @@ onMounted(() => {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 24px;
-}
-
-.page-header h1 {
-  font-size: 1.5rem;
-  color: #1a202c;
-  margin: 0 0 8px 0;
-}
-
-.page-header p {
-  color: var(--aitest-text-2);
-  margin: 0;
 }
 
 .loading-container {

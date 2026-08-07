@@ -1,12 +1,11 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ isEdit ? $t('reviewForm.editTitle') : $t('reviewForm.createTitle') }}</h1>
-      <div>
+    <PageHeader :title="isEdit ? $t('reviewForm.editTitle') : $t('reviewForm.createTitle')">
+      <template #actions>
         <el-button @click="$router.back()">{{ $t('reviewForm.back') }}</el-button>
         <el-button type="primary" @click="saveReview" :loading="saving">{{ $t('reviewForm.save') }}</el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="form-container">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
@@ -194,6 +193,7 @@ import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { debounce } from 'lodash-es'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -1,14 +1,13 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('reviewTemplate.title') }}</h1>
-      <div>
+    <PageHeader :title="$t('reviewTemplate.title')">
+      <template #actions>
         <el-button type="primary" @click="createTemplate">
           <el-icon><Plus /></el-icon>
           {{ $t('reviewTemplate.createTemplate') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="filter-bar">
       <el-form :inline="true" :model="filters" class="filter-form">
@@ -205,6 +204,7 @@ import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import api from '@/utils/api'
 import dayjs from 'dayjs'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
 const { t } = useI18n()

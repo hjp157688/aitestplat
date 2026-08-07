@@ -1,8 +1,7 @@
 <template>
   <div class="page-container defect-report">
-    <div class="page-header">
-      <h1 class="page-title">缺陷报表</h1>
-      <div class="header-actions">
+    <PageHeader title="缺陷报表">
+      <template #actions>
         <el-button @click="loadReport" :loading="loading">
           <el-icon><Refresh /></el-icon>
           刷新
@@ -11,8 +10,8 @@
           <el-icon><Download /></el-icon>
           导出报告
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <el-row :gutter="16" class="metric-grid">
       <el-col :xs="24" :md="8" v-for="item in reportMetrics" :key="item.label">
@@ -93,6 +92,7 @@ import { Download, Refresh } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
 import { exportDefectReport, getDefectSummary, getDefectTrend } from '@/api/defects'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {
   getOptionLabel,
   priorityOptions,
@@ -398,11 +398,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.header-actions {
-  display: flex;
-  gap: 10px;
-}
-
 .metric-grid {
   margin-bottom: 16px;
 }

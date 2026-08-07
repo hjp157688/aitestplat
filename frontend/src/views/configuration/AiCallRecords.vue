@@ -1,9 +1,6 @@
 <template>
   <div class="ai-call-records page-shell">
-    <div class="page-header">
-      <h1>{{ $t('configuration.aiCallRecords.title') }}</h1>
-      <p>{{ $t('configuration.aiCallRecords.description') }}</p>
-    </div>
+    <PageHeader :title="$t('configuration.aiCallRecords.title')" />
 
     <!-- 统计概览 -->
     <div class="stats-grid">
@@ -95,9 +92,11 @@
 import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 export default {
   name: 'AiCallRecords',
+  components: { PageHeader },
   data() {
     return {
       records: [],
@@ -203,17 +202,6 @@ export default {
 <style scoped>
 .page-shell {
   padding: 20px 24px;
-}
-.page-header h1 {
-  margin: 0 0 4px;
-  font-size: 20px;
-  font-weight: 600;
-  color: #1e293b;
-}
-.page-header p {
-  margin: 0 0 16px;
-  color: #64748b;
-  font-size: 13px;
 }
 .stats-grid {
   display: grid;

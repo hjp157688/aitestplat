@@ -1,8 +1,7 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">缺陷列表</h1>
-      <div class="header-actions">
+    <PageHeader title="缺陷列表">
+      <template #actions>
         <el-button @click="exportList">
           <el-icon><Download /></el-icon>
           导出
@@ -11,8 +10,8 @@
           <el-icon><Plus /></el-icon>
           新建缺陷
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="card-container">
       <div class="filter-bar">
@@ -176,6 +175,7 @@ import { ElMessage } from 'element-plus'
 import { Download, Plus, Search } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 import { bulkActionDefects, exportDefects, getDefects } from '@/api/defects'
 import {
   getOptionLabel,
@@ -369,7 +369,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.header-actions,
 .batch-bar {
   display: flex;
   align-items: center;

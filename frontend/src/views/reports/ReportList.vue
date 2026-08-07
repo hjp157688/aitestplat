@@ -1,8 +1,6 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('report.title') }}</h1>
-    </div>
+    <PageHeader :title="$t('report.title')" />
 
     <div class="card-container">
       <div class="empty-state">
@@ -13,5 +11,6 @@
 </template>
 
 <script setup>
+import PageHeader from '@/components/common/PageHeader.vue'
 // Test report list component
 </script>

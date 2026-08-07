@@ -1,17 +1,7 @@
 <template>
   <div class="notification-configs-container">
     <!-- 页面说明 -->
-    <div class="page-header">
-      <h1 class="page-title">
-        <el-icon class="title-icon">
-          <Setting/>
-        </el-icon>
-        {{ $t('notification.configs.title') }}
-      </h1>
-      <p class="page-description">
-        {{ $t('notification.configs.description') }}
-      </p>
-    </div>
+    <PageHeader :title="$t('notification.configs.title')" />
 
     <!-- Tab切换 -->
     <div class="content-wrapper">
@@ -195,7 +185,6 @@
 </template>
 
 <script>
-import {Setting} from '@element-plus/icons-vue'
 import {ref, reactive, onMounted} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {ElMessage} from 'element-plus'
@@ -204,11 +193,12 @@ import {
   createUnifiedNotificationConfig,
   updateUnifiedNotificationConfig
 } from '@/api/core.js'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 export default {
   name: 'NotificationConfigs',
   components: {
-    Setting
+    PageHeader
   },
   setup() {
     const {t} = useI18n()
@@ -431,34 +421,6 @@ export default {
   min-height: 100vh;
 }
 
-.page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 32px 24px;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.page-title {
-  font-size: 28px;
-  font-weight: 600;
-  margin: 0 0 12px 0;
-  display: flex;
-  align-items: center;
-}
-
-.title-icon {
-  margin-right: 12px;
-  font-size: 24px;
-}
-
-.page-description {
-  font-size: 16px;
-  opacity: 0.9;
-  margin: 0;
-}
-
 .content-wrapper {
   background: white;
   border-radius: 12px;
@@ -551,14 +513,6 @@ export default {
 @media (max-width: 768px) {
   .notification-configs-container {
     padding: 16px;
-  }
-
-  .page-header {
-    padding: 24px 16px;
-  }
-
-  .page-title {
-    font-size: 24px;
   }
 
   .notification-tabs :deep(.el-tabs__item) {

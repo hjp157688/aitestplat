@@ -1,36 +1,29 @@
 <template>
   <div class="data-factory-container">
-    <el-card class="header-card">
-      <div class="header-content">
-        <h1 class="page-title" @click="goToHome">
-          <el-icon class="title-icon"><DataLine /></el-icon>
-          {{ $t('dataFactory.title') }}
-        </h1>
-        <p class="page-subtitle">{{ $t('dataFactory.subtitle') }}</p>
-        <div class="header-actions">
-          <el-button-group>
-            <el-button
-              :type="viewMode === 'category' ? 'primary' : ''"
-              @click="viewMode = 'category'"
-            >
-              <el-icon><Menu /></el-icon>
-              {{ $t('dataFactory.viewMode.category') }}
-            </el-button>
-            <el-button
-              :type="viewMode === 'scenario' ? 'primary' : ''"
-              @click="viewMode = 'scenario'"
-            >
-              <el-icon><Grid /></el-icon>
-              {{ $t('dataFactory.viewMode.scenario') }}
-            </el-button>
-          </el-button-group>
-          <el-button type="info" @click="showHistory = true">
-            <el-icon><Clock /></el-icon>
-            {{ $t('dataFactory.actions.history') }}
+    <PageHeader :title="$t('dataFactory.title')">
+      <template #actions>
+        <el-button-group>
+          <el-button
+            :type="viewMode === 'category' ? 'primary' : ''"
+            @click="viewMode = 'category'"
+          >
+            <el-icon><Menu /></el-icon>
+            {{ $t('dataFactory.viewMode.category') }}
           </el-button>
-        </div>
-      </div>
-    </el-card>
+          <el-button
+            :type="viewMode === 'scenario' ? 'primary' : ''"
+            @click="viewMode = 'scenario'"
+          >
+            <el-icon><Grid /></el-icon>
+            {{ $t('dataFactory.viewMode.scenario') }}
+          </el-button>
+        </el-button-group>
+        <el-button type="info" @click="showHistory = true">
+          <el-icon><Clock /></el-icon>
+          {{ $t('dataFactory.actions.history') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
     <!-- 工具分类视图 -->
     <div v-if="viewMode === 'category'" class="category-view">
@@ -993,17 +986,17 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox, ElEmpty } from 'element-plus'
 import {
-  DataLine, Menu, Grid, Clock, Operation, ArrowRight,
+  Menu, Grid, Clock, Operation, ArrowRight,
   Document, List, Lock, User, MagicStick, VideoPlay, ChatDotSquare, Picture, Connection,
   Phone, Message, Location, Ticket, OfficeBuilding, CreditCard, CircleCheck, DocumentCopy, Search, Delete, Edit, Unlock, DataLine as DataLineIcon, Sort, Share, View, Upload
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 import { debounce } from 'lodash-es'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 // 缓存工具
 const cache = {
@@ -1036,7 +1029,6 @@ const cache = {
   }
 }
 
-const router = useRouter()
 const { t } = useI18n()
 
 const viewMode = ref('category')
@@ -1413,10 +1405,6 @@ const getToolDescriptionOld = (toolName) => {
     'base64_to_image': '将Base64编码转换为图片'
   }
   return toolDescriptions[toolName] || ''
-}
-
-const goToHome = () => {
-  router.push('/')
 }
 
 const openTool = (tool, category) => {
@@ -2199,49 +2187,6 @@ onMounted(async () => {
   padding: 20px;
   min-height: calc(100vh - 60px);
   background: var(--aitest-canvas);
-}
-
-.header-card {
-  margin-bottom: 20px;
-
-  .header-content {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .page-title {
-    font-size: 28px;
-    font-weight: 600;
-    color: #2c3e50;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
-    cursor: pointer;
-    transition: color 0.3s;
-
-    &:hover {
-      color: #409eff;
-    }
-
-    .title-icon {
-      font-size: 32px;
-      color: #409eff;
-    }
-  }
-
-  .page-subtitle {
-    font-size: 16px;
-    color: #7f8c8d;
-    margin: 0;
-  }
-
-  .header-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-  }
 }
 
 .category-view {

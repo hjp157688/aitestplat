@@ -1,13 +1,12 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('reviewDetail.title') }}</h1>
-      <div>
+    <PageHeader :title="$t('reviewDetail.title')">
+      <template #actions>
         <el-button @click="$router.back()">{{ $t('reviewDetail.back') }}</el-button>
         <el-button v-if="canEdit" type="warning" @click="editReview">{{ $t('reviewDetail.edit') }}</el-button>
         <el-button v-if="canReview" type="success" @click="showReviewDialog">{{ $t('reviewDetail.submitReview') }}</el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div v-if="review" class="content-container">
       <!-- 评审基本信息 -->
@@ -281,6 +280,7 @@ import { Check, Close, QuestionFilled } from '@element-plus/icons-vue'
 import api from '@/utils/api'
 import dayjs from 'dayjs'
 import { useUserStore } from '@/stores/user'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const route = useRoute()
 const router = useRouter()

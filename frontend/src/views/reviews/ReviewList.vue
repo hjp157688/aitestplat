@@ -1,14 +1,13 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('reviewList.title') }}</h1>
-      <div>
+    <PageHeader :title="$t('reviewList.title')">
+      <template #actions>
         <el-button type="primary" @click="createReview">
           <el-icon><Plus /></el-icon>
           {{ $t('reviewList.createReview') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="filter-bar">
       <el-form :inline="true" :model="filters" class="filter-form">
@@ -156,6 +155,7 @@ import { Plus } from '@element-plus/icons-vue'
 import api from '@/utils/api'
 import dayjs from 'dayjs'
 import { useUserStore } from '@/stores/user'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
 const userStore = useUserStore()

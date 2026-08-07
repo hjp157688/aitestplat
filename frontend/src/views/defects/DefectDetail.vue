@@ -1,11 +1,7 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">{{ defect.title || '缺陷详情' }}</h1>
-        <div class="sub-title">{{ defect.code || `#${defect.id || '-'}` }}</div>
-      </div>
-      <div class="header-actions">
+    <PageHeader :title="defect.title || '缺陷详情'">
+      <template #actions>
         <el-button @click="router.push('/defects/list')">
           <el-icon><Back /></el-icon>
           返回列表
@@ -14,8 +10,8 @@
           <el-icon><Edit /></el-icon>
           编辑
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <el-row :gutter="16">
       <el-col :xs="24" :lg="16">
@@ -187,6 +183,7 @@ import { ElMessage } from 'element-plus'
 import { Back, Edit, Upload } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {
   addDefectComment,
   assignDefect,
@@ -362,19 +359,10 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.sub-title {
-  margin-top: 4px;
-  color: #909399;
-}
-
-.header-actions,
 .card-header {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.card-header {
   justify-content: space-between;
 }
 

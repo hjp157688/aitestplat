@@ -1,9 +1,6 @@
 <template>
   <div class="ui-env-config">
-    <div class="page-header">
-      <h1>{{ $t('configuration.uiEnv.title') }}</h1>
-      <p>{{ $t('configuration.uiEnv.description') }}</p>
-    </div>
+    <PageHeader :title="$t('configuration.uiEnv.title')" />
 
     <div class="main-content">
       <div class="check-section">
@@ -76,6 +73,7 @@ import { useI18n } from 'vue-i18n'
 import { Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const { t } = useI18n()
 
@@ -140,22 +138,6 @@ onMounted(() => {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-}
-
-.page-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.page-header h1 {
-  font-size: 2.5rem;
-  color: #2c3e50;
-  margin-bottom: 10px;
-}
-
-.page-header p {
-  color: #666;
-  font-size: 1.1rem;
 }
 
 .check-section {

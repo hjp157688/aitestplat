@@ -1,12 +1,13 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ isEdit ? '编辑缺陷' : '新建缺陷' }}</h1>
-      <el-button @click="router.back()">
-        <el-icon><Back /></el-icon>
-        返回
-      </el-button>
-    </div>
+    <PageHeader :title="isEdit ? '编辑缺陷' : '新建缺陷'">
+      <template #actions>
+        <el-button @click="router.back()">
+          <el-icon><Back /></el-icon>
+          返回
+        </el-button>
+      </template>
+    </PageHeader>
 
     <div class="card-container">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
@@ -175,6 +176,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Back, Upload } from '@element-plus/icons-vue'
 import api from '@/utils/api'
+import PageHeader from '@/components/common/PageHeader.vue'
 import { createDefect, getDefect, updateDefect, uploadDefectAttachment } from '@/api/defects'
 import {
   defectTypeOptions,

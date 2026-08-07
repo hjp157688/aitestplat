@@ -1,8 +1,7 @@
 <template>
   <div class="page-container defect-dashboard">
-    <div class="page-header">
-      <h1 class="page-title">缺陷看板</h1>
-      <div class="header-actions">
+    <PageHeader title="缺陷看板">
+      <template #actions>
         <el-button @click="loadDashboard" :loading="loading">
           <el-icon><Refresh /></el-icon>
           刷新
@@ -11,8 +10,8 @@
           <el-icon><Plus /></el-icon>
           新建缺陷
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <el-row :gutter="16" class="metric-grid">
       <el-col v-for="metric in metrics" :key="metric.key" :xs="12" :sm="12" :md="8" :lg="4">
@@ -93,6 +92,7 @@ import { ElMessage } from 'element-plus'
 import { Plus, Refresh } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { getDefectSummary, getDefectTrend } from '@/api/defects'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {
   getOptionLabel,
   severityOptions,
@@ -353,11 +353,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.header-actions {
-  display: flex;
-  gap: 10px;
-}
-
 .metric-grid {
   margin-bottom: 16px;
 }
