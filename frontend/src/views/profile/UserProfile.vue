@@ -1,8 +1,6 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('profile.title') }}</h1>
-    </div>
+    <PageHeader :title="$t('profile.title')" />
 
     <div class="card-container">
       <el-tabs v-model="activeTab">
@@ -53,6 +51,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useUserStore } from '@/stores/user'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const userStore = useUserStore()
 const activeTab = ref('basic')
