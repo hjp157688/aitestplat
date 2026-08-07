@@ -1,9 +1,6 @@
 <template>
   <div class="ai-model-config">
-    <div class="page-header">
-      <h1>{{ $t('configuration.aiModel.title') }}</h1>
-      <p>{{ $t('configuration.aiModel.description') }}</p>
-    </div>
+    <PageHeader :title="$t('configuration.aiModel.title')" />
 
     <div class="main-content">
       <!-- 配置列表 -->
@@ -351,9 +348,11 @@ import api from '@/utils/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { CircleCheck, CircleClose } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 export default {
   name: 'AIModelConfig',
+  components: { PageHeader },
   setup() {
     const { t } = useI18n()
     return { t }
@@ -979,26 +978,6 @@ export default {
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-}
-
-.page-header {
-  text-align: center;
-  margin-bottom: 36px;
-  padding-top: 8px;
-}
-
-.page-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #0F172A;
-  margin-bottom: 6px;
-  letter-spacing: -0.02em;
-}
-
-.page-header p {
-  color: var(--aitest-text-2);
-  font-size: 0.95rem;
-  margin: 0;
 }
 
 .section-header {

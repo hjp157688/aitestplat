@@ -1,8 +1,6 @@
 <template>
   <div class="generated-testcase-list">
-    <div class="page-header">
-      <h2>{{ $t('generatedTestCases.title') }}</h2>
-    </div>
+    <PageHeader :title="$t('generatedTestCases.title')" />
 
     <div class="filters-section">
       <div class="filter-card">
@@ -401,9 +399,11 @@
 import api from '@/utils/api'
 import { ElMessage } from 'element-plus'
 import { EditPen } from '@element-plus/icons-vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 export default {
   name: 'GeneratedTestCaseList',
+  components: { PageHeader },
   data() {
     return {
       isLoading: false,
@@ -1063,25 +1063,6 @@ export default {
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-}
-
-.page-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.page-header h2 {
-  font-size: 1.5rem;
-  color: #0F172A;
-  font-weight: 700;
-  margin-bottom: 0;
-  margin-top: 5px;
-  letter-spacing: -0.02em;
-}
-
-.page-header p {
-  color: var(--aitest-text-2);
-  font-size: 0.95rem;
 }
 
 /* Filters */

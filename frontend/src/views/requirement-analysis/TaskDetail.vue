@@ -2,7 +2,7 @@
   <div class="task-detail">
     <div class="page-header">
       <div class="header-left">
-        <h2>{{ $t('taskDetail.title') }} <span v-if="task.title">- {{ task.title }}</span></h2>
+        <h2 class="page-title">{{ $t('taskDetail.title') }} <span v-if="task.title">- {{ task.title }}</span></h2>
         <div class="task-info">
           <span class="task-id">{{ $t('taskDetail.taskId') }}: {{ taskId }}</span>
           <span class="task-status" :class="task.status">{{ getStatusText(task.status) }}</span>
@@ -1288,7 +1288,7 @@ export default {
 
 .header-left { flex: 1; }
 
-.page-header h2 {
+.page-header .page-title {
   color: #0F172A;
   margin: 0 0 8px 0;
   font-size: 1.4rem;

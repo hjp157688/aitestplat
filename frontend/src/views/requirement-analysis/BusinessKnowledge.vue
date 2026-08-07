@@ -1,10 +1,7 @@
 <template>
   <div class="business-knowledge">
     <!-- 页头 -->
-    <div class="page-header">
-      <h1>{{ $t('businessKnowledge.title') }}</h1>
-      <p>{{ $t('businessKnowledge.subtitle') }}</p>
-    </div>
+    <PageHeader :title="$t('businessKnowledge.title')" />
 
     <!-- 语料总览 -->
     <section class="overview-stats">
@@ -446,6 +443,7 @@
 
 <script>
 import { ElMessage, ElMessageBox } from 'element-plus'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {
   getKnowledgeDocuments, getKnowledgeStats, uploadKnowledgeDocument, deleteKnowledgeDocument, batchDeleteKnowledgeDocuments,
   processKnowledgeDocument, extractKnowledgeEntries, getKnowledgeDocumentChunks,
@@ -470,6 +468,7 @@ const ACCEPT_TYPES = '.pdf,.docx,.doc,.txt,.md,.xlsx'
 
 export default {
   name: 'BusinessKnowledge',
+  components: { PageHeader },
   data() {
     return {
       activeTab: 'documents',
@@ -1079,24 +1078,6 @@ export default {
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', Roboto, sans-serif;
   color: var(--aitest-text-1);
-}
-
-/* ── 页头（与应用一致：居中标题+副标题） ────────────── */
-.page-header {
-  text-align: center;
-  margin-bottom: 24px;
-}
-.page-header h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--aitest-text-1);
-  margin: 0 0 6px;
-  letter-spacing: -0.02em;
-}
-.page-header p {
-  color: var(--aitest-text-2);
-  font-size: 0.9rem;
-  margin: 0;
 }
 
 /* ── 语料总览：卡片式统计 ──────────────────────────── */

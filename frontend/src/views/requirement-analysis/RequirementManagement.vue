@@ -1,9 +1,6 @@
 <template>
   <div class="requirement-management">
-    <div class="page-header">
-      <h1>{{ $t('requirementManagement.title') }}</h1>
-      <p>{{ $t('requirementManagement.subtitle') }}</p>
-    </div>
+    <PageHeader :title="$t('requirementManagement.title')" />
 
     <!-- 操作栏 -->
     <div class="toolbar">
@@ -676,6 +673,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, ArrowDown, Edit, Upload, Connection, UploadFilled, Loading, MagicStick } from '@element-plus/icons-vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {
   getRequirements,
   getRequirement,
@@ -1271,26 +1269,6 @@ onMounted(() => {
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-}
-
-.page-header {
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--aitest-border);
-}
-
-.page-header h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #0F172A;
-  margin: 0 0 6px 0;
-  letter-spacing: -0.02em;
-}
-
-.page-header p {
-  color: var(--aitest-text-2);
-  margin: 0;
-  font-size: 0.9rem;
 }
 
 .toolbar {

@@ -1,9 +1,6 @@
 <template>
   <div class="requirement-analysis">
-    <div class="page-header">
-      <h1>{{ $t('requirementAnalysis.title') }}</h1>
-      <p>{{ $t('requirementAnalysis.subtitle') }}</p>
-    </div>
+    <PageHeader :title="$t('requirementAnalysis.title')" />
 
     <!-- AI 配置未就绪 · 可关细提醒条 -->
     <div v-if="configLoaded && configNotReady && !bannerDismissed && !checkingConfig" class="config-banner" role="status">
@@ -516,6 +513,7 @@ import * as XLSX from 'xlsx'
 import { useUserStore } from '@/stores/user'
 import { Upload, Document, CircleClose, Tickets, EditPen, CircleCheck, Download, Search, Lightning, WarningFilled, Close, MagicStick, CopyDocument, Clock, RefreshRight, CircleCheckFilled } from '@element-plus/icons-vue'
 import { retrieveKnowledge } from '@/api/requirement'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 // localStorage 键：草稿 / 输出模式 / 提醒条关闭状态
 const STORAGE_KEYS = {
@@ -528,6 +526,7 @@ const STORAGE_KEYS = {
 
 export default {
   name: 'RequirementAnalysisView',
+  components: { PageHeader },
   data() {
     return {
       // 全局输出模式设置
@@ -1795,28 +1794,6 @@ export default {
   margin: 0 auto;
   position: relative;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-}
-
-/* ---------- Page Header ---------- */
-.page-header {
-  text-align: center;
-  margin-bottom: 36px;
-  padding-top: 8px;
-}
-
-.page-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--aitest-text-1);
-  margin: 0 0 6px 0;
-  letter-spacing: -0.02em;
-}
-
-.page-header p {
-  color: var(--aitest-text-2);
-  font-size: 0.95rem;
-  margin: 0;
-  font-weight: 400;
 }
 
 /* ---------- Config Banner（AI 配置未就绪 · 可关细提醒条） ---------- */
