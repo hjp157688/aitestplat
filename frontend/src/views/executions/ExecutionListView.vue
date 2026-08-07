@@ -1,5 +1,5 @@
 <template>
-  <div class="execution-list">
+  <div class="page-container">
     <PageHeader :title="$t('execution.testPlan')">
       <template #actions>
         <el-button
