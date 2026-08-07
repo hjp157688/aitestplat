@@ -150,11 +150,31 @@ body {
 
 /* ============ 状态/优先级标签 ============ */
 .status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+
+  .status-tag__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
+  }
+
   /* 主导航/通用状态：淡色背景 + 文字色 */
   &.active { background-color: var(--aitest-success-bg); color: var(--aitest-success); }
   &.inactive { background-color: var(--aitest-danger-bg); color: var(--aitest-danger); }
   &.paused { background-color: var(--aitest-warning-bg); color: var(--aitest-warning); }
   &.completed { background-color: var(--aitest-neutral-bg); color: var(--aitest-neutral); }
+
+  // 双态精确映射（active/inactive/paused/completed 之外，容许与语义色名对齐的用法）
+  &.success { background-color: var(--aitest-success-bg); color: var(--aitest-success); }
+  &.warning { background-color: var(--aitest-warning-bg); color: var(--aitest-warning); }
+  &.danger  { background-color: var(--aitest-danger-bg);  color: var(--aitest-danger); }
+  &.info    { background-color: var(--aitest-info-bg);    color: var(--aitest-info); }
+
   border-radius: var(--aitest-radius-full);
 }
 
