@@ -1,8 +1,7 @@
 <template>
   <div class="execution-list">
-    <div class="header">
-      <h1>{{ $t('execution.testPlan') }}</h1>
-      <div class="header-actions">
+    <PageHeader :title="$t('execution.testPlan')">
+      <template #actions>
         <el-button
           v-if="selectedPlans.length > 0"
           type="danger"
@@ -15,10 +14,10 @@
           <el-icon><Plus /></el-icon>
           {{ $t('execution.newPlan') }}
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
-    <div class="filter-bar">
+    <FilterBar>
       <el-form :inline="true">
         <el-form-item :label="$t('execution.project')">
           <el-select v-model="filters.project" :placeholder="$t('execution.selectProject')" clearable style="width: 200px">
@@ -36,7 +35,7 @@
           <el-button @click="resetFilters">{{ $t('common.reset') }}</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </FilterBar>
 
     <el-table
       :data="testPlans"
@@ -68,9 +67,7 @@
       <el-table-column prop="creator.username" :label="$t('execution.creator')" width="120"></el-table-column>
       <el-table-column :label="$t('execution.status')" width="100">
         <template #default="scope">
-          <el-tag :type="scope.row.is_active ? 'success' : 'info'">
-            {{ scope.row.is_active ? $t('execution.active') : $t('execution.closed') }}
-          </el-tag>
+          <StatusTag :status="scope.row.is_active ? 'active' : 'inactive'" :text="scope.row.is_active ? $t('execution.active') : $t('execution.closed')" />
         </template>
       </el-table-column>
       <el-table-column prop="created_at" :label="$t('execution.createdAt')" width="180">
@@ -342,6 +339,9 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import FilterBar from '@/components/common/FilterBar.vue'
+import StatusTag from '@/components/common/StatusTag.vue'
 import api from '@/utils/api'
 
 const { t } = useI18n()
@@ -898,31 +898,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.execution-list {
-  padding: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.filter-bar {
-  margin-bottom: 20px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 4px;
-}
-
 .pagination {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: center;
 }
@@ -931,43 +908,30 @@ onMounted(() => {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .testcase-selection-tip {
-  color: #606266;
-  font-size: 14px;
+  color: var(--el-text-color-secondary);
+  font-size: var(--aitest-font-size-md);
 }
 
 .testcase-selector-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 .testcase-search-bar {
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 6px;
-}
-
-.priority-tag.low {
-  color: #67c23a;
-}
-
-.priority-tag.medium {
-  color: #e6a23c;
-}
-
-.priority-tag.high,
-.priority-tag.critical {
-  color: #f56c6c;
+  padding: var(--aitest-space-4);
+  background: var(--aitest-surface-subtle);
+  border-radius: var(--aitest-radius);
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: var(--aitest-space-2);
 }
 
 /* 操作列：固定右列，按钮强制单行不换行（列宽已留足空间） */

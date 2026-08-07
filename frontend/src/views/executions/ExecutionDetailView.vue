@@ -517,154 +517,143 @@ onMounted(() => {
 
 <style scoped>
 .execution-detail {
-  /* —— Grafana 设计令牌（取自 opendesign.cc/packs/grafana/spec.json）—— */
-  --g-bg: #ffffff;
-  --g-bg-soft: #f4f4f6;
-  --g-bg-quiet: #f9f9fa;
-  --g-ink: #000000;
-  --g-ink-soft: #67677e;
-  --g-muted: #454554;
-  --g-accent: #1b55f5;
-  --g-line: #aeaebc;
-  --g-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  /* 语义状态色：仅作细条/圆点等功能性强调，非装饰填充 */
-  --st-total: #1b55f5;
-  --st-passed: #3bc36c;
-  --st-failed: #f2495c;
-  --st-blocked: #f0a847;
-  --st-untested: #8a8a99;
-  /* 字体：Poppins(display) / Inter(body) —— Grafana 真实字族配对 */
+  /* 字体：Poppins(display) / Inter(body) -- Grafana 字族配对，无对应 --aitest-* 令牌，保留 */
   --font-display: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
 
-  padding: 24px;
-  background: var(--g-bg-soft);
+  padding: var(--aitest-space-6);
+  background: var(--aitest-canvas);
   min-height: 100vh;
   font-family: var(--font-body);
-  color: var(--g-ink);
+  color: var(--aitest-text-1);
 }
 
 /* —— 页面头部：扁平卡片，克制 —— */
 .plan-header {
-  background: var(--g-bg);
-  border: 1px solid var(--g-line);
-  border-radius: 8px;
-  box-shadow: var(--g-shadow);
-  padding: 20px 24px;
-  margin-bottom: 24px;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
+  border-radius: var(--aitest-radius-lg);
+  box-shadow: var(--aitest-shadow-xs);
+  padding: var(--aitest-space-5) var(--aitest-space-6);
+  margin-bottom: var(--aitest-space-6);
 }
 
 .plan-header__title-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   flex-wrap: wrap;
 }
 
 .plan-header__title {
   margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: var(--aitest-font-size-2xl);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.3px;
-  color: var(--g-ink);
+  color: var(--aitest-text-1);
 }
 
 .version-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--aitest-space-1);
   padding: 2px 10px;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   font-weight: 500;
-  color: var(--g-accent);
-  background: rgba(27, 85, 245, 0.08);
-  border: 1px solid rgba(27, 85, 245, 0.2);
-  border-radius: 999px;
+  color: var(--aitest-primary);
+  background: var(--aitest-primary-subtle);
+  border: 1px solid var(--aitest-border);
+  border-radius: var(--aitest-radius-full);
   line-height: 1.6;
 }
 
 .version-chip__icon {
-  font-size: 13px;
+  font-size: var(--aitest-font-size-base);
 }
 
 .plan-header__meta {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--aitest-space-4);
   flex-wrap: wrap;
-  margin-top: 10px;
-  font-size: 13px;
-  color: var(--g-ink-soft);
+  margin-top: var(--aitest-space-2);
+  font-size: var(--aitest-font-size-base);
+  color: var(--aitest-text-2);
 }
 
 .meta-item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--aitest-space-2);
 }
 
 .meta-item__icon {
-  font-size: 15px;
-  color: var(--g-ink-soft);
+  font-size: var(--aitest-font-size-md);
+  color: var(--aitest-text-2);
 }
 
 .meta-dim {
-  color: #9a9aa8;
+  color: var(--aitest-text-3);
 }
 
 /* —— 运行卡片 —— */
 .run-card {
-  background: var(--g-bg);
-  border: 1px solid var(--g-line);
-  border-radius: 8px;
-  box-shadow: var(--g-shadow);
-  padding: 20px 24px;
-  margin-bottom: 24px;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
+  border-radius: var(--aitest-radius-lg);
+  box-shadow: var(--aitest-shadow-xs);
+  padding: var(--aitest-space-5) var(--aitest-space-6);
+  margin-bottom: var(--aitest-space-6);
 }
 
 .run-card__head {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .run-card__title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-3);
   flex-wrap: wrap;
 }
 
 .run-card__title-group {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .run-card__title {
   margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: var(--aitest-font-size-lg);
   font-weight: 600;
   letter-spacing: -0.2px;
-  color: var(--g-ink);
+  color: var(--aitest-text-1);
 }
 
 /* 状态 chip：中性底 + 语义色圆点 */
 .status-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 6px; /* 状态圆点与文字的紧凑间隙，保留 6px */
   padding: 2px 10px;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   font-weight: 500;
-  border-radius: 999px;
-  border: 1px solid var(--g-line);
-  background: var(--g-bg-quiet);
-  color: var(--g-ink);
+  border-radius: var(--aitest-radius-full);
+  border: 1px solid var(--aitest-border);
+  background: var(--aitest-surface-subtle);
+  color: var(--aitest-text-1);
   line-height: 1.7;
 }
 
@@ -672,75 +661,75 @@ onMounted(() => {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--g-ink-soft);
+  background: var(--aitest-text-2);
 }
 
-.status-chip.is-completed { color: #1f7a3a; }
-.status-chip.is-completed .status-chip__dot { background: var(--st-passed); }
-.status-chip.is-failed { color: #b32334; }
-.status-chip.is-failed .status-chip__dot { background: var(--st-failed); }
-.status-chip.is-blocked { color: #9a6a16; }
-.status-chip.is-blocked .status-chip__dot { background: var(--st-blocked); }
-.status-chip.is-pending .status-chip__dot { background: var(--st-untested); }
-.status-chip.is-progress { color: var(--g-accent); }
-.status-chip.is-progress .status-chip__dot { background: var(--g-accent); }
+.status-chip.is-completed { color: var(--aitest-success); }
+.status-chip.is-completed .status-chip__dot { background: var(--aitest-success); }
+.status-chip.is-failed { color: var(--aitest-danger); }
+.status-chip.is-failed .status-chip__dot { background: var(--aitest-danger); }
+.status-chip.is-blocked { color: var(--aitest-warning); }
+.status-chip.is-blocked .status-chip__dot { background: var(--aitest-warning); }
+.status-chip.is-pending .status-chip__dot { background: var(--aitest-neutral); }
+.status-chip.is-progress { color: var(--aitest-primary); }
+.status-chip.is-progress .status-chip__dot { background: var(--aitest-primary); }
 
 /* 运行进度条 */
 .run-progress {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .run-progress__pct {
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   font-weight: 600;
-  color: var(--g-ink);
+  color: var(--aitest-text-1);
   min-width: 42px;
 }
 
 .run-progress__track {
   flex: 1;
-  height: 8px;
-  background: var(--g-bg-soft);
-  border-radius: 4px;
+  height: var(--aitest-space-2);
+  background: var(--aitest-surface-subtle);
+  border-radius: var(--aitest-radius-sm);
   overflow: hidden;
 }
 
 .run-progress__fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
   transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.run-progress__fill.fill--low { background: var(--st-failed); }
-.run-progress__fill.fill--mid { background: var(--st-blocked); }
-.run-progress__fill.fill--high { background: var(--st-passed); }
+.run-progress__fill.fill--low { background: var(--aitest-danger); }
+.run-progress__fill.fill--mid { background: var(--aitest-warning); }
+.run-progress__fill.fill--high { background: var(--aitest-success); }
 
 /* —— 统计瓦片：中性底 + 左侧语义色细条 —— */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-5);
 }
 
 .stat-tile {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 14px 16px 14px 18px;
-  background: var(--g-bg-quiet);
-  border: 1px solid var(--g-line);
-  border-radius: 8px;
+  gap: var(--aitest-space-1);
+  padding: var(--aitest-space-3) var(--aitest-space-4);
+  background: var(--aitest-canvas);
+  border: 1px solid var(--aitest-border);
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
   transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stat-tile:hover {
-  background: var(--g-bg-soft);
+  background: var(--aitest-surface-subtle);
 }
 
 /* 左侧 3px 语义色细条（::before，不干扰盒模型） */
@@ -751,74 +740,74 @@ onMounted(() => {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: var(--g-line);
+  background: var(--aitest-border);
 }
 
-.stat-tile--total::before { background: var(--st-total); }
-.stat-tile--passed::before { background: var(--st-passed); }
-.stat-tile--failed::before { background: var(--st-failed); }
-.stat-tile--blocked::before { background: var(--st-blocked); }
-.stat-tile--untested::before { background: var(--st-untested); }
+.stat-tile--total::before { background: var(--aitest-primary); }
+.stat-tile--passed::before { background: var(--aitest-success); }
+.stat-tile--failed::before { background: var(--aitest-danger); }
+.stat-tile--blocked::before { background: var(--aitest-warning); }
+.stat-tile--untested::before { background: var(--aitest-neutral); }
 
 .stat-tile__value {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 26px; /* 大号统计数字，无对应 --aitest-font-size-* 令牌，保留 */
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.5px;
-  color: var(--g-ink);
+  color: var(--aitest-text-1);
 }
 
 .stat-tile__label {
-  font-size: 11px;
+  font-size: var(--aitest-font-size-xs);
   font-weight: 500;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  color: var(--g-ink-soft);
+  color: var(--aitest-text-2);
 }
 
 /* —— 批量操作 —— */
 .batch-actions {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
   display: flex;
   justify-content: flex-end;
 }
 
 /* —— 表格：Grafana 化 —— */
 .execution-table {
-  --el-table-border-color: var(--g-line);
-  --el-table-header-bg-color: var(--g-bg-soft);
-  --el-table-row-hover-bg-color: var(--g-bg-quiet);
-  border: 1px solid var(--g-line);
-  border-radius: 8px;
+  --el-table-border-color: var(--aitest-border);
+  --el-table-header-bg-color: var(--aitest-surface-subtle);
+  --el-table-row-hover-bg-color: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
 }
 
 :deep(.execution-table .el-table__header th) {
-  font-size: 11px;
+  font-size: var(--aitest-font-size-xs);
   font-weight: 600;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  color: var(--g-ink-soft);
-  background: var(--g-bg-soft) !important;
+  color: var(--aitest-text-2);
+  background: var(--aitest-surface-subtle) !important;
 }
 
 :deep(.execution-table .el-table__body td) {
-  font-size: 13px;
-  color: var(--g-ink);
+  font-size: var(--aitest-font-size-base);
+  color: var(--aitest-text-1);
 }
 
 /* 未提交行：极淡暖底，提示有待保存的改动 */
 :deep(.execution-table .row-dirty td) {
-  background: #fffaf2 !important;
+  background: var(--aitest-warning-bg) !important;
 }
 
 :deep(.execution-table .row-dirty:hover td) {
-  background: #fff3e0 !important;
+  background: #fff3e0 !important; /* 略深暖色 hover，无对应 --aitest-* 令牌 */
 }
 
 :deep(.execution-table .status-select .el-select__wrapper) {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 /* 操作列：两按钮单行 */
@@ -829,40 +818,40 @@ onMounted(() => {
 .action-buttons {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   justify-content: center;
 }
 
 /* —— 分页 —— */
 .pagination-container {
-  margin-top: 16px;
+  margin-top: var(--aitest-space-4);
   display: flex;
   justify-content: center;
 }
 
 /* —— 空态 —— */
 .empty-state {
-  background: var(--g-bg);
-  border: 1px solid var(--g-line);
-  border-radius: 8px;
-  box-shadow: var(--g-shadow);
-  padding: 48px 24px;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
+  border-radius: var(--aitest-radius-lg);
+  box-shadow: var(--aitest-shadow-xs);
+  padding: var(--aitest-space-12) var(--aitest-space-6);
   text-align: center;
-  color: var(--g-ink-soft);
-  font-size: 14px;
+  color: var(--aitest-text-2);
+  font-size: var(--aitest-font-size-md);
 }
 
 /* —— 响应式 —— */
 @media (max-width: 768px) {
   .execution-detail {
-    padding: 16px;
+    padding: var(--aitest-space-4);
   }
   .plan-header,
   .run-card {
-    padding: 16px;
+    padding: var(--aitest-space-4);
   }
   .plan-header__title {
-    font-size: 19px;
+    font-size: var(--aitest-font-size-xl);
   }
 }
 </style>
