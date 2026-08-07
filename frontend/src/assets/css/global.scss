@@ -77,6 +77,8 @@ body {
     flex-wrap: wrap;
     gap: var(--aitest-header-gap);
 
+    &.has-actions { align-items: center; }
+
     .page-eyebrow {
       font-size: var(--aitest-font-size-sm);
       font-weight: 500;
