@@ -518,6 +518,8 @@ export default {
       selectedDocs: [],
       selectedEntries: [],
       selectedFile: null,
+      pollTimer: null,   // 文档分块/向量化状态轮询定时器
+      entryTimer: null,  // LLM 提取进度轮询定时器
       stats: {
         totalDocs: 0,
         readyDocs: 0,
@@ -718,7 +720,9 @@ export default {
     },
 
     triggerFilePick() {
-      this.$refs.fileInput?.click()
+      // $refs 在 JS + checkJs 下类型为 unknown，显式收窄（与 RequirementAnalysisView 一致）
+      const fileInput = /** @type {HTMLInputElement | undefined} */ (this.$refs.fileInput)
+      if (fileInput) fileInput.click()
     },
 
     onFileSelected(e) {
@@ -794,7 +798,7 @@ export default {
     pollDocumentStatus(id) {
       this.stopDocumentPolling()
       let ticks = 0
-      this._pollTimer = setInterval(async () => {
+      this.pollTimer = setInterval(async () => {
         ticks += 1
         const doc = await this.refreshSingleDocument(id)
         if (!doc) {
@@ -819,9 +823,9 @@ export default {
     },
 
     stopDocumentPolling() {
-      if (this._pollTimer) {
-        clearInterval(this._pollTimer)
-        this._pollTimer = null
+      if (this.pollTimer) {
+        clearInterval(this.pollTimer)
+        this.pollTimer = null
       }
     },
 
@@ -849,7 +853,7 @@ export default {
     pollExtractProgress(id) {
       this.stopEntryPolling()
       let ticks = 0
-      this._entryTimer = setInterval(async () => {
+      this.entryTimer = setInterval(async () => {
         ticks += 1
         const doc = await this.refreshSingleDocument(id)
         await this.loadEntries()
@@ -886,9 +890,9 @@ export default {
     },
 
     stopEntryPolling() {
-      if (this._entryTimer) {
-        clearInterval(this._entryTimer)
-        this._entryTimer = null
+      if (this.entryTimer) {
+        clearInterval(this.entryTimer)
+        this.entryTimer = null
       }
     },
 

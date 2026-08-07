@@ -135,7 +135,7 @@
                     @change="handleFileSelect"
                     accept=".pdf,.doc,.docx,.txt,.md"
                     style="display: none;">
-                  <button class="select-file-btn" @click="$refs.fileInput.click()">
+                  <button class="select-file-btn" @click="triggerFileInput">
                     {{ $t('requirementAnalysis.selectFile') }}
                   </button>
                 </div>
@@ -553,6 +553,7 @@ export default {
       progressText: '',
       currentStep: 0,
       pollInterval: null,
+      draftTimer: null,  // 草稿保存节流定时器
       eventSource: null,  // SSE连接
       streamedContent: '',  // 流式接收的内容
       streamedReviewContent: '',  // 流式接收的评审内容
@@ -781,6 +782,9 @@ export default {
     if (this.pollInterval) {
       clearInterval(this.pollInterval)
     }
+    if (this.draftTimer) {
+      clearTimeout(this.draftTimer)
+    }
     // 停止token自动刷新定时器
     const userStore = useUserStore()
     userStore.stopAutoRefresh()
@@ -929,7 +933,15 @@ export default {
     removeFile() {
       this.selectedFile = null
       this.documentTitle = ''
-      this.$refs.fileInput.value = ''
+      // 清空文件输入框（v-if 使输入框可能在 DOM 之外，需判空），允许重复选择同一文件
+      const fileInput = /** @type {HTMLInputElement | undefined} */ (this.$refs.fileInput)
+      if (fileInput) fileInput.value = ''
+    },
+
+    // 触发隐藏的文件输入框（$refs 在 JS + checkJs 下类型为 unknown，显式收窄）
+    triggerFileInput() {
+      const fileInput = /** @type {HTMLInputElement | undefined} */ (this.$refs.fileInput)
+      if (fileInput) fileInput.click()
     },
 
     formatFileSize(bytes) {
@@ -951,8 +963,8 @@ export default {
 
     // 需求草稿防丢（本地持久化，节流写入）
     persistDraft() {
-      clearTimeout(this._draftTimer)
-      this._draftTimer = setTimeout(() => {
+      clearTimeout(this.draftTimer)
+      this.draftTimer = setTimeout(() => {
         try {
           localStorage.setItem(STORAGE_KEYS.draft, JSON.stringify(this.manualInput))
         } catch (e) { /* ignore */ }
@@ -1767,9 +1779,6 @@ export default {
 
   }
 }
-
-  }
-}
 </script>
 
 <style scoped>
@@ -2235,6 +2244,7 @@ export default {
   padding: 2px;
   background: linear-gradient(135deg, var(--aitest-primary), var(--aitest-accent), var(--aitest-primary));
   background-size: 200% 200%;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -2749,6 +2759,7 @@ export default {
   line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -2790,6 +2801,7 @@ export default {
   word-break: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -3027,6 +3039,7 @@ export default {
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   padding-left: 24px;
