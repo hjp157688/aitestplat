@@ -117,6 +117,26 @@ body {
   box-shadow: var(--aitest-card-shadow);
 }
 
+/* ============ 统计卡片 ============ */
+.stat-card {
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-card-border);
+  border-radius: var(--aitest-card-radius);
+  padding: var(--aitest-space-4) var(--aitest-space-5);
+  box-shadow: var(--aitest-card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--aitest-space-1);
+
+  &__label { font-size: var(--aitest-font-size-sm); font-weight: 500; color: var(--aitest-text-3); }
+  &__value { font-size: var(--aitest-font-size-2xl); font-weight: 600; color: var(--aitest-text-1); line-height: var(--aitest-line-height-tight); font-variant-numeric: tabular-nums; }
+  &__hint  { font-size: var(--aitest-font-size-sm); color: var(--aitest-text-3); }
+  &--accent-success { &__value { color: var(--aitest-success); } }
+  &--accent-warning { &__value { color: var(--aitest-warning); } }
+  &--accent-danger  { &__value { color: var(--aitest-danger); } }
+  &--accent-info    { &__value { color: var(--aitest-info); } }
+}
+
 /* ============ 筛选/工具栏统一容器 ============ */
 .filter-bar {
   display: flex;
