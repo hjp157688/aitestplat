@@ -107,49 +107,50 @@ body {
 /* ============ 公共页面骨架 ============ */
 .page-container {
   padding: var(--aitest-space-page);
+}
 
-  .page-header {
+/* ============ 页头（顶层规则，不依赖 .page-container） ============ */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--aitest-header-margin-bottom);
+  flex-wrap: wrap;
+  gap: var(--aitest-header-gap);
+
+  &.has-actions { align-items: center; }
+
+  .page-header__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .page-eyebrow {
+    font-size: var(--aitest-font-size-sm);
+    font-weight: 500;
+    color: var(--aitest-text-3);
+    margin-bottom: var(--aitest-space-2);
+    letter-spacing: 0.02em;
+  }
+
+  .page-title {
+    font-size: var(--aitest-font-size-xl);
+    font-weight: 600;
+    color: var(--aitest-text-1);
+    line-height: var(--aitest-line-height-tight);
+  }
+
+  .page-desc {
+    margin-top: var(--aitest-space-1);
+    font-size: var(--aitest-font-size-base);
+    color: var(--aitest-text-3);
+  }
+
+  .header-actions {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: var(--aitest-header-margin-bottom);
-    flex-wrap: wrap;
-    gap: var(--aitest-header-gap);
-
-    &.has-actions { align-items: center; }
-
-    .page-header__text {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .page-eyebrow {
-      font-size: var(--aitest-font-size-sm);
-      font-weight: 500;
-      color: var(--aitest-text-3);
-      margin-bottom: var(--aitest-space-2);
-      letter-spacing: 0.02em;
-    }
-
-    .page-title {
-      font-size: var(--aitest-font-size-xl);
-      font-weight: 600;
-      color: var(--aitest-text-1);
-      line-height: var(--aitest-line-height-tight);
-    }
-
-    .page-desc {
-      margin-top: var(--aitest-space-1);
-      font-size: var(--aitest-font-size-base);
-      color: var(--aitest-text-3);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--aitest-space-3);
-      flex-shrink: 0;
-    }
+    align-items: center;
+    gap: var(--aitest-space-3);
+    flex-shrink: 0;
   }
 }
 
