@@ -215,6 +215,7 @@ body {
 
   .empty-title { font-size: 15px; font-weight: 600; color: var(--aitest-text-1); }
   .empty-hint { font-size: var(--aitest-font-size-base); color: var(--aitest-text-3); max-width: 320px; line-height: var(--aitest-line-height-relaxed); }
+  .empty-state__actions { margin-top: var(--aitest-space-3); }
 }
 
 /* ============ 工具类 ============ */
