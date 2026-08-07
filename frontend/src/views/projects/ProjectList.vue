@@ -1,15 +1,16 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">{{ $t('project.projectManagement') }}</h1>
-      <el-button type="primary" @click="handleCreateProject">
-        <el-icon><Plus /></el-icon>
-        {{ $t('project.newProject') }}
-      </el-button>
-    </div>
+    <PageHeader :title="$t('project.projectManagement')">
+      <template #actions>
+        <el-button type="primary" @click="handleCreateProject">
+          <el-icon><Plus /></el-icon>
+          {{ $t('project.newProject') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
     <div class="card-container">
-      <div class="filter-bar">
+      <FilterBar>
         <el-row :gutter="20">
           <el-col :span="6">
             <el-input
@@ -32,7 +33,7 @@
             </el-select>
           </el-col>
         </el-row>
-      </div>
+      </FilterBar>
       
       <el-table :data="projects" v-loading="loading" style="width: 100%">
         <el-table-column prop="name" :label="$t('project.projectName')" min-width="200">
@@ -45,7 +46,7 @@
         <el-table-column prop="description" :label="$t('project.description')" min-width="300" show-overflow-tooltip />
         <el-table-column prop="status" :label="$t('project.status')" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
+            <StatusTag :status="getStatusTag(row.status)" :text="getStatusText(row.status)" />
           </template>
         </el-table-column>
         <el-table-column prop="owner.username" :label="$t('project.owner')" width="120" />
@@ -121,6 +122,9 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import PageHeader from '@/components/common/PageHeader.vue'
+import FilterBar from '@/components/common/FilterBar.vue'
+import StatusTag from '@/components/common/StatusTag.vue'
 import api from '@/utils/api'
 import dayjs from 'dayjs'
 
@@ -266,14 +270,14 @@ const deleteProject = async (project) => {
   }
 }
 
-const getStatusType = (status) => {
-  const typeMap = {
-    active: 'success',
-    paused: 'warning',
-    completed: 'info',
-    archived: 'info'
+const getStatusTag = (status) => {
+  const tagMap = {
+    active: 'active',
+    paused: 'paused',
+    completed: 'completed',
+    archived: 'inactive'
   }
-  return typeMap[status] || 'info'
+  return tagMap[status] || 'inactive'
 }
 
 const getStatusText = (status) => {
@@ -296,112 +300,14 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.filter-bar {
-  margin-bottom: 20px;
-}
-
 .pagination-container {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: center;
 }
 
-@media screen and (max-width: 1920px) {
-  .filter-bar {
-    margin-bottom: 18px;
-  }
-  
-  .pagination-container {
-    margin-top: 18px;
-  }
-}
-
-@media screen and (max-width: 1600px) {
-  .filter-bar {
-    margin-bottom: 16px;
-  }
-  
-  .pagination-container {
-    margin-top: 16px;
-  }
-}
-
-@media screen and (max-width: 1440px) {
-  .filter-bar {
-    margin-bottom: 14px;
-  }
-  
-  .pagination-container {
-    margin-top: 14px;
-  }
-}
-
-@media screen and (max-width: 1366px) {
-  .filter-bar {
-    margin-bottom: 12px;
-  }
-  
-  .pagination-container {
-    margin-top: 12px;
-  }
-}
-
-@media screen and (max-width: 1280px) {
-  .filter-bar {
-    margin-bottom: 12px;
-  }
-  
-  .pagination-container {
-    margin-top: 12px;
-  }
-}
-
-@media screen and (max-width: 1024px) {
-  .filter-bar {
-    margin-bottom: 10px;
-    
-    :deep(.el-row) {
-      flex-direction: column;
-      
-      .el-col {
-        width: 100%;
-        margin-bottom: 10px;
-      }
-    }
-  }
-  
-  .pagination-container {
-    margin-top: 10px;
-    
-    :deep(.el-pagination) {
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-  }
-}
-
+/* 窄屏：弹窗防溢出 */
 @media screen and (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .filter-bar {
-    margin-bottom: 8px;
-  }
-  
-  .pagination-container {
-    margin-top: 8px;
-    
-    :deep(.el-pagination) {
-      :deep(.el-pagination__sizes),
-      :deep(.el-pagination__jump) {
-        display: none;
-      }
-    }
-  }
-  
   :deep(.el-dialog) {
     width: 95% !important;
     margin: 0 auto;
@@ -409,29 +315,6 @@ onMounted(() => {
 }
 
 @media screen and (max-width: 480px) {
-  .page-header {
-    :deep(.el-button) {
-      width: 100%;
-    }
-  }
-  
-  .filter-bar {
-    margin-bottom: 6px;
-  }
-  
-  .pagination-container {
-    margin-top: 6px;
-  }
-  
-  :deep(.el-table) {
-    font-size: 12px;
-    
-    .el-button {
-      padding: 5px 8px;
-      font-size: 12px;
-    }
-  }
-  
   :deep(.el-dialog) {
     width: 98% !important;
   }
