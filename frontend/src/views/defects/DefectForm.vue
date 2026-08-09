@@ -441,8 +441,8 @@ onMounted(async () => {
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  padding-top: 12px;
+  gap: var(--aitest-space-3);
+  padding-top: var(--aitest-space-3);
 }
 
 .attachment-section {
@@ -450,13 +450,13 @@ onMounted(async () => {
 }
 
 .attachment-table {
-  margin-top: 10px;
+  margin-top: var(--aitest-space-3);
 }
 
 .upload-tip {
-  margin-top: 4px;
+  margin-top: var(--aitest-space-1);
   color: var(--el-text-color-secondary);
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   line-height: 1.5;
 }
 </style>

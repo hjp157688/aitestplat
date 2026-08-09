@@ -535,12 +535,12 @@ onMounted(() => {
 .content-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .card-header {
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
 }
 
 .card-header-with-action {
@@ -553,7 +553,7 @@ onMounted(() => {
   .progress-stats {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 20px;
+    margin-bottom: var(--aitest-space-5);
 
     .stat-item {
       text-align: center;
@@ -562,25 +562,25 @@ onMounted(() => {
         font-size: 28px;
         font-weight: bold;
         color: var(--el-color-primary);
-        margin-bottom: 4px;
+        margin-bottom: var(--aitest-space-1);
       }
 
       .stat-label {
         color: var(--el-text-color-secondary);
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
       }
     }
   }
 
   .main-progress {
-    margin-top: 10px;
+    margin-top: var(--aitest-space-3);
   }
 }
 
 .comments-list {
   .comment-item {
-    border-bottom: 1px solid #f0f0f0;
-    padding: 16px 0;
+    border-bottom: 1px solid var(--aitest-surface-subtle);
+    padding: var(--aitest-space-4) 0;
 
     &:last-child {
       border-bottom: none;
@@ -590,12 +590,12 @@ onMounted(() => {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: var(--aitest-space-2);
 
       .comment-author {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: var(--aitest-space-2);
 
         .author-name {
           font-weight: 500;
@@ -604,25 +604,25 @@ onMounted(() => {
 
       .comment-time {
         color: var(--el-text-color-secondary);
-        font-size: 12px;
+        font-size: var(--aitest-font-size-sm);
       }
     }
 
     .comment-content {
-      margin-bottom: 8px;
+      margin-bottom: var(--aitest-space-2);
       line-height: 1.6;
     }
 
     .comment-testcase {
       color: var(--el-color-primary);
-      font-size: 12px;
+      font-size: var(--aitest-font-size-sm);
     }
   }
 
   .empty-comments {
     text-align: center;
     color: var(--el-text-color-secondary);
-    padding: 40px;
+    padding: var(--aitest-space-10);
   }
 }
 
@@ -637,7 +637,7 @@ onMounted(() => {
 // 检查清单样式
 .checklist-summary {
   .checklist-stats {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
     color: var(--el-text-color-regular);
     cursor: pointer;
   }
@@ -645,15 +645,15 @@ onMounted(() => {
 
 .no-checklist {
   color: var(--el-text-color-secondary);
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
 }
 
 .checklist-tooltip {
   .checklist-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: var(--aitest-space-2);
+    margin-bottom: var(--aitest-space-1);
 
     .pass-icon {
       color: var(--el-color-success);
@@ -673,13 +673,13 @@ onMounted(() => {
 .checklist-form-item {
   .checklist-container {
     border: 1px solid var(--el-border-color-lighter);
-    border-radius: 4px;
+    border-radius: var(--aitest-radius-sm);
 
     .checklist-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 16px;
+      padding: var(--aitest-space-3) var(--aitest-space-4);
       background-color: var(--aitest-canvas);
       border-bottom: 1px solid var(--el-border-color-lighter);
 
@@ -690,19 +690,19 @@ onMounted(() => {
 
       .checklist-actions {
         display: flex;
-        gap: 8px;
+        gap: var(--aitest-space-2);
       }
     }
 
     .checklist-items {
-      padding: 16px;
+      padding: var(--aitest-space-4);
 
       .checklist-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px solid #f0f0f0;
+        padding: var(--aitest-space-3) 0;
+        border-bottom: 1px solid var(--aitest-surface-subtle);
 
         &:last-child {
           border-bottom: none;
@@ -718,7 +718,7 @@ onMounted(() => {
         }
 
         .item-controls {
-          margin-left: 16px;
+          margin-left: var(--aitest-space-4);
         }
       }
     }

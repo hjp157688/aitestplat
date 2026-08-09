@@ -399,11 +399,11 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .metric-grid {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .report-metric {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
   position: relative;
   overflow: hidden;
 
@@ -412,34 +412,34 @@ onBeforeUnmount(() => {
     position: absolute;
     inset: 0 auto 0 0;
     width: 4px;
-    background: #2f6bff;
+    background: var(--aitest-primary);
   }
 
   .metric-label {
-    color: #667085;
-    margin-bottom: 10px;
+    color: var(--aitest-text-2);
+    margin-bottom: var(--aitest-space-3);
   }
 
   .metric-value {
     font-size: 26px;
     font-weight: 700;
-    color: #1d2939;
+    color: var(--aitest-text-1);
   }
 }
 
-.metric-close-rate::before { background: #17b26a; }
-.metric-severe::before { background: #f04438; }
+.metric-close-rate::before { background: var(--aitest-success); }
+.metric-severe::before { background: var(--aitest-danger); }
 
 .charts-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 .chart-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 .chart-card {
@@ -454,12 +454,12 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .subtle-note {
-  color: #98a2b3;
-  font-size: 12px;
+  color: var(--aitest-text-3);
+  font-size: var(--aitest-font-size-sm);
 }
 
 .chart-body {

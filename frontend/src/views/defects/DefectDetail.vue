@@ -362,15 +362,15 @@ onMounted(() => {
 .card-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   justify-content: space-between;
 }
 
 .detail-section {
-  margin-bottom: 18px;
+  margin-bottom: var(--aitest-space-5);
 
   h3 {
-    margin: 0 0 8px;
+    margin: 0 0 var(--aitest-space-2);
     font-size: 15px;
     color: var(--aitest-text-1);
   }
@@ -385,13 +385,13 @@ onMounted(() => {
 
 .side-card,
 .content-card {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .action-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: var(--aitest-space-3);
 
   .el-button {
     margin-left: 0;
@@ -399,16 +399,16 @@ onMounted(() => {
 }
 
 .timeline-comment {
-  margin-top: 4px;
+  margin-top: var(--aitest-space-1);
   color: var(--el-text-color-secondary);
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
 }
 
 .transition-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--aitest-space-2);
 }
 
 .transition-operator {
@@ -421,12 +421,12 @@ onMounted(() => {
 
 .comment-list,
 .attachment-list {
-  margin-top: 16px;
+  margin-top: var(--aitest-space-4);
 }
 
 .comment-item,
 .attachment-item {
-  padding: 12px 0;
+  padding: var(--aitest-space-3) 0;
   border-bottom: 1px solid var(--aitest-border);
 
   &:last-child {
@@ -440,13 +440,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   color: var(--el-text-color-secondary);
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
 }
 
 .comment-item p {
-  margin: 8px 0 0;
+  margin: var(--aitest-space-2) 0 0;
   color: var(--aitest-text-1);
   line-height: 1.7;
   white-space: pre-wrap;

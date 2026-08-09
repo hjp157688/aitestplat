@@ -22,7 +22,7 @@
 
 .content-area {
   height: 100%;
-  padding: 20px;
+  padding: var(--aitest-space-5);
   overflow-y: auto;
 }
 

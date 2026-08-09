@@ -371,32 +371,32 @@ onMounted(() => {
 
 <style scoped>
 .zentao-config {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .loading-container {
-  padding: 40px;
+  padding: var(--aitest-space-10);
 }
 
 .configs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 .config-card {
-  background: white;
+  background: var(--aitest-surface);
   border-radius: 12px;
-  padding: 20px;
+  padding: var(--aitest-space-5);
   border: 1px solid var(--aitest-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s;
 }
 
 .config-card.active {
-  border-color: #22c55e;
+  border-color: var(--aitest-success);
   box-shadow: 0 2px 12px rgba(34, 197, 94, 0.15);
 }
 
@@ -408,15 +408,15 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: var(--aitest-space-4);
+  padding-bottom: var(--aitest-space-3);
   border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .card-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   font-weight: 600;
   font-size: 1rem;
 }
@@ -424,13 +424,13 @@ onMounted(() => {
 .card-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--aitest-space-1);
 }
 
 .card-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--aitest-space-2);
 }
 
 .info-row {
@@ -447,32 +447,33 @@ onMounted(() => {
 .info-value {
   color: var(--aitest-text-2);
   word-break: break-all;
+  min-width: 0;
 }
 
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: var(--aitest-space-16) var(--aitest-space-5);
   color: var(--aitest-text-3);
   grid-column: 1 / -1;
 }
 
 .empty-state p {
-  margin: 12px 0;
+  margin: var(--aitest-space-3) 0;
 }
 
 .empty-hint {
   font-size: 0.9rem;
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .add-btn-wrapper {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   text-align: center;
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 </style>

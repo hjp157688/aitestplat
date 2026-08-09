@@ -385,7 +385,7 @@ onUnmounted(() => {
 
 <style scoped>
 .test-report {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   background-color: var(--aitest-canvas);
   min-height: 100vh;
 }
@@ -394,29 +394,29 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
+  margin-bottom: var(--aitest-space-5);
+  background: var(--aitest-surface);
+  padding: var(--aitest-space-4);
+  border-radius: var(--aitest-radius-lg);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .left-filters {
   display: flex;
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 .dashboard-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: var(--aitest-space-5);
+  margin-bottom: var(--aitest-space-5);
 }
 
 .card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
+  background: var(--aitest-surface);
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-5);
   display: flex;
   align-items: center;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
@@ -432,21 +432,22 @@ onUnmounted(() => {
 .card-icon {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: var(--aitest-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16px;
+  margin-right: var(--aitest-space-4);
   font-size: 24px;
 }
 
-.total-plans .card-icon { background: #e8f3ff; color: var(--el-color-primary); }
-.total-cases .card-icon { background: #f0f9eb; color: var(--el-color-success); }
-.pass-rate .card-icon { background: #fdf6ec; color: var(--el-color-warning); }
-.defects .card-icon { background: #fef0f0; color: var(--el-color-danger); }
+.total-plans .card-icon { background: var(--aitest-info-bg); color: var(--el-color-primary); }
+.total-cases .card-icon { background: var(--aitest-success-bg); color: var(--el-color-success); }
+.pass-rate .card-icon { background: var(--aitest-warning-bg); color: var(--el-color-warning); }
+.defects .card-icon { background: var(--aitest-danger-bg); color: var(--el-color-danger); }
 
 .card-content {
   flex: 1;
+  min-width: 0;
 }
 
 .card-value {
@@ -457,49 +458,49 @@ onUnmounted(() => {
 }
 
 .card-label {
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--el-text-color-secondary);
-  margin-top: 4px;
+  margin-top: var(--aitest-space-1);
 }
 
 .card-extra {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--el-text-color-secondary);
 }
 
 .charts-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .chart-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .chart-card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
+  background: var(--aitest-surface);
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-5);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
 }
 
 .chart-header {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
   border-bottom: 1px solid var(--aitest-border);
-  padding-bottom: 10px;
+  padding-bottom: var(--aitest-space-3);
 }
 
 .chart-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
   color: var(--aitest-text-1);
   font-weight: 600;
 }
@@ -521,24 +522,25 @@ onUnmounted(() => {
 .ai-metrics-container {
   display: flex;
   justify-content: space-around;
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .ai-metric-item {
   text-align: center;
   width: 30%;
+  min-width: 0;
 }
 
 .metric-value {
-  font-size: 20px;
+  font-size: var(--aitest-font-size-xl);
   font-weight: bold;
   color: var(--aitest-text-1);
-  margin-bottom: 5px;
+  margin-bottom: var(--aitest-space-1);
 }
 
 .metric-label {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--el-text-color-secondary);
-  margin-bottom: 5px;
+  margin-bottom: var(--aitest-space-1);
 }
 </style>

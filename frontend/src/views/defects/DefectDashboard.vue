@@ -354,11 +354,11 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .metric-grid {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .metric-card {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
   overflow: hidden;
   position: relative;
 
@@ -367,38 +367,38 @@ onBeforeUnmount(() => {
     position: absolute;
     inset: 0 auto 0 0;
     width: 4px;
-    background: #2f6bff;
+    background: var(--aitest-primary);
   }
 
   .metric-value {
     font-size: 28px;
     font-weight: 700;
-    color: #1d2939;
+    color: var(--aitest-text-1);
     line-height: 1.1;
   }
 
   .metric-label {
-    margin-top: 8px;
-    color: #667085;
+    margin-top: var(--aitest-space-2);
+    color: var(--aitest-text-2);
   }
 }
 
-.metric-open::before { background: #f79009; }
+.metric-open::before { background: var(--aitest-warning); }
 .metric-resolved::before { background: #7a5af8; }
-.metric-closed::before { background: #17b26a; }
-.metric-severe::before { background: #f04438; }
+.metric-closed::before { background: var(--aitest-success); }
+.metric-severe::before { background: var(--aitest-danger); }
 .metric-overdue::before { background: #12b3a8; }
 
 .charts-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 .chart-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 .chart-card {
@@ -413,12 +413,12 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .subtle-note {
-  color: #98a2b3;
-  font-size: 12px;
+  color: var(--aitest-text-3);
+  font-size: var(--aitest-font-size-sm);
 }
 
 .chart-body {

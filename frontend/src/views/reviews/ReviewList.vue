@@ -337,11 +337,11 @@ onMounted(() => {
 .filter-form {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 0;
+  gap: var(--aitest-space-3) 0;
 
   :deep(.el-form-item) {
-    margin-right: 16px;
-    margin-bottom: 12px;
+    margin-right: var(--aitest-space-4);
+    margin-bottom: var(--aitest-space-3);
   }
 
   :deep(.el-select) {

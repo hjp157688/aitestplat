@@ -603,26 +603,26 @@ onMounted(async () => {
   .search-bar {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--aitest-space-3);
   }
 
   .testcase-selection-tip {
     color: var(--el-text-color-regular);
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
   }
 }
 
 .testcase-selector-content {
   .el-input {
-    margin-bottom: 16px;
+    margin-bottom: var(--aitest-space-4);
   }
 
   .pagination-container {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    margin-top: 16px;
-    padding-top: 4px;
+    margin-top: var(--aitest-space-4);
+    padding-top: var(--aitest-space-1);
   }
 }
 

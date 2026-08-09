@@ -135,7 +135,7 @@ onMounted(() => {
 
 <style scoped>
 .ui-env-config {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -144,24 +144,24 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 40px;
-  gap: 10px;
+  margin-bottom: var(--aitest-space-10);
+  gap: var(--aitest-space-3);
 }
 
 .last-check {
   font-size: 0.9rem;
-  color: #999;
+  color: var(--aitest-text-3);
 }
 
 .env-status-grid {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: var(--aitest-space-8);
 }
 
 .os-info-card {
-  background: white;
-  padding: 20px;
+  background: var(--aitest-surface);
+  padding: var(--aitest-space-5);
   border-radius: 12px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -171,13 +171,13 @@ onMounted(() => {
   font-size: 1.5rem;
   font-weight: bold;
   color: var(--el-color-primary);
-  margin-top: 10px;
+  margin-top: var(--aitest-space-3);
 }
 
 .section-title {
-  margin: 20px 0 10px;
+  margin: var(--aitest-space-5) 0 var(--aitest-space-3);
   border-left: 4px solid var(--el-color-primary);
-  padding-left: 10px;
+  padding-left: var(--aitest-space-3);
 }
 
 .section-title h3 {
@@ -189,13 +189,13 @@ onMounted(() => {
 .browser-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .browser-card {
-  background: white;
+  background: var(--aitest-surface);
   border-radius: 12px;
-  padding: 20px;
+  padding: var(--aitest-space-5);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
   cursor: default;
@@ -215,7 +215,7 @@ onMounted(() => {
 .browser-icon {
   width: 64px;
   height: 64px;
-  margin-bottom: 15px;
+  margin-bottom: var(--aitest-space-4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -230,11 +230,11 @@ onMounted(() => {
 .browser-info {
   width: 100%;
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .browser-info h3 {
-  margin: 0 0 10px;
+  margin: 0 0 var(--aitest-space-3);
   color: var(--aitest-text-1);
   font-size: 1.1rem;
 }
@@ -242,11 +242,11 @@ onMounted(() => {
 .status-row {
   display: flex;
   justify-content: center;
-  margin-bottom: 5px;
+  margin-bottom: var(--aitest-space-1);
 }
 
 .browser-actions {
-  margin-top: 10px;
+  margin-top: var(--aitest-space-3);
   width: 100%;
   display: flex;
   justify-content: center;
