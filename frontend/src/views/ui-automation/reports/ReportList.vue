@@ -488,9 +488,9 @@ const getBrowserText = (browser) => {
 }
 
 const getProgressColor = (percentage) => {
-  if (percentage >= 80) return 'var(--el-color-success)'
-  if (percentage >= 60) return 'var(--el-color-warning)'
-  return 'var(--el-color-danger)'
+  if (percentage >= 80) return '#10B981'
+  if (percentage >= 60) return '#F59E0B'
+  return '#EF4444'
 }
 
 const formatDate = (dateString) => {

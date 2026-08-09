@@ -420,10 +420,10 @@ const initPieChart = () => {
           show: false
         },
         data: [
-          { value: stats.completed || 0, name: t('uiAutomation.ai.executionReport.completed'), itemStyle: { color: 'var(--el-color-success)' } },
-          { value: stats.pending || 0, name: t('uiAutomation.ai.executionReport.pending'), itemStyle: { color: 'var(--el-text-color-secondary)' } },
-          { value: stats.failed || 0, name: t('uiAutomation.ai.executionReport.failed'), itemStyle: { color: 'var(--el-color-danger)' } },
-          { value: stats.skipped || 0, name: t('uiAutomation.ai.executionReport.skipped'), itemStyle: { color: 'var(--el-color-warning)' } }
+          { value: stats.completed || 0, name: t('uiAutomation.ai.executionReport.completed'), itemStyle: { color: '#10B981' } },
+          { value: stats.pending || 0, name: t('uiAutomation.ai.executionReport.pending'), itemStyle: { color: '#94A3B8' } },
+          { value: stats.failed || 0, name: t('uiAutomation.ai.executionReport.failed'), itemStyle: { color: '#EF4444' } },
+          { value: stats.skipped || 0, name: t('uiAutomation.ai.executionReport.skipped'), itemStyle: { color: '#F59E0B' } }
         ].filter(item => item.value > 0)
       }
     ]
@@ -480,7 +480,7 @@ const initBarChart = () => {
         type: 'bar',
         data: data.map(item => item.value),
         itemStyle: {
-          color: 'var(--el-color-primary)'
+          color: '#4F46E5'
         }
       }
     ]

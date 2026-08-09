@@ -227,11 +227,11 @@ const loadChartsData = async () => {
   try {
     const res = await api.get('/reports/reports/status_distribution/', { params })
     const data = [
-      { value: res.data.passed, name: t('report.passed'), itemStyle: { color: 'var(--el-color-success)' } },
-      { value: res.data.failed, name: t('report.failed'), itemStyle: { color: 'var(--el-color-danger)' } },
-      { value: res.data.blocked, name: t('report.blocked'), itemStyle: { color: 'var(--el-color-warning)' } },
-      { value: res.data.retest, name: t('report.retest'), itemStyle: { color: 'var(--el-color-primary)' } },
-      { value: res.data.untested, name: t('report.untested'), itemStyle: { color: 'var(--el-text-color-secondary)' } }
+      { value: res.data.passed, name: t('report.passed'), itemStyle: { color: '#10B981' } },
+      { value: res.data.failed, name: t('report.failed'), itemStyle: { color: '#EF4444' } },
+      { value: res.data.blocked, name: t('report.blocked'), itemStyle: { color: '#F59E0B' } },
+      { value: res.data.retest, name: t('report.retest'), itemStyle: { color: '#4F46E5' } },
+      { value: res.data.untested, name: t('report.untested'), itemStyle: { color: '#94A3B8' } }
     ]
 
     statusChart.setOption({
@@ -268,8 +268,8 @@ const loadChartsData = async () => {
         type: 'line',
         stack: 'Total',
         smooth: true,
-        areaStyle: { opacity: 0.3, color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'var(--el-color-primary)' }, { offset: 1, color: '#fff' }]) },
-        itemStyle: { color: 'var(--el-color-primary)' },
+        areaStyle: { opacity: 0.3, color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#4F46E5' }, { offset: 1, color: '#fff' }]) },
+        itemStyle: { color: '#4F46E5' },
         data: counts
       }]
     })
@@ -341,7 +341,7 @@ const loadChartsData = async () => {
           type: 'bar',
           stack: 'total',
           label: { show: true },
-          itemStyle: { color: 'var(--el-color-primary)' },
+          itemStyle: { color: '#4F46E5' },
           data: execCounts
         },
         {
@@ -349,7 +349,7 @@ const loadChartsData = async () => {
           type: 'bar',
           stack: 'total',
           label: { show: true },
-          itemStyle: { color: 'var(--el-color-danger)' },
+          itemStyle: { color: '#EF4444' },
           data: defectCounts
         }
       ]

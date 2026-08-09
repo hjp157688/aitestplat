@@ -319,9 +319,9 @@ const reviewProgress = computed(() => {
 
 const progressColor = computed(() => {
   const progress = reviewProgress.value
-  if (progress === 100) return 'var(--el-color-success)'
-  if (progress >= 50) return 'var(--el-color-warning)'
-  return 'var(--el-color-danger)'
+  if (progress === 100) return '#10B981'
+  if (progress >= 50) return '#F59E0B'
+  return '#EF4444'
 })
 
 const canEdit = computed(() => {
