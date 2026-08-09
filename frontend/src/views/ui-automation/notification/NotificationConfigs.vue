@@ -442,6 +442,7 @@ export default {
 
 .notification-tabs :deep(.el-tabs__nav) {
   display: flex;
+  justify-content: center;
   background: var(--aitest-surface-subtle);
 }
 
@@ -452,6 +453,7 @@ export default {
   color: var(--aitest-text-2);
   border: none;
   position: relative;
+  text-align: center;
 }
 
 .notification-tabs :deep(.el-tabs__item:hover) {
