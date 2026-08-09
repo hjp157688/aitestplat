@@ -891,7 +891,7 @@ watch(() => props.modelValue, (val) => {
 <style scoped>
 .capture-container {
   display: flex;
-  gap: 20px;
+  gap: var(--aitest-space-5);
   height: calc(100vh - 200px);
 }
 
@@ -899,7 +899,7 @@ watch(() => props.modelValue, (val) => {
   flex: 1;
   min-width: 0;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
   overflow: hidden;
   background: var(--aitest-canvas);
   display: flex;
@@ -937,9 +937,9 @@ watch(() => props.modelValue, (val) => {
   left: 0;
   background: var(--el-color-primary);
   color: white;
-  padding: 2px 8px;
+  padding: 2px var(--aitest-space-2);
   border-radius: 3px;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -955,7 +955,7 @@ watch(() => props.modelValue, (val) => {
   color: white;
   border: none;
   cursor: pointer;
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
   line-height: 1;
   pointer-events: auto;
   z-index: 10;
@@ -989,7 +989,7 @@ watch(() => props.modelValue, (val) => {
   width: 400px;
   flex-shrink: 0;
   overflow-y: auto;
-  padding-right: 10px;
+  padding-right: var(--aitest-space-3);
 }
 
 .empty-state {

@@ -265,11 +265,11 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .app-automation-dashboard {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .stats-section {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .stat-card {
@@ -283,8 +283,8 @@ onUnmounted(() => {
   .stat-content {
     display: flex;
     align-items: center;
-    gap: 15px;
-    
+    gap: var(--aitest-space-4);
+
     .stat-icon {
       width: 60px;
       height: 60px;
@@ -309,11 +309,11 @@ onUnmounted(() => {
         font-weight: bold;
         color: var(--aitest-text-1);
         line-height: 1;
-        margin-bottom: 8px;
+        margin-bottom: var(--aitest-space-2);
       }
-      
+
       .stat-label {
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
         color: var(--el-text-color-secondary);
       }
     }
@@ -321,7 +321,7 @@ onUnmounted(() => {
 }
 
 .content-section {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .card-header {
@@ -335,18 +335,18 @@ onUnmounted(() => {
   .chart-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    
+    gap: var(--aitest-space-5);
+
     .stat-item {
       text-align: center;
-      padding: 15px;
-      border-radius: 8px;
+      padding: var(--aitest-space-4);
+      border-radius: var(--aitest-radius-lg);
       background: var(--aitest-canvas);
-      
+
       .stat-label {
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
         color: var(--el-text-color-secondary);
-        margin-bottom: 10px;
+        margin-bottom: var(--aitest-space-3);
       }
       
       .stat-value {
@@ -368,38 +368,38 @@ onUnmounted(() => {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
+      padding: var(--aitest-space-3);
       border-bottom: 1px solid var(--aitest-border);
-      
+
       &:last-child {
         border-bottom: none;
       }
-      
+
       &:hover {
         background: var(--aitest-canvas);
       }
-      
+
       .execution-info {
         flex: 1;
-        
+
         .execution-name {
-          font-size: 14px;
+          font-size: var(--aitest-font-size-md);
           font-weight: 500;
           color: var(--aitest-text-1);
-          margin-bottom: 8px;
+          margin-bottom: var(--aitest-space-2);
         }
-        
+
         .execution-meta {
           display: flex;
-          gap: 12px;
+          gap: var(--aitest-space-3);
           align-items: center;
-          font-size: 12px;
+          font-size: var(--aitest-font-size-sm);
           color: var(--el-text-color-secondary);
-          
+
           .device-name {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: var(--aitest-space-1);
           }
         }
       }
@@ -411,15 +411,15 @@ onUnmounted(() => {
   .actions-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    
+    gap: var(--aitest-space-5);
+
     .action-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
-      padding: 20px;
-      border-radius: 8px;
+      gap: var(--aitest-space-3);
+      padding: var(--aitest-space-5);
+      border-radius: var(--aitest-radius-lg);
       cursor: pointer;
       transition: all 0.3s;
       background: var(--aitest-canvas);
@@ -447,7 +447,7 @@ onUnmounted(() => {
       }
       
       .action-label {
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
         font-weight: 500;
         color: var(--aitest-text-1);
       }
@@ -457,6 +457,6 @@ onUnmounted(() => {
 
 .loading-container,
 .empty-container {
-  padding: 40px 0;
+  padding: var(--aitest-space-10) 0;
 }
 </style>

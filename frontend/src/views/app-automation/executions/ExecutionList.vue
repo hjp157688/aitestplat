@@ -290,12 +290,12 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .execution-list {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .toolbar {
-  margin-bottom: 20px;
-  
+  margin-bottom: var(--aitest-space-5);
+
   .text-right {
     text-align: right;
   }
@@ -303,7 +303,7 @@ onUnmounted(() => {
 
 .table-card {
   .pagination {
-    margin-top: 20px;
+    margin-top: var(--aitest-space-5);
     display: flex;
     justify-content: flex-end;
   }
@@ -311,9 +311,9 @@ onUnmounted(() => {
 
 .step-stats {
   display: flex;
-  gap: 8px;
-  font-size: 12px;
-  
+  gap: var(--aitest-space-2);
+  font-size: var(--aitest-font-size-sm);
+
   .stat-item {
     &.success { color: var(--el-color-success); }
     &.danger { color: var(--el-color-danger); }
@@ -323,13 +323,13 @@ onUnmounted(() => {
 .error-content {
   max-height: 400px;
   overflow-y: auto;
-  
+
   pre {
     background: var(--aitest-canvas);
-    padding: 15px;
-    border-radius: 4px;
+    padding: var(--aitest-space-4);
+    border-radius: var(--aitest-radius-sm);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
     line-height: 1.5;
     white-space: pre-wrap;
     word-wrap: break-word;

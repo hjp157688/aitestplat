@@ -57,21 +57,21 @@ import { DataAnalysis, Cellphone, Picture, Document, Aim } from '@element-plus/i
 
 <style scoped lang="scss">
 .app-automation-index {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .welcome-section {
   text-align: center;
-  margin-bottom: 40px;
-  
+  margin-bottom: var(--aitest-space-10);
+
   h1 {
     font-size: 32px;
     color: var(--aitest-text-1);
-    margin-bottom: 10px;
+    margin-bottom: var(--aitest-space-3);
   }
-  
+
   p {
-    font-size: 16px;
+    font-size: var(--aitest-font-size-lg);
     color: var(--el-text-color-secondary);
   }
 }
@@ -79,13 +79,13 @@ import { DataAnalysis, Cellphone, Picture, Document, Aim } from '@element-plus/i
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  
+  gap: var(--aitest-space-5);
+
   .feature-card {
     cursor: pointer;
     transition: all 0.3s;
     text-align: center;
-    padding: 20px;
+    padding: var(--aitest-space-5);
     
     &:hover {
       transform: translateY(-5px);
@@ -96,7 +96,7 @@ import { DataAnalysis, Cellphone, Picture, Document, Aim } from '@element-plus/i
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      margin: 0 auto 20px;
+      margin: 0 auto var(--aitest-space-5);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -114,11 +114,11 @@ import { DataAnalysis, Cellphone, Picture, Document, Aim } from '@element-plus/i
       font-size: 18px;
       font-weight: bold;
       color: var(--aitest-text-1);
-      margin-bottom: 10px;
+      margin-bottom: var(--aitest-space-3);
     }
-    
+
     .feature-desc {
-      font-size: 14px;
+      font-size: var(--aitest-font-size-md);
       color: var(--el-text-color-secondary);
       line-height: 1.6;
     }

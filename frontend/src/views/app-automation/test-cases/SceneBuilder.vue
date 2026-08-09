@@ -2897,15 +2897,15 @@ defineExpose({
 
 <style scoped>
 .ui-test-scene-builder {
-    padding: 16px;
+    padding: var(--aitest-space-4);
 }
 
 .scene-config {
-    margin-top: 12px;
+    margin-top: var(--aitest-space-3);
 }
 
 .scene-layout {
-    margin-top: 16px;
+    margin-top: var(--aitest-space-4);
 }
 
 .card-title {
@@ -2918,20 +2918,20 @@ defineExpose({
 .scene-variables {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--aitest-space-2);
 }
 
 .scene-variable-item {
     display: grid;
     grid-template-columns: 140px 120px 120px 1fr 1fr auto;
-    gap: 8px;
+    gap: var(--aitest-space-2);
     align-items: center;
 }
 
 .variable-hint {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
     color: var(--el-text-color-secondary);
-    margin: 0 0 8px 0;
+    margin: 0 0 var(--aitest-space-2) 0;
 }
 
 .hint-danger {
@@ -2946,10 +2946,10 @@ defineExpose({
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    padding: 8px 10px;
+    padding: var(--aitest-space-2) var(--aitest-space-3);
     border: 1px dashed var(--el-border-color-lighter);
-    border-radius: 4px;
-    margin-bottom: 8px;
+    border-radius: var(--aitest-radius-sm);
+    margin-bottom: var(--aitest-space-2);
     cursor: grab;
     background: var(--aitest-surface-subtle);
 }
@@ -2957,13 +2957,13 @@ defineExpose({
 .palette-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--aitest-space-2);
 }
 
 .palette-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--aitest-space-2);
     opacity: 0;
     transition: opacity 0.15s ease;
 }
@@ -2974,8 +2974,8 @@ defineExpose({
 
 .palette-empty {
     color: var(--el-text-color-secondary);
-    font-size: 12px;
-    padding: 8px 10px;
+    font-size: var(--aitest-font-size-sm);
+    padding: var(--aitest-space-2) var(--aitest-space-3);
 }
 
 .palette-name {
@@ -2985,31 +2985,31 @@ defineExpose({
 
 .palette-type {
     color: var(--el-text-color-secondary);
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
     line-height: 20px;
 }
 
 .custom-steps-section {
-    margin-top: 12px;
+    margin-top: var(--aitest-space-3);
 }
 
 .custom-steps-label {
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
     font-weight: 500;
     color: var(--el-text-color-regular);
-    margin-bottom: 8px;
+    margin-bottom: var(--aitest-space-2);
 }
 
 .custom-edit-steps {
     display: flex;
-    gap: 12px;
+    gap: var(--aitest-space-3);
 }
 
 .custom-step-list {
     flex: 1;
     border: 1px solid var(--aitest-border);
-    border-radius: 6px;
-    padding: 8px;
+    border-radius: var(--aitest-radius);
+    padding: var(--aitest-space-2);
     min-height: 220px;
     max-height: 500px;
     overflow-y: auto;
@@ -3017,8 +3017,8 @@ defineExpose({
 
 .custom-step-toolbar {
     display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: var(--aitest-space-2);
+    margin-bottom: var(--aitest-space-2);
     align-items: center;
 }
 
@@ -3029,7 +3029,7 @@ defineExpose({
 
 .custom-step-toolbar .el-button {
     height: 32px;
-    padding: 0 12px;
+    padding: 0 var(--aitest-space-3);
 }
 
 .custom-step-items {
@@ -3047,14 +3047,14 @@ defineExpose({
     height: 20px;
     min-width: 10px;
     line-height: 1;
-    padding: 0 6px;
+    padding: 0 var(--aitest-space-2);
 }
 
 .custom-step-config {
     flex: 1;
     border: 1px solid var(--aitest-border);
-    border-radius: 6px;
-    padding: 12px;
+    border-radius: var(--aitest-radius);
+    padding: var(--aitest-space-3);
     min-height: 220px;
     max-height: 500px;
     overflow-y: auto;
@@ -3067,8 +3067,8 @@ defineExpose({
 
 .scene-hint {
     color: var(--el-text-color-secondary);
-    font-size: 13px;
-    padding: 12px;
+    font-size: var(--aitest-font-size-base);
+    padding: var(--aitest-space-3);
 }
 
 .scene-list {
@@ -3079,11 +3079,11 @@ defineExpose({
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: var(--aitest-space-3) var(--aitest-space-3);
     border: 1px solid var(--aitest-border);
-    border-radius: 6px;
+    border-radius: var(--aitest-radius);
     cursor: pointer;
-    background: #fff;
+    background: var(--aitest-surface);
 }
 
 .scene-item.active {
@@ -3094,14 +3094,14 @@ defineExpose({
 .scene-item-main {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--aitest-space-2);
 }
 
 .scene-index {
     background: var(--el-color-primary);
     color: #fff;
-    font-size: 12px;
-    padding: 2px 6px;
+    font-size: var(--aitest-font-size-sm);
+    padding: 2px var(--aitest-space-2);
     border-radius: 10px;
 }
 
@@ -3111,11 +3111,11 @@ defineExpose({
 
 .scene-type {
     color: var(--el-text-color-secondary);
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
 }
 
 .scene-item-wrapper {
-    margin-bottom: 8px;
+    margin-bottom: var(--aitest-space-2);
 }
 
 .scene-item-wrapper > .scene-item {
@@ -3132,34 +3132,34 @@ defineExpose({
 .custom-sub-steps {
     border: 1px solid var(--el-color-warning);
     border-top: none;
-    border-radius: 0 0 6px 6px;
-    background: #fdf6ec;
-    padding: 6px 6px 4px 6px;
+    border-radius: 0 0 var(--aitest-radius) var(--aitest-radius);
+    background: var(--aitest-warning-bg);
+    padding: var(--aitest-space-2) var(--aitest-space-2) var(--aitest-space-1) var(--aitest-space-2);
 }
 
 .sub-step-item {
-    margin-bottom: 4px !important;
-    padding: 7px 10px !important;
-    margin-left: 16px !important;
+    margin-bottom: var(--aitest-space-1) !important;
+    padding: 7px var(--aitest-space-3) !important;
+    margin-left: var(--aitest-space-4) !important;
     border-color: var(--el-border-color-lighter) !important;
-    background: #fff !important;
-    font-size: 13px;
+    background: var(--aitest-surface) !important;
+    font-size: var(--aitest-font-size-base);
 }
 
 .sub-step-item.active {
     border-color: var(--el-color-warning) !important;
-    background: #fef0e0 !important;
+    background: var(--aitest-warning-bg) !important;
 }
 
 .sub-index {
     background: var(--el-color-warning) !important;
-    font-size: 11px !important;
-    padding: 1px 5px !important;
+    font-size: var(--aitest-font-size-xs) !important;
+    padding: 1px var(--aitest-space-1) !important;
 }
 
 .sub-step-toolbar {
     text-align: center;
-    padding: 2px 0 4px 0;
+    padding: 2px 0 var(--aitest-space-1) 0;
 }
 
 .config-card {
@@ -3168,29 +3168,29 @@ defineExpose({
 
 .config-empty {
     color: var(--el-text-color-secondary);
-    font-size: 13px;
-    padding: 16px;
+    font-size: var(--aitest-font-size-base);
+    padding: var(--aitest-space-4);
 }
 
 .package-title {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
     color: var(--el-text-color-secondary);
-    margin-bottom: 6px;
+    margin-bottom: var(--aitest-space-2);
 }
 
 .package-list {
     max-height: 240px;
     overflow-y: auto;
     border: 1px solid var(--aitest-border);
-    border-radius: 4px;
-    padding: 6px;
+    border-radius: var(--aitest-radius-sm);
+    padding: var(--aitest-space-2);
 }
 
 .package-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 0;
+    padding: var(--aitest-space-1) 0;
     border-bottom: 1px dashed var(--aitest-border);
 }
 
@@ -3199,7 +3199,7 @@ defineExpose({
 }
 
 .package-name {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
     color: var(--aitest-text-1);
     max-width: 220px;
     overflow: hidden;
@@ -3209,28 +3209,28 @@ defineExpose({
 
 .package-meta {
     display: flex;
-    gap: 8px;
+    gap: var(--aitest-space-2);
     color: var(--el-text-color-secondary);
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
 }
 
 .package-empty {
     color: var(--el-text-color-secondary);
-    font-size: 12px;
-    padding: 6px 0;
+    font-size: var(--aitest-font-size-sm);
+    padding: var(--aitest-space-2) 0;
 }
 
 /* 元素选择器样式 */
 .element-selector-container {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: var(--aitest-space-4);
 }
 
 .element-selector-filter {
-    padding: 10px;
+    padding: var(--aitest-space-3);
     background-color: var(--aitest-canvas);
-    border-radius: 4px;
+    border-radius: var(--aitest-radius-sm);
 }
 
 .preview-image {
@@ -3241,15 +3241,15 @@ defineExpose({
 
 .preview-pos,
 .preview-region {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
 }
 
 /* 字段分组样式 */
 .field-group {
-    margin-bottom: 20px;
-    padding: 16px;
+    margin-bottom: var(--aitest-space-5);
+    padding: var(--aitest-space-4);
     background: var(--aitest-canvas);
-    border-radius: 4px;
+    border-radius: var(--aitest-radius-sm);
     border: 1px solid var(--aitest-border);
 }
 
@@ -3257,23 +3257,23 @@ defineExpose({
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
+    margin-bottom: var(--aitest-space-3);
+    padding-bottom: var(--aitest-space-2);
     border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .group-title {
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
     font-weight: 600;
     color: var(--aitest-text-1);
 }
 
 .element-linked-alert {
-    margin-bottom: 12px;
+    margin-bottom: var(--aitest-space-3);
 }
 
 .field-group :deep(.el-form-item) {
-    margin-bottom: 12px;
+    margin-bottom: var(--aitest-space-3);
 }
 
 .field-group:last-child {

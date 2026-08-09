@@ -719,21 +719,21 @@ onMounted(() => {
 
 <style scoped>
 .el-divider {
-  margin: 10px 0;
+  margin: var(--aitest-space-3) 0;
 }
 
 .current-image-section {
-  padding: 15px;
+  padding: var(--aitest-space-4);
   background: var(--aitest-canvas);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
   border: 1px solid var(--aitest-border);
 }
 
 .image-preview-box {
   display: inline-block;
-  padding: 10px;
-  background: white;
-  border-radius: 4px;
+  padding: var(--aitest-space-3);
+  background: var(--aitest-surface);
+  border-radius: var(--aitest-radius-sm);
   border: 1px solid var(--el-border-color-lighter);
 }
 
@@ -744,19 +744,19 @@ onMounted(() => {
   justify-content: center;
   padding: 30px;
   color: var(--el-text-color-secondary);
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
 }
 
 .image-info-box {
-  margin-top: 10px;
-  font-size: 12px;
+  margin-top: var(--aitest-space-3);
+  font-size: var(--aitest-font-size-sm);
   color: var(--el-text-color-regular);
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--aitest-space-1);
   padding: 3px 0;
 }
 

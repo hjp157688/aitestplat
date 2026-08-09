@@ -667,10 +667,10 @@ onMounted(() => {
 }
 
 .config-card {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 
   :deep(.el-card__body) {
-    padding: 20px;
+    padding: var(--aitest-space-5);
   }
 
   :deep(.el-form-item) {
@@ -686,15 +686,15 @@ onMounted(() => {
 /* 用例选择器 */
 .case-selector {
   display: flex;
-  gap: 16px;
-  margin-top: 16px;
+  gap: var(--aitest-space-4);
+  margin-top: var(--aitest-space-4);
   height: 400px;
 }
 
 .selector-panel {
   flex: 1;
   border: 1px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -703,30 +703,30 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 14px;
+    padding: var(--aitest-space-3) var(--aitest-space-4);
     background: var(--aitest-canvas);
     border-bottom: 1px solid var(--aitest-border);
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
     color: var(--aitest-text-1);
   }
 
   .panel-body {
     flex: 1;
     overflow-y: auto;
-    padding: 8px;
+    padding: var(--aitest-space-2);
   }
 }
 
 .case-item {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
-  margin-bottom: 4px;
-  border-radius: 4px;
+  padding: var(--aitest-space-2) var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-1);
+  border-radius: var(--aitest-radius-sm);
   cursor: pointer;
   transition: background 0.2s;
-  font-size: 13px;
+  font-size: var(--aitest-font-size-base);
 
   &:hover {
     background: var(--el-color-primary-light-9);
@@ -739,11 +739,11 @@ onMounted(() => {
   }
 
   &.selected {
-    background: #f0f9eb;
+    background: var(--aitest-success-bg);
     cursor: grab;
 
     &:hover {
-      background: #e1f3d8;
+      background: var(--aitest-success-bg);
     }
   }
 
@@ -756,15 +756,15 @@ onMounted(() => {
 
   .case-pkg {
     color: var(--el-text-color-secondary);
-    font-size: 12px;
-    margin-left: 8px;
+    font-size: var(--aitest-font-size-sm);
+    margin-left: var(--aitest-space-2);
     flex-shrink: 0;
   }
 
   .case-order {
     color: var(--el-text-color-secondary);
-    font-size: 12px;
-    margin: 0 8px;
+    font-size: var(--aitest-font-size-sm);
+    margin: 0 var(--aitest-space-2);
     min-width: 20px;
     text-align: center;
   }
@@ -781,8 +781,8 @@ onMounted(() => {
 
   .drag-handle {
     cursor: grab;
-    color: #c0c4cc;
-    margin-right: 4px;
+    color: var(--aitest-text-3);
+    margin-right: var(--aitest-space-1);
     flex-shrink: 0;
   }
 
@@ -792,7 +792,7 @@ onMounted(() => {
     flex-shrink: 0;
 
     &:hover {
-      color: #dd2020;
+      color: var(--aitest-danger);
     }
   }
 }

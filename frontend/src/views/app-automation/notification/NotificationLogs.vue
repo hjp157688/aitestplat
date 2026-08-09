@@ -211,14 +211,14 @@ const parsedContent = computed(() => {
 </script>
 
 <style scoped>
-.notification-logs { padding: 20px; background: #fff; border-radius: 8px; }
-.filters { margin-bottom: 20px; padding: 20px; background: var(--aitest-surface-subtle); border-radius: 6px; }
-.pagination { margin-top: 20px; display: flex; justify-content: flex-end; }
+.notification-logs { padding: var(--aitest-space-5); background: var(--aitest-surface); border-radius: var(--aitest-radius-lg); }
+.filters { margin-bottom: var(--aitest-space-5); padding: var(--aitest-space-5); background: var(--aitest-surface-subtle); border-radius: var(--aitest-radius); }
+.pagination { margin-top: var(--aitest-space-5); display: flex; justify-content: flex-end; }
 .content-box { width: 100%; }
-.parsed-content { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid var(--aitest-border); }
-.content-row { display: flex; padding: 10px 0; border-bottom: 1px solid var(--aitest-surface-subtle); }
+.parsed-content { background: var(--aitest-surface); border-radius: var(--aitest-radius-lg); padding: var(--aitest-space-4); border: 1px solid var(--aitest-border); }
+.content-row { display: flex; padding: var(--aitest-space-3) 0; border-bottom: 1px solid var(--aitest-surface-subtle); }
 .content-row:last-child { border-bottom: none; }
-.label { font-weight: 600; color: var(--el-text-color-regular); min-width: 90px; margin-right: 12px; }
+.label { font-weight: 600; color: var(--el-text-color-regular); min-width: 90px; margin-right: var(--aitest-space-3); }
 .value { color: var(--aitest-text-1); flex: 1; word-break: break-word; }
-.raw-content { white-space: pre-wrap; word-break: break-word; margin: 0; padding: 12px; background: var(--aitest-canvas); border-radius: 6px; font-size: 13px; max-height: 300px; overflow-y: auto; }
+.raw-content { white-space: pre-wrap; word-break: break-word; margin: 0; padding: var(--aitest-space-3); background: var(--aitest-canvas); border-radius: var(--aitest-radius); font-size: var(--aitest-font-size-base); max-height: 300px; overflow-y: auto; }
 </style>

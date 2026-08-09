@@ -223,6 +223,6 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .app-package-list {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 </style>

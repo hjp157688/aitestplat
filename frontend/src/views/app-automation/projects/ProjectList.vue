@@ -266,8 +266,8 @@ function formatDateTime(dt) {
 </script>
 
 <style scoped>
-.page-container { padding: 20px; }
-.card-container { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.filter-bar { margin-bottom: 20px; }
-.pagination-container { margin-top: 20px; display: flex; justify-content: flex-end; }
+.page-container { padding: var(--aitest-space-5); }
+.card-container { background: var(--aitest-surface); border-radius: var(--aitest-radius-lg); padding: var(--aitest-space-5); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.filter-bar { margin-bottom: var(--aitest-space-5); }
+.pagination-container { margin-top: var(--aitest-space-5); display: flex; justify-content: flex-end; }
 </style>

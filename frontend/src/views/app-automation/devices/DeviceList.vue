@@ -587,7 +587,7 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .device-management {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .dialog-footer {

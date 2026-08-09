@@ -811,13 +811,13 @@ onBeforeUnmount(() => {
 .batch-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  margin-top: 12px;
+  gap: var(--aitest-space-3);
+  padding: var(--aitest-space-3) var(--aitest-space-4);
+  margin-top: var(--aitest-space-3);
   background: var(--el-color-primary-light-9);
   border: 1px solid #b3d8ff;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: var(--aitest-radius-sm);
+  font-size: var(--aitest-font-size-md);
 
   strong {
     color: var(--el-color-primary);
@@ -825,10 +825,10 @@ onBeforeUnmount(() => {
 }
 
 .device-card {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 
   :deep(.el-card__body) {
-    padding: 20px;
+    padding: var(--aitest-space-5);
   }
 
   :deep(.el-form-item) {
@@ -839,15 +839,15 @@ onBeforeUnmount(() => {
 .progress-wrapper {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 4px 8px;
+  gap: var(--aitest-space-3);
+  padding: var(--aitest-space-1) var(--aitest-space-2);
   background-color: var(--aitest-canvas);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
 
   .progress-text {
     min-width: 45px;
     text-align: right;
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
     color: var(--el-text-color-regular);
     font-weight: 500;
   }
@@ -862,17 +862,17 @@ onBeforeUnmount(() => {
 
   .card-actions {
     display: flex;
-    gap: 12px;
+    gap: var(--aitest-space-3);
   }
 
   :deep(.el-card__header) {
-    padding: 16px 20px;
+    padding: var(--aitest-space-4) var(--aitest-space-5);
     background-color: var(--aitest-surface-subtle);
     border-bottom: 1px solid var(--aitest-border);
   }
 
   :deep(.el-card__body) {
-    padding: 20px;
+    padding: var(--aitest-space-5);
   }
 }
 
@@ -896,7 +896,7 @@ onBeforeUnmount(() => {
 // 响应式设计
 @media screen and (max-width: 1366px) {
   .device-card :deep(.el-form-item__label) {
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
   }
 }
 </style>

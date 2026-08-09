@@ -477,65 +477,65 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .element-management {
-  padding: 20px;
-  
+  padding: var(--aitest-space-5);
+
   .header-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: var(--aitest-space-3);
   }
-  
+
   .preview-image {
-    padding: 5px;
-    
+    padding: var(--aitest-space-1);
+
     :deep(.el-image) {
       border: 1px solid var(--aitest-border);
-      border-radius: 4px;
+      border-radius: var(--aitest-radius-sm);
       overflow: hidden;
-      
+
       &:hover {
         border-color: var(--el-color-primary);
       }
     }
   }
-  
+
   .preview-pos,
   .preview-region {
     display: flex;
     justify-content: center;
   }
-  
+
   .batch-actions {
-    margin-top: 15px;
-    padding: 10px;
+    margin-top: var(--aitest-space-4);
+    padding: var(--aitest-space-3);
     background: var(--el-color-primary-light-9);
     border: 1px solid #b3d8ff;
-    border-radius: 4px;
+    border-radius: var(--aitest-radius-sm);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    
+
     span {
       color: var(--el-color-primary);
       font-weight: 500;
     }
   }
-  
+
   :deep(.el-table) {
     .el-link {
       font-weight: 500;
     }
   }
-  
+
   :deep(.el-pagination) {
     display: flex;
   }
-  
+
   :deep(pre) {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
     line-height: 1.5;
   }
 }

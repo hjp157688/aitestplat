@@ -600,21 +600,21 @@ function formatDuration(seconds) {
 </script>
 
 <style scoped>
-.report-list { padding: 20px; }
-.stats-row { display: flex; gap: 16px; margin-bottom: 20px; }
+.report-list { padding: var(--aitest-space-5); }
+.stats-row { display: flex; gap: var(--aitest-space-4); margin-bottom: var(--aitest-space-5); }
 .stat-card { flex: 1; }
 .stat-content { text-align: center; }
 .stat-number { font-size: 28px; font-weight: bold; line-height: 1.6; }
-.stat-label { font-size: 13px; color: var(--el-text-color-secondary); }
-.filters { margin-bottom: 20px; padding: 20px; background: var(--aitest-surface-subtle); border-radius: 8px; }
-.pagination { margin-top: 20px; display: flex; justify-content: flex-end; }
-.step-stats { display: flex; align-items: center; font-size: 13px; }
-.detail-section { margin-top: 24px; }
-.detail-section h4 { margin-bottom: 12px; color: var(--aitest-text-1); }
-.detail-stat { text-align: center; padding: 16px; border-radius: 8px; }
+.stat-label { font-size: var(--aitest-font-size-base); color: var(--el-text-color-secondary); }
+.filters { margin-bottom: var(--aitest-space-5); padding: var(--aitest-space-5); background: var(--aitest-surface-subtle); border-radius: var(--aitest-radius-lg); }
+.pagination { margin-top: var(--aitest-space-5); display: flex; justify-content: flex-end; }
+.step-stats { display: flex; align-items: center; font-size: var(--aitest-font-size-base); }
+.detail-section { margin-top: var(--aitest-space-6); }
+.detail-section h4 { margin-bottom: var(--aitest-space-3); color: var(--aitest-text-1); }
+.detail-stat { text-align: center; padding: var(--aitest-space-4); border-radius: var(--aitest-radius-lg); }
 .detail-stat-num { font-size: 24px; font-weight: bold; }
-.detail-stat-label { font-size: 13px; color: var(--el-text-color-regular); margin-top: 4px; }
-.success-bg { background: #f0f9eb; color: var(--el-color-success); }
-.danger-bg { background: #fef0f0; color: var(--el-color-danger); }
-.info-bg { background: #f4f4f5; color: var(--el-text-color-secondary); }
+.detail-stat-label { font-size: var(--aitest-font-size-base); color: var(--el-text-color-regular); margin-top: var(--aitest-space-1); }
+.success-bg { background: var(--aitest-success-bg); color: var(--el-color-success); }
+.danger-bg { background: var(--aitest-danger-bg); color: var(--el-color-danger); }
+.info-bg { background: var(--aitest-neutral-bg); color: var(--el-text-color-secondary); }
 </style>

@@ -436,9 +436,9 @@ const formatDateTime = (s) => {
 </script>
 
 <style scoped>
-.scheduled-tasks { padding: 20px; display: flex; flex-direction: column; height: 100%; }
-.filters { margin-bottom: 20px; background: var(--aitest-surface-subtle); padding: 20px; border-radius: 8px; }
-.pagination { margin-top: 20px; display: flex; justify-content: flex-end; }
-.cron-help { margin-top: 8px; font-size: 12px; }
-.unit { margin-left: 8px; color: var(--el-text-color-regular); }
+.scheduled-tasks { padding: var(--aitest-space-5); display: flex; flex-direction: column; height: 100%; }
+.filters { margin-bottom: var(--aitest-space-5); background: var(--aitest-surface-subtle); padding: var(--aitest-space-5); border-radius: var(--aitest-radius-lg); }
+.pagination { margin-top: var(--aitest-space-5); display: flex; justify-content: flex-end; }
+.cron-help { margin-top: var(--aitest-space-2); font-size: var(--aitest-font-size-sm); }
+.unit { margin-left: var(--aitest-space-2); color: var(--el-text-color-regular); }
 </style>

@@ -140,14 +140,14 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .app-settings {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 
   .form-item-tip {
-    margin-top: 8px;
+    margin-top: var(--aitest-space-2);
   }
 
   .config-info {
-    margin-top: 20px;
+    margin-top: var(--aitest-space-5);
   }
 }
 </style>
