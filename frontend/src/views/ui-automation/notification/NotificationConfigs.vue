@@ -441,6 +441,8 @@ export default {
 }
 
 .notification-tabs :deep(.el-tabs__nav) {
+  float: none;
+  width: 100%;
   background: var(--aitest-surface-subtle);
 }
 
