@@ -1789,7 +1789,7 @@ export default {
    ================================================================ */
 
 .requirement-analysis {
-  padding: 28px 24px;
+  padding: 28px var(--aitest-space-6);
   max-width: 1280px;
   margin: 0 auto;
   position: relative;
@@ -1800,9 +1800,9 @@ export default {
 .config-banner {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  margin-bottom: 20px;
+  gap: var(--aitest-space-3);
+  padding: var(--aitest-space-3) var(--aitest-space-4);
+  margin-bottom: var(--aitest-space-5);
   border-radius: 10px;
   background: var(--aitest-warning-bg);
   border: 1px solid color-mix(in srgb, var(--aitest-warning) 35%, transparent);
@@ -1828,8 +1828,8 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  border-radius: 6px;
+  padding: var(--aitest-space-1);
+  border-radius: var(--aitest-radius);
   transition: all 0.15s ease;
 }
 
@@ -1844,11 +1844,11 @@ export default {
   border-radius: 14px;
   border: 1px solid var(--aitest-border);
   box-shadow: var(--aitest-shadow-sm);
-  padding: 8px 24px 24px;
+  padding: var(--aitest-space-2) var(--aitest-space-6) var(--aitest-space-6);
 }
 
 .input-tabs .el-tabs__header {
-  margin-bottom: 14px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .input-tabs .el-tabs__item {
@@ -1868,17 +1868,17 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--aitest-space-4);
   flex-wrap: wrap;
-  margin-top: 20px;
-  padding-top: 20px;
+  margin-top: var(--aitest-space-5);
+  padding-top: var(--aitest-space-5);
   border-top: 1px solid var(--aitest-surface-subtle);
 }
 
 .output-mode-compact {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--aitest-space-4);
   flex-wrap: wrap;
 }
 
@@ -1906,7 +1906,7 @@ export default {
   color: var(--aitest-text-2);
   font-size: 0.84rem;
   font-weight: 500;
-  padding: 7px 14px;
+  padding: 7px var(--aitest-space-4);
   border-radius: 7px;
   cursor: pointer;
   transition: all 0.18s ease;
@@ -1945,7 +1945,7 @@ export default {
 .case-type-field {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   flex: 1;
   min-width: 340px;
 }
@@ -1953,31 +1953,31 @@ export default {
 .case-type-input {
   width: auto;
   flex: 1;
-  padding: 10px 14px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   font-size: 0.9rem;
 }
 
 .granularity-field {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 
 /* ---------- Main Content Layout ---------- */
 .main-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--aitest-space-6);
 }
 
 /* ---------- Form Elements ---------- */
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--aitest-space-2);
   font-weight: 600;
   font-size: 0.85rem;
   color: var(--aitest-text-2);
@@ -1985,9 +1985,9 @@ export default {
 
 .form-input, .form-select {
   width: 100%;
-  padding: 10px 14px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   font-size: 0.9rem;
   color: var(--aitest-text-1);
   background: var(--aitest-surface);
@@ -2008,9 +2008,9 @@ export default {
 
 .form-textarea {
   width: 100%;
-  padding: 12px 14px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   font-size: 0.9rem;
   color: var(--aitest-text-1);
   background: var(--aitest-surface);
@@ -2035,7 +2035,7 @@ export default {
   text-align: right;
   font-size: 0.78rem;
   color: var(--aitest-text-3);
-  margin-top: 4px;
+  margin-top: var(--aitest-space-1);
 }
 
 .required {
@@ -2054,7 +2054,7 @@ export default {
   font-size: 0.95rem;
   font-weight: 600;
   width: 100%;
-  margin-top: 10px;
+  margin-top: var(--aitest-space-3);
   transition: all 0.2s ease;
   letter-spacing: 0.01em;
   position: relative;
@@ -2093,10 +2093,10 @@ export default {
 .upload-area {
   border: 2px dashed var(--aitest-border-strong);
   border-radius: 10px;
-  padding: 36px 24px;
+  padding: 36px var(--aitest-space-6);
   text-align: center;
   transition: all 0.2s ease;
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
   background: var(--aitest-canvas);
 }
 
@@ -2112,7 +2112,7 @@ export default {
 
 .upload-icon {
   font-size: 2.5rem;
-  margin-bottom: 12px;
+  margin-bottom: var(--aitest-space-3);
   display: block;
   color: var(--aitest-text-3);
 }
@@ -2126,17 +2126,17 @@ export default {
 .upload-hint {
   color: var(--aitest-text-3) !important;
   font-size: 0.8rem !important;
-  margin-top: 4px !important;
+  margin-top: var(--aitest-space-1) !important;
 }
 
 .select-file-btn {
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-2);
   border: 1.5px solid var(--aitest-border);
-  padding: 9px 20px;
-  border-radius: 8px;
+  padding: 9px var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
-  margin-top: 14px;
+  margin-top: var(--aitest-space-4);
   font-size: 0.85rem;
   font-weight: 500;
   transition: all 0.2s ease;
@@ -2148,15 +2148,15 @@ export default {
 }
 
 .file-selected {
-  padding: 18px;
+  padding: var(--aitest-space-5);
   background: var(--aitest-canvas);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
 }
 
 .file-info {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--aitest-space-4);
 }
 
 .file-icon {
@@ -2187,8 +2187,8 @@ export default {
   cursor: pointer;
   font-size: 1.1rem;
   color: var(--aitest-text-3);
-  padding: 4px;
-  border-radius: 6px;
+  padding: var(--aitest-space-1);
+  border-radius: var(--aitest-radius);
   transition: all 0.15s ease;
 }
 
@@ -2206,7 +2206,7 @@ export default {
 .generation-panel {
   background: var(--aitest-surface);
   border-radius: 14px;
-  padding: 24px;
+  padding: var(--aitest-space-6);
   border: 1px solid var(--aitest-border);
   box-shadow: var(--aitest-shadow-sm);
   position: relative;
@@ -2236,14 +2236,14 @@ export default {
 
 /* ---------- 结果头 ---------- */
 .result-header {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .result-header-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-4);
 }
 
 .result-kicker {
@@ -2258,7 +2258,7 @@ export default {
   color: var(--aitest-text-3);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  padding: 2px 10px;
+  padding: 2px var(--aitest-space-3);
   border-radius: 20px;
 }
 
@@ -2270,7 +2270,7 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 4px 12px;
+  padding: var(--aitest-space-1) var(--aitest-space-3);
   border-radius: 20px;
   font-size: 0.78rem;
   font-weight: 600;
@@ -2305,8 +2305,8 @@ export default {
 /* ---------- 压缩版步骤条 ---------- */
 .mini-steps {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: var(--aitest-space-2);
+  margin-bottom: var(--aitest-space-4);
   flex-wrap: wrap;
 }
 
@@ -2314,8 +2314,8 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 5px 10px;
-  border-radius: 8px;
+  padding: var(--aitest-space-1) var(--aitest-space-3);
+  border-radius: var(--aitest-radius-lg);
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-3);
   font-size: 0.78rem;
@@ -2350,10 +2350,10 @@ export default {
 /* ---------- 常驻动作条 ---------- */
 .action-bar {
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   flex-wrap: wrap;
   align-items: center;
-  padding-top: 16px;
+  padding-top: var(--aitest-space-4);
   border-top: 1px solid var(--aitest-surface-subtle);
 }
 
@@ -2362,7 +2362,7 @@ export default {
 }
 
 .cancel-row-wrap {
-  padding-top: 16px;
+  padding-top: var(--aitest-space-4);
   border-top: 1px solid var(--aitest-surface-subtle);
 }
 
@@ -2371,7 +2371,7 @@ export default {
   color: var(--aitest-danger);
   border: 1.5px solid color-mix(in srgb, var(--aitest-danger) 28%, transparent);
   padding: 9px 22px;
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
@@ -2386,7 +2386,7 @@ export default {
 /* ---------- 空态 ---------- */
 .results-empty {
   text-align: center;
-  padding: 56px 24px;
+  padding: 56px var(--aitest-space-6);
   background: var(--aitest-surface);
   border: 1px dashed var(--aitest-border-strong);
   border-radius: 14px;
@@ -2395,20 +2395,20 @@ export default {
 .results-empty-icon {
   font-size: 2.4rem;
   color: var(--aitest-border-strong);
-  margin-bottom: 14px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .results-empty-title {
   font-size: 1rem;
   font-weight: 700;
   color: var(--aitest-text-2);
-  margin: 0 0 6px 0;
+  margin: 0 0 var(--aitest-space-2) 0;
 }
 
 .results-empty-desc {
   font-size: 0.86rem;
   color: var(--aitest-text-3);
-  margin: 0 0 16px 0;
+  margin: 0 0 var(--aitest-space-4) 0;
   line-height: 1.6;
   max-width: 460px;
   margin-left: auto;
@@ -2419,9 +2419,9 @@ export default {
 .failure-card {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 16px 18px;
-  margin-bottom: 18px;
+  gap: var(--aitest-space-4);
+  padding: var(--aitest-space-4) var(--aitest-space-5);
+  margin-bottom: var(--aitest-space-5);
   border-radius: 10px;
   background: var(--aitest-danger-bg);
   border: 1px solid color-mix(in srgb, var(--aitest-danger) 30%, transparent);
@@ -2442,7 +2442,7 @@ export default {
   font-weight: 700;
   color: var(--aitest-danger);
   font-size: 0.9rem;
-  margin: 0 0 4px 0;
+  margin: 0 0 var(--aitest-space-1) 0;
 }
 
 .failure-msg {
@@ -2455,15 +2455,15 @@ export default {
 
 /* ---------- 结果区块（草稿/评审/最终） ---------- */
 .result-section {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
 }
 
 .result-section-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: var(--aitest-space-3);
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   background: var(--aitest-canvas);
   border: 1px solid var(--aitest-border);
   border-bottom: none;
@@ -2473,7 +2473,7 @@ export default {
 .result-section-title {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   font-weight: 600;
   color: var(--aitest-text-2);
   font-size: 0.88rem;
@@ -2483,7 +2483,7 @@ export default {
   font-size: 0.78rem;
   color: var(--aitest-text-2);
   background: var(--aitest-surface);
-  padding: 3px 10px;
+  padding: 3px var(--aitest-space-3);
   border-radius: 20px;
   border: 1px solid var(--aitest-border);
 }
@@ -2491,7 +2491,7 @@ export default {
 .result-section-actions {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
 }
 
 .result-section.final .result-section-head {
@@ -2513,7 +2513,7 @@ export default {
 .stream-content {
   max-height: 400px;
   overflow-y: auto;
-  padding: 18px;
+  padding: var(--aitest-space-5);
   text-align: left;
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
@@ -2553,18 +2553,18 @@ export default {
 
 .stream-content code {
   background: var(--aitest-surface-subtle);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px var(--aitest-space-2);
+  border-radius: var(--aitest-radius-sm);
   font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
   font-size: 0.82em;
 }
 
 .stream-content pre {
   background: var(--aitest-surface-subtle);
-  padding: 12px;
-  border-radius: 6px;
+  padding: var(--aitest-space-3);
+  border-radius: var(--aitest-radius);
   overflow-x: auto;
-  margin: 10px 0;
+  margin: var(--aitest-space-3) 0;
 }
 
 .stream-content pre code {
@@ -2591,8 +2591,8 @@ export default {
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 12px;
-  padding: 16px;
+  gap: var(--aitest-space-3);
+  padding: var(--aitest-space-4);
   background: var(--aitest-canvas);
   border: 1px solid var(--aitest-border);
   border-top: none;
@@ -2622,7 +2622,7 @@ export default {
 .testcase-card {
   background: var(--aitest-surface);
   border-radius: 10px;
-  padding: 16px;
+  padding: var(--aitest-space-4);
   border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   transition: all 0.25s ease;
@@ -2691,7 +2691,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .testcase-card .case-id {
@@ -2699,14 +2699,14 @@ export default {
   font-size: 0.75rem;
   color: var(--aitest-text-2);
   background: var(--aitest-surface-subtle);
-  padding: 2px 10px;
+  padding: 2px var(--aitest-space-3);
   border-radius: 5px;
   letter-spacing: 0.02em;
   font-weight: 500;
 }
 
 .testcase-card .priority-badge {
-  padding: 3px 10px;
+  padding: 3px var(--aitest-space-3);
   border-radius: 20px;
   font-size: 0.7rem;
   font-weight: 700;
@@ -2732,7 +2732,7 @@ export default {
   font-weight: 600;
   color: var(--aitest-text-1);
   font-size: 0.88rem;
-  margin-bottom: 12px;
+  margin-bottom: var(--aitest-space-3);
   line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -2745,14 +2745,14 @@ export default {
 .testcase-card .card-divider {
   height: 1px;
   background: var(--aitest-surface-subtle);
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 /* Card field */
 .testcase-card .card-field {
   display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: var(--aitest-space-2);
+  margin-bottom: var(--aitest-space-2);
   font-size: 0.8rem;
   line-height: 1.5;
   align-items: flex-start;
@@ -2794,7 +2794,7 @@ export default {
 
 .testcase-card .step-row {
   display: flex;
-  gap: 6px;
+  gap: var(--aitest-space-2);
   align-items: baseline;
   line-height: 1.5;
 }
@@ -2823,7 +2823,7 @@ export default {
 /* Streaming indicator */
 .streaming-indicator {
   font-size: 0.85em;
-  margin-left: 8px;
+  margin-left: var(--aitest-space-2);
   color: var(--aitest-success);
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -2837,16 +2837,16 @@ export default {
 
 /* ---------- Knowledge Panel ---------- */
 .knowledge-section {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .retrieve-knowledge-btn {
   width: 100%;
-  padding: 10px 16px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   background: var(--aitest-primary);
   color: var(--aitest-surface);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
@@ -2868,32 +2868,32 @@ export default {
 }
 
 .selected-knowledge-summary {
-  margin-top: 8px;
+  margin-top: var(--aitest-space-2);
   font-size: 0.82rem;
   color: var(--aitest-text-2);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   flex-wrap: wrap;
 }
 
 .selected-tags {
   display: flex;
-  gap: 4px;
+  gap: var(--aitest-space-1);
   flex-wrap: wrap;
 }
 
 .knowledge-tag {
   background: var(--aitest-primary-subtle);
   color: var(--aitest-primary);
-  padding: 2px 8px;
+  padding: 2px var(--aitest-space-2);
   border-radius: 10px;
   font-size: 0.75rem;
   font-weight: 500;
 }
 
 .knowledge-panel {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
   border: 1px solid var(--aitest-border);
   border-radius: 10px;
   overflow: hidden;
@@ -2904,7 +2904,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   background: var(--aitest-canvas);
   font-weight: 600;
   font-size: 0.85rem;
@@ -2916,7 +2916,7 @@ export default {
   font-size: 0.78rem;
   color: var(--aitest-text-3);
   background: var(--aitest-surface);
-  padding: 2px 10px;
+  padding: 2px var(--aitest-space-3);
   border-radius: 12px;
   border: 1px solid var(--aitest-border);
 }
@@ -2924,7 +2924,7 @@ export default {
 .knowledge-panel-body {
   max-height: 360px;
   overflow-y: auto;
-  padding: 8px;
+  padding: var(--aitest-space-2);
 }
 
 .knowledge-empty {
@@ -2935,9 +2935,9 @@ export default {
 }
 
 .knowledge-item {
-  padding: 12px;
-  margin-bottom: 6px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-2);
+  border-radius: var(--aitest-radius-lg);
   border: 1px solid var(--aitest-border);
   background: var(--aitest-surface);
   cursor: pointer;
@@ -2957,8 +2957,8 @@ export default {
 .knowledge-item-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: var(--aitest-space-2);
+  margin-bottom: var(--aitest-space-2);
 }
 
 .knowledge-checkbox input {
@@ -2975,7 +2975,7 @@ export default {
 
 .knowledge-item-type {
   font-size: 0.72rem;
-  padding: 2px 8px;
+  padding: 2px var(--aitest-space-2);
   border-radius: 10px;
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-2);
@@ -2994,7 +2994,7 @@ export default {
 .knowledge-item-score {
   font-size: 0.78rem;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 2px var(--aitest-space-2);
   border-radius: 10px;
   background: var(--aitest-warning-bg);
   color: var(--aitest-warning);
@@ -3019,14 +3019,14 @@ export default {
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  padding-left: 24px;
+  padding-left: var(--aitest-space-6);
 }
 
 .knowledge-panel-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   background: var(--aitest-canvas);
   border-top: 1px solid var(--aitest-border);
   font-size: 0.82rem;
@@ -3034,11 +3034,11 @@ export default {
 }
 
 .confirm-knowledge-btn {
-  padding: 6px 20px;
+  padding: var(--aitest-space-2) var(--aitest-space-5);
   background: var(--aitest-primary);
   color: var(--aitest-surface);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   cursor: pointer;
   font-size: 0.82rem;
   font-weight: 500;
@@ -3052,11 +3052,11 @@ export default {
 /* ---------- Responsive ---------- */
 @media (max-width: 768px) {
   .requirement-analysis {
-    padding: 16px;
+    padding: var(--aitest-space-4);
   }
 
   .input-card {
-    padding: 6px 16px 18px;
+    padding: var(--aitest-space-2) var(--aitest-space-4) var(--aitest-space-5);
   }
 
   .generate-bar {

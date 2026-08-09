@@ -1073,7 +1073,7 @@ export default {
 
 <style scoped>
 .business-knowledge {
-  padding: 28px 24px;
+  padding: 28px var(--aitest-space-6);
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', Roboto, sans-serif;
@@ -1084,15 +1084,15 @@ export default {
 .overview-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-4);
 }
 
 .overview-stat {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
   border-radius: var(--aitest-radius);
-  padding: 14px 18px;
+  padding: var(--aitest-space-4) var(--aitest-space-5);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1111,7 +1111,7 @@ export default {
 }
 
 /* ── Tabs ───────────────────────────────────────────── */
-.el-tabs :deep(.el-tabs__header) { margin-bottom: 14px; }
+.el-tabs :deep(.el-tabs__header) { margin-bottom: var(--aitest-space-4); }
 .el-tabs :deep(.el-tabs__item) { font-family: inherit; }
 
 /* ── 表格操作栏（与其他页面一致） ───────────────────── */
@@ -1119,33 +1119,33 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: var(--aitest-space-4);
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   flex-wrap: wrap;
 }
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
 }
 
 .pagination-wrapper {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: var(--aitest-space-4);
 }
 
 /* 文档名单元格：类型标签 + 名称 */
 .doc-name-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   min-width: 0;
 }
 .doc-name-cell__text {
@@ -1173,7 +1173,7 @@ export default {
 .actions-placeholder {
   font-size: 0.86rem;
   color: var(--aitest-text-3);
-  margin-right: 8px;
+  margin-right: var(--aitest-space-2);
 }
 
 /* ── 未配置分词模型警告条 ─────────────────────────── */
@@ -1185,10 +1185,10 @@ export default {
   display: block;
   color: var(--aitest-text-1);
   font-size: 0.9rem;
-  margin-bottom: 4px;
+  margin-bottom: var(--aitest-space-1);
 }
 .config-alert p {
-  margin: 0 0 10px;
+  margin: 0 0 var(--aitest-space-3);
   color: var(--aitest-text-2);
   font-size: 0.84rem;
   line-height: 1.6;
@@ -1200,7 +1200,7 @@ export default {
 
 /* ── 分块预览与编辑 ─────────────────────────────── */
 .chunks-state {
-  padding: 40px 24px;
+  padding: var(--aitest-space-10) var(--aitest-space-6);
   text-align: center;
   color: var(--aitest-text-2);
   font-size: 0.9rem;
@@ -1208,21 +1208,21 @@ export default {
 .chunk-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--aitest-space-4);
 }
 .chunk-card {
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  padding: 14px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-4);
   background: var(--aitest-surface);
 }
 .chunk-card__head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 .chunk-card__title {
   font-weight: 600;
@@ -1237,8 +1237,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  margin-top: 8px;
+  gap: var(--aitest-space-3);
+  margin-top: var(--aitest-space-2);
 }
 .chunk-card__len {
   font-size: 0.76rem;
@@ -1247,7 +1247,7 @@ export default {
 
 /* ── LLM 提取进度 ─────────────────────────────── */
 .extract-progress__msg {
-  margin-top: 12px;
+  margin-top: var(--aitest-space-3);
   font-size: 0.85rem;
   color: var(--aitest-text-2);
   text-align: center;
@@ -1268,6 +1268,6 @@ export default {
 }
 
 @media (max-width: 700px) {
-  .business-knowledge { padding: 16px; }
+  .business-knowledge { padding: var(--aitest-space-4); }
 }
 </style>

@@ -1059,7 +1059,7 @@ export default {
 
 <style scoped>
 .generated-testcase-list {
-  padding: 28px 24px;
+  padding: 28px var(--aitest-space-6);
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
@@ -1067,17 +1067,17 @@ export default {
 
 /* Filters */
 .filters-section {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .filter-card {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 12px;
-  padding: 20px 24px;
+  padding: var(--aitest-space-5) var(--aitest-space-6);
   border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   display: flex;
-  gap: 20px;
+  gap: var(--aitest-space-5);
   align-items: end;
   flex-wrap: wrap;
 }
@@ -1085,7 +1085,7 @@ export default {
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--aitest-space-2);
   min-width: 150px;
 }
 
@@ -1096,11 +1096,11 @@ export default {
 }
 
 .filter-select {
-  padding: 8px 12px;
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   font-size: 0.85rem;
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   color: var(--aitest-text-2);
   cursor: pointer;
   outline: none;
@@ -1114,15 +1114,15 @@ export default {
 
 .filter-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 
 .refresh-btn {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 8px 18px;
-  border-radius: 8px;
+  padding: var(--aitest-space-2) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
@@ -1133,11 +1133,11 @@ export default {
 .refresh-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
 .batch-delete-btn {
-  background: #DC2626;
+  background: var(--aitest-danger);
   color: #FFFFFF;
   border: none;
-  padding: 8px 18px;
-  border-radius: 8px;
+  padding: var(--aitest-space-2) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
@@ -1149,17 +1149,17 @@ export default {
 
 /* Stats */
 .stats-section {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .stats-card {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 12px;
-  padding: 20px 24px;
+  padding: var(--aitest-space-5) var(--aitest-space-6);
   border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   display: flex;
-  gap: 40px;
+  gap: var(--aitest-space-10);
   justify-content: center;
 }
 
@@ -1167,7 +1167,7 @@ export default {
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--aitest-space-1);
 }
 
 .stat-number {
@@ -1184,27 +1184,27 @@ export default {
 
 /* Test Cases Section */
 .testcases-section {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 12px;
-  padding: 24px;
+  padding: var(--aitest-space-6);
   border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .loading-state, .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 60px var(--aitest-space-5);
   color: var(--aitest-text-2);
 }
 
 .empty-icon {
   font-size: 4rem;
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .empty-state h3 {
   color: var(--aitest-text-1);
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .empty-state a {
@@ -1217,7 +1217,7 @@ export default {
 
 .testcases-table {
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   overflow-x: auto;
 }
 
@@ -1241,7 +1241,7 @@ export default {
 .table-row.selected:hover { background: #DBEAFE; }
 
 .header-cell {
-  padding: 12px;
+  padding: var(--aitest-space-3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1250,7 +1250,7 @@ export default {
 }
 
 .body-cell {
-  padding: 12px;
+  padding: var(--aitest-space-3);
   display: flex;
   align-items: center;
   border-right: 1px solid var(--aitest-surface-subtle);
@@ -1280,7 +1280,7 @@ export default {
   justify-content: center;
   /* 状态标签与进度条纵向堆叠，避免横向溢出 100px 列宽 */
   flex-direction: column;
-  gap: 4px;
+  gap: var(--aitest-space-1);
 }
 
 .count-cell { justify-content: center; width: 100px; flex-shrink: 0; }
@@ -1297,7 +1297,7 @@ export default {
 }
 
 .header-cell.action-cell { background: var(--aitest-canvas); }
-.body-cell.action-cell { justify-content: center; background: #FFFFFF; }
+.body-cell.action-cell { justify-content: center; background: var(--aitest-surface); }
 
 .table-row:hover .body-cell.action-cell { background: var(--aitest-canvas); }
 .table-row.selected .body-cell.action-cell,
@@ -1305,7 +1305,7 @@ export default {
 
 .action-buttons {
   display: flex;
-  gap: 4px;
+  gap: var(--aitest-space-1);
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
@@ -1315,7 +1315,7 @@ export default {
 .count-badge {
   background: var(--aitest-primary);
   color: #FFFFFF;
-  padding: 3px 10px;
+  padding: 3px var(--aitest-space-3);
   border-radius: 12px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -1332,34 +1332,34 @@ export default {
   white-space: normal;
 }
 
-.requirement-id { color: var(--aitest-text-2); font-size: 0.78rem; margin-left: 5px; }
+.requirement-id { color: var(--aitest-text-2); font-size: 0.78rem; margin-left: var(--aitest-space-1); }
 
 .priority-tag, .status-tag {
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 3px var(--aitest-space-2);
+  border-radius: var(--aitest-radius-sm);
   font-size: 0.75rem;
   font-weight: 600;
 }
 
-.priority-tag.p0 { background: #FEF2F2; color: #DC2626; }
-.priority-tag.p1 { background: #FFFBEB; color: #D97706; }
+.priority-tag.p0 { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
+.priority-tag.p1 { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
 .priority-tag.p2 { background: var(--aitest-info-bg); color: var(--aitest-primary); }
-.priority-tag.p3 { background: #F0FDF4; color: #059669; }
+.priority-tag.p3 { background: var(--aitest-success-bg); color: var(--aitest-success); }
 
-.status-tag.pending { background: #FFFBEB; color: #D97706; }
+.status-tag.pending { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
 .status-tag.generating { background: var(--aitest-info-bg); color: var(--aitest-primary); }
 .status-tag.reviewing { background: var(--aitest-info-bg); color: var(--aitest-primary); }
 .status-tag.revising { background: var(--aitest-info-bg); color: var(--aitest-primary); }
 .status-tag.cancelled { background: var(--aitest-surface-subtle); color: var(--aitest-text-2); }
-.status-tag.completed { background: #F0FDF4; color: #059669; }
-.status-tag.failed { background: #FEF2F2; color: #DC2626; }
+.status-tag.completed { background: var(--aitest-success-bg); color: var(--aitest-success); }
+.status-tag.failed { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
 
 /* 运行中任务进度条 */
 .task-progress {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--aitest-space-2);
   width: 100%;
 }
 .progress-track {
@@ -1387,8 +1387,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 5px 8px;
-  border-radius: 4px;
+  padding: var(--aitest-space-1) var(--aitest-space-2);
+  border-radius: var(--aitest-radius-sm);
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 500;
@@ -1399,11 +1399,11 @@ export default {
 .view-detail-btn:hover { background: var(--aitest-primary-hover); }
 
 .adopt-btn {
-  background: #059669;
+  background: var(--aitest-success);
   color: #FFFFFF;
   border: none;
-  padding: 5px 8px;
-  border-radius: 4px;
+  padding: var(--aitest-space-1) var(--aitest-space-2);
+  border-radius: var(--aitest-radius-sm);
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 500;
@@ -1414,11 +1414,11 @@ export default {
 .adopt-btn:hover { background: #047857; }
 
 .discard-btn {
-  background: #DC2626;
+  background: var(--aitest-danger);
   color: #FFFFFF;
   border: none;
-  padding: 5px 8px;
-  border-radius: 4px;
+  padding: var(--aitest-space-1) var(--aitest-space-2);
+  border-radius: var(--aitest-radius-sm);
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 500;
@@ -1429,23 +1429,23 @@ export default {
 .discard-btn:hover { background: #B91C1C; }
 
 .adopted-label {
-  color: #059669;
+  color: var(--aitest-success);
   font-weight: 600;
   font-size: 0.75rem;
-  padding: 5px 10px;
-  background: #F0FDF4;
-  border-radius: 4px;
+  padding: var(--aitest-space-1) var(--aitest-space-3);
+  background: var(--aitest-success-bg);
+  border-radius: var(--aitest-radius-sm);
   border: 1px solid #A7F3D0;
 }
 
 /* Pagination */
 .pagination-section {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #FFFFFF;
-  padding: 16px 20px;
+  background: var(--aitest-surface);
+  padding: var(--aitest-space-4) var(--aitest-space-5);
   border-radius: 10px;
   border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
@@ -1456,38 +1456,38 @@ export default {
 .pagination-controls {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .page-size-selector {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
 }
 
 .page-size-selector label { color: var(--aitest-text-2); font-size: 0.85rem; }
 
 .page-size-selector select {
-  padding: 6px 10px;
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   font-size: 0.85rem;
   color: var(--aitest-text-2);
-  background: #FFFFFF;
+  background: var(--aitest-surface);
 }
 
 .pagination-buttons {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--aitest-space-1);
 }
 
 .page-btn {
-  padding: 7px 12px;
+  padding: 7px var(--aitest-space-3);
   border: 1.5px solid var(--aitest-border);
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   color: var(--aitest-text-2);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   cursor: pointer;
   font-size: 0.85rem;
   transition: all 0.15s;
@@ -1498,32 +1498,32 @@ export default {
 .page-btn.active { background: var(--aitest-primary); color: #FFFFFF; border-color: var(--aitest-primary); }
 
 .page-numbers { display: flex; align-items: center; gap: 2px; }
-.ellipsis { padding: 7px 4px; color: var(--aitest-text-3); }
+.ellipsis { padding: 7px var(--aitest-space-1); color: var(--aitest-text-3); }
 
 .page-jumper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
 }
 
 .page-jumper label { color: var(--aitest-text-2); font-size: 0.85rem; }
 
 .page-jumper input {
   width: 60px;
-  padding: 6px 8px;
+  padding: var(--aitest-space-2) var(--aitest-space-2);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   font-size: 0.85rem;
   text-align: center;
   color: var(--aitest-text-2);
 }
 
 .jump-btn {
-  padding: 6px 12px;
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
@@ -1545,7 +1545,7 @@ export default {
 }
 
 .modal-content {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 14px;
   padding: 0;
   max-width: 800px;
@@ -1560,7 +1560,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: var(--aitest-space-5) var(--aitest-space-6);
   border-bottom: 1px solid var(--aitest-border);
 }
 
@@ -1572,22 +1572,22 @@ export default {
   font-size: 1.3rem;
   cursor: pointer;
   color: var(--aitest-text-3);
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: var(--aitest-space-1) var(--aitest-space-2);
+  border-radius: var(--aitest-radius);
   transition: all 0.15s;
 }
 
 .close-btn:hover { color: var(--aitest-text-1); background: var(--aitest-surface-subtle); }
 
-.modal-body { padding: 24px; }
+.modal-body { padding: var(--aitest-space-6); }
 
-.detail-item { margin-bottom: 18px; }
+.detail-item { margin-bottom: var(--aitest-space-5); }
 
 .detail-item label {
   font-weight: 600;
   color: var(--aitest-text-2);
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--aitest-space-2);
   font-size: 0.85rem;
 }
 
@@ -1601,8 +1601,8 @@ export default {
   white-space: pre-line;
   line-height: 1.6;
   background: var(--aitest-canvas);
-  padding: 14px;
-  border-radius: 8px;
+  padding: var(--aitest-space-4);
+  border-radius: var(--aitest-radius-lg);
   border-left: 3px solid var(--aitest-primary);
 }
 
@@ -1612,8 +1612,8 @@ export default {
 
 .form-row {
   display: flex;
-  gap: 20px;
-  margin-bottom: 18px;
+  gap: var(--aitest-space-5);
+  margin-bottom: var(--aitest-space-5);
 }
 
 .form-row:last-child { margin-bottom: 0; }
@@ -1627,16 +1627,16 @@ export default {
 .form-group label {
   font-weight: 600;
   color: var(--aitest-text-2);
-  margin-bottom: 6px;
+  margin-bottom: var(--aitest-space-2);
   font-size: 0.85rem;
 }
 
 .form-group input, .form-group select, .form-group textarea {
-  padding: 10px 12px;
+  padding: var(--aitest-space-3) var(--aitest-space-3);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   font-size: 0.88rem;
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   color: var(--aitest-text-1);
   font-family: inherit;
   transition: border-color 0.2s;
@@ -1653,17 +1653,17 @@ export default {
 .form-hint {
   color: var(--aitest-text-3);
   font-size: 0.78rem;
-  margin-top: 5px;
+  margin-top: var(--aitest-space-1);
 }
 
-.required { color: #DC2626; font-weight: 600; }
+.required { color: var(--aitest-danger); font-weight: 600; }
 
 .form-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 20px;
+  margin-top: var(--aitest-space-6);
+  padding-top: var(--aitest-space-5);
   border-top: 1px solid var(--aitest-border);
 }
 
@@ -1671,8 +1671,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 22px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) 22px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.88rem;
   font-weight: 600;
@@ -1686,8 +1686,8 @@ export default {
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-2);
   border: 1.5px solid var(--aitest-border);
-  padding: 10px 22px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) 22px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.88rem;
   font-weight: 500;
@@ -1702,20 +1702,20 @@ export default {
     grid-template-columns: 150px 1fr 100px 140px 260px;
   }
   .action-buttons { flex-direction: row; gap: 2px; align-items: center; flex-wrap: wrap; }
-  .view-detail-btn, .adopt-btn, .discard-btn { margin-right: 0; font-size: 0.65rem; padding: 2px 4px; }
+  .view-detail-btn, .adopt-btn, .discard-btn { margin-right: 0; font-size: 0.65rem; padding: 2px var(--aitest-space-1); }
 }
 
 @media (max-width: 768px) {
   .filter-card { flex-direction: column; align-items: stretch; }
-  .stats-card { flex-wrap: wrap; gap: 20px; }
+  .stats-card { flex-wrap: wrap; gap: var(--aitest-space-5); }
   .table-header, .table-body .table-row { grid-template-columns: 120px 1fr 80px 120px 240px; }
-  .header-cell, .body-cell { padding: 8px; font-size: 0.8rem; }
+  .header-cell, .body-cell { padding: var(--aitest-space-2); font-size: 0.8rem; }
   .action-buttons { flex-direction: column; gap: 2px; align-items: stretch; }
-  .view-detail-btn, .adopt-btn, .discard-btn { font-size: 0.65rem; padding: 2px 4px; }
-  .form-row { flex-direction: column; gap: 15px; }
+  .view-detail-btn, .adopt-btn, .discard-btn { font-size: 0.65rem; padding: 2px var(--aitest-space-1); }
+  .form-row { flex-direction: column; gap: var(--aitest-space-4); }
   .large-modal { max-width: 95%; }
-  .pagination-section { flex-direction: column; gap: 15px; align-items: flex-start; }
-  .pagination-controls { flex-direction: column; gap: 15px; align-items: flex-start; width: 100%; }
+  .pagination-section { flex-direction: column; gap: var(--aitest-space-4); align-items: flex-start; }
+  .pagination-controls { flex-direction: column; gap: var(--aitest-space-4); align-items: flex-start; width: 100%; }
   .pagination-buttons { justify-content: center; width: 100%; }
 }
 
@@ -1731,13 +1731,13 @@ export default {
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
   border-radius: 20px;
-  padding: 2px 10px;
+  padding: 2px var(--aitest-space-3);
   max-width: 138px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   display: inline-flex;
-  gap: 6px;
+  gap: var(--aitest-space-2);
 }
 
 .option-type {

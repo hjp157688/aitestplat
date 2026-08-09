@@ -587,7 +587,7 @@ export default {
 
 <style scoped>
 .prompt-config {
-  padding: 28px 24px;
+  padding: 28px var(--aitest-space-6);
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
@@ -597,9 +597,9 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: var(--aitest-space-6);
   flex-wrap: wrap;
-  gap: 15px;
+  gap: var(--aitest-space-4);
 }
 
 .section-header h2 {
@@ -611,15 +611,15 @@ export default {
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 
 .load-defaults-btn {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 22px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) 22px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
@@ -632,8 +632,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 22px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) 22px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
@@ -645,13 +645,13 @@ export default {
 .configs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .config-card {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 14px;
-  padding: 24px;
+  padding: var(--aitest-space-6);
   border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -666,48 +666,48 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
-  padding-bottom: 14px;
+  margin-bottom: var(--aitest-space-5);
+  padding-bottom: var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .config-title h3 {
   color: var(--aitest-text-1);
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--aitest-space-3) 0;
   font-size: 1.15rem;
   font-weight: 700;
 }
 
 .config-badges {
   display: flex;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   flex-wrap: wrap;
 }
 
 .type-badge, .status-badge {
-  padding: 3px 10px;
+  padding: 3px var(--aitest-space-3);
   border-radius: 20px;
   font-size: 0.72rem;
   font-weight: 600;
 }
 
-.type-badge.writer { background: #F0FDF4; color: #059669; }
-.type-badge.reviewer { background: #FFFBEB; color: #D97706; }
+.type-badge.writer { background: var(--aitest-success-bg); color: var(--aitest-success); }
+.type-badge.reviewer { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
 .type-badge.api_testcase_generator { background: var(--aitest-info-bg); color: var(--aitest-primary); }
 
-.status-badge { background: #FEF2F2; color: #DC2626; }
-.status-badge.active { background: #F0FDF4; color: #059669; }
+.status-badge { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
+.status-badge.active { background: var(--aitest-success-bg); color: var(--aitest-success); }
 
 .config-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   flex-wrap: wrap;
 }
 
 .preview-btn, .edit-btn, .delete-btn {
-  padding: 6px 12px;
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 500;
@@ -716,27 +716,27 @@ export default {
 
 .preview-btn { background: var(--aitest-primary); color: #FFFFFF; }
 .preview-btn:hover { background: var(--aitest-primary-hover); }
-.edit-btn { background: #F59E0B; color: #FFFFFF; }
-.edit-btn:hover { background: #D97706; }
-.delete-btn { background: #DC2626; color: #FFFFFF; }
+.edit-btn { background: var(--aitest-warning); color: #FFFFFF; }
+.edit-btn:hover { background: var(--aitest-warning); }
+.delete-btn { background: var(--aitest-danger); color: #FFFFFF; }
 .delete-btn:hover { background: #B91C1C; }
 
-.config-details { margin-top: 16px; }
+.config-details { margin-top: var(--aitest-space-4); }
 
-.prompt-preview { margin-bottom: 15px; }
+.prompt-preview { margin-bottom: var(--aitest-space-4); }
 
 .prompt-preview label {
   font-size: 0.8rem;
   color: var(--aitest-text-3);
   font-weight: 500;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--aitest-space-2);
 }
 
 .content-preview {
   background: var(--aitest-canvas);
-  padding: 12px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3);
+  border-radius: var(--aitest-radius-lg);
   color: var(--aitest-text-2);
   font-size: 0.85rem;
   line-height: 1.5;
@@ -746,13 +746,13 @@ export default {
 .config-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .meta-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--aitest-space-1);
 }
 
 .meta-item label {
@@ -768,29 +768,29 @@ export default {
 
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
+  padding: 80px var(--aitest-space-5);
   color: var(--aitest-text-2);
 }
 
-.empty-icon { font-size: 4rem; margin-bottom: 20px; }
+.empty-icon { font-size: 4rem; margin-bottom: var(--aitest-space-5); }
 
 .empty-state h3 {
   color: var(--aitest-text-1);
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .empty-actions {
   display: flex;
-  gap: 15px;
+  gap: var(--aitest-space-4);
   justify-content: center;
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   flex-wrap: wrap;
 }
 
 .add-first-config-btn, .load-defaults-first-btn {
   border: none;
-  padding: 14px 28px;
-  border-radius: 8px;
+  padding: var(--aitest-space-4) 28px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
@@ -814,7 +814,7 @@ export default {
 }
 
 .modal-content {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 14px;
   padding: 0;
   max-width: 600px;
@@ -831,7 +831,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: var(--aitest-space-5) var(--aitest-space-6);
   border-bottom: 1px solid var(--aitest-border);
 }
 
@@ -847,20 +847,20 @@ export default {
   font-size: 1.3rem;
   cursor: pointer;
   color: var(--aitest-text-3);
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: var(--aitest-space-1) var(--aitest-space-2);
+  border-radius: var(--aitest-radius);
   transition: all 0.15s;
 }
 
 .close-btn:hover { color: var(--aitest-text-1); background: var(--aitest-surface-subtle); }
 
-.modal-body { padding: 24px; }
+.modal-body { padding: var(--aitest-space-6); }
 
-.form-group { margin-bottom: 18px; }
+.form-group { margin-bottom: var(--aitest-space-5); }
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--aitest-space-2);
   font-weight: 600;
   color: var(--aitest-text-2);
   font-size: 0.85rem;
@@ -868,12 +868,12 @@ export default {
 
 .form-input, .form-select {
   width: 100%;
-  padding: 10px 12px;
+  padding: var(--aitest-space-3) var(--aitest-space-3);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   font-size: 0.9rem;
   color: var(--aitest-text-1);
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
@@ -888,15 +888,15 @@ export default {
 
 .form-textarea {
   width: 100%;
-  padding: 12px;
+  padding: var(--aitest-space-3);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   font-size: 0.9rem;
   font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
   resize: vertical;
   min-height: 200px;
   color: var(--aitest-text-2);
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
@@ -913,29 +913,29 @@ export default {
   text-align: right;
   font-size: 0.75rem;
   color: var(--aitest-text-3);
-  margin-top: 4px;
+  margin-top: var(--aitest-space-1);
 }
 
 .textarea-tips {
-  margin-top: 10px;
-  padding: 14px;
+  margin-top: var(--aitest-space-3);
+  padding: var(--aitest-space-4);
   background: var(--aitest-canvas);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   border-left: 3px solid var(--aitest-primary);
 }
 
 .textarea-tips p {
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--aitest-space-3) 0;
   color: var(--aitest-text-2);
   font-weight: 600;
   font-size: 0.85rem;
 }
 
-.textarea-tips ul { margin: 0; padding-left: 20px; }
+.textarea-tips ul { margin: 0; padding-left: var(--aitest-space-5); }
 
 .textarea-tips li {
   color: var(--aitest-text-2);
-  margin-bottom: 5px;
+  margin-bottom: var(--aitest-space-1);
   line-height: 1.4;
   font-size: 0.82rem;
 }
@@ -943,7 +943,7 @@ export default {
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   cursor: pointer;
   user-select: none;
 }
@@ -951,27 +951,27 @@ export default {
 .checkbox-label input[type="checkbox"] { width: auto; accent-color: var(--aitest-primary); }
 
 .checkbox-hint {
-  margin-top: 5px;
+  margin-top: var(--aitest-space-1);
   font-size: 0.8rem;
   color: var(--aitest-text-3);
   font-style: italic;
 }
 
-.required { color: #DC2626; }
+.required { color: var(--aitest-danger); }
 
 .modal-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   justify-content: flex-end;
-  margin-top: 24px;
+  margin-top: var(--aitest-space-6);
 }
 
 .cancel-btn {
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-2);
   border: 1.5px solid var(--aitest-border);
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-weight: 500;
   font-size: 0.9rem;
@@ -984,8 +984,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
@@ -995,37 +995,37 @@ export default {
 .confirm-btn:hover:not(:disabled) { background: var(--aitest-primary-hover); }
 .confirm-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
-.preview-content, .defaults-content { margin-bottom: 20px; }
+.preview-content, .defaults-content { margin-bottom: var(--aitest-space-5); }
 
 .preview-meta {
   display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-  padding: 14px;
+  gap: var(--aitest-space-5);
+  margin-bottom: var(--aitest-space-5);
+  padding: var(--aitest-space-4);
   background: var(--aitest-canvas);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
 }
 
 .preview-meta .meta-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
 }
 
-.content-display { margin-bottom: 20px; }
+.content-display { margin-bottom: var(--aitest-space-5); }
 
 .content-display label {
   font-weight: 600;
   color: var(--aitest-text-2);
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
   display: block;
   font-size: 0.85rem;
 }
 
 .content-text {
   background: var(--aitest-canvas);
-  padding: 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   color: var(--aitest-text-2);
   line-height: 1.6;
   white-space: pre-wrap;
@@ -1039,14 +1039,14 @@ export default {
 .tabs {
   display: flex;
   gap: 2px;
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
   border-bottom: 1.5px solid var(--aitest-border);
 }
 
 .tab-btn {
   background: none;
   border: none;
-  padding: 12px 20px;
+  padding: var(--aitest-space-3) var(--aitest-space-5);
   cursor: pointer;
   color: var(--aitest-text-2);
   font-size: 0.9rem;
@@ -1065,9 +1065,9 @@ export default {
 
 @media (max-width: 768px) {
   .configs-grid { grid-template-columns: 1fr; }
-  .config-header { flex-direction: column; gap: 15px; align-items: flex-start; }
+  .config-header { flex-direction: column; gap: var(--aitest-space-4); align-items: flex-start; }
   .header-actions { flex-direction: column; width: 100%; }
   .empty-actions { flex-direction: column; align-items: center; }
-  .preview-meta { flex-direction: column; gap: 10px; }
+  .preview-meta { flex-direction: column; gap: var(--aitest-space-3); }
 }
 </style>

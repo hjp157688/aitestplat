@@ -974,7 +974,7 @@ export default {
 
 <style scoped>
 .ai-model-config {
-  padding: 28px 24px;
+  padding: 28px var(--aitest-space-6);
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
@@ -984,7 +984,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: var(--aitest-space-6);
 }
 
 .section-header h2 {
@@ -998,8 +998,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 22px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) 22px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
@@ -1018,13 +1018,13 @@ export default {
 .configs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .config-card {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 14px;
-  padding: 24px;
+  padding: var(--aitest-space-6);
   border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -1039,26 +1039,26 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
-  padding-bottom: 14px;
+  margin-bottom: var(--aitest-space-5);
+  padding-bottom: var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .config-title h3 {
   color: var(--aitest-text-1);
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--aitest-space-3) 0;
   font-size: 1.15rem;
   font-weight: 700;
 }
 
 .config-badges {
   display: flex;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   flex-wrap: wrap;
 }
 
 .model-badge, .role-badge, .status-badge {
-  padding: 3px 10px;
+  padding: 3px var(--aitest-space-3);
   border-radius: 20px;
   font-size: 0.72rem;
   font-weight: 600;
@@ -1069,29 +1069,29 @@ export default {
 .model-badge.siliconflow { background: #ECFEFF; color: #0891B2; }
 .model-badge.zhipu { background: #DBEAFE; color: #1D4ED8; }
 .model-badge.other { background: var(--aitest-surface-subtle); color: var(--aitest-text-2); }
-.model-badge.xiaomi { background: #FFFBEB; color: #D97706; }
+.model-badge.xiaomi { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
 .model-badge.xiaomi_coding_plan { background: #FFF7ED; color: #EA580C; }
 
-.role-badge.writer { background: #F0FDF4; color: #059669; }
-.role-badge.reviewer { background: #FFFBEB; color: #D97706; }
+.role-badge.writer { background: var(--aitest-success-bg); color: var(--aitest-success); }
+.role-badge.reviewer { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
 .role-badge.tokenizer { background: #F0F9FF; color: #0284C7; }
 .role-badge.browser_use_text { background: var(--aitest-canvas); color: var(--aitest-text-2); }
 .role-badge.embedding { background: #FCE7F3; color: #DB2777; }
 .role-badge.api_testcase_generator { background: var(--aitest-info-bg); color: var(--aitest-primary); }
 
-.status-badge { background: #FEF2F2; color: #DC2626; }
-.status-badge.active { background: #F0FDF4; color: #059669; }
+.status-badge { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
+.status-badge.active { background: var(--aitest-success-bg); color: var(--aitest-success); }
 
 .config-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   flex-wrap: wrap;
 }
 
 .test-btn, .edit-btn, .delete-btn {
-  padding: 6px 12px;
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 500;
@@ -1102,22 +1102,22 @@ export default {
 .test-btn:hover:not(:disabled) { background: var(--aitest-primary-hover); }
 .test-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
-.edit-btn { background: #F59E0B; color: #FFFFFF; }
-.edit-btn:hover { background: #D97706; }
+.edit-btn { background: var(--aitest-warning); color: #FFFFFF; }
+.edit-btn:hover { background: var(--aitest-warning); }
 
-.delete-btn { background: #DC2626; color: #FFFFFF; }
+.delete-btn { background: var(--aitest-danger); color: #FFFFFF; }
 .delete-btn:hover { background: #B91C1C; }
 
 .config-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .detail-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--aitest-space-1);
 }
 
 .detail-item label {
@@ -1134,30 +1134,30 @@ export default {
 
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
+  padding: 80px var(--aitest-space-5);
   color: var(--aitest-text-2);
 }
 
 .empty-icon {
   font-size: 4rem;
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .empty-state h3 {
   color: var(--aitest-text-1);
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .add-first-config-btn {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 14px 28px;
-  border-radius: 8px;
+  padding: var(--aitest-space-4) 28px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   transition: all 0.2s;
   pointer-events: auto;
   z-index: 1;
@@ -1173,7 +1173,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: var(--aitest-space-5) var(--aitest-space-6);
   border-bottom: 1px solid var(--aitest-border);
 }
 
@@ -1189,8 +1189,8 @@ export default {
   font-size: 1.3rem !important;
   cursor: pointer !important;
   color: var(--aitest-text-3) !important;
-  padding: 4px 8px !important;
-  border-radius: 6px !important;
+  padding: var(--aitest-space-1) var(--aitest-space-2) !important;
+  border-radius: var(--aitest-radius) !important;
   z-index: 10001 !important;
   position: relative !important;
   pointer-events: auto !important;
@@ -1203,16 +1203,16 @@ export default {
 }
 
 .modal-body {
-  padding: 24px;
+  padding: var(--aitest-space-6);
 }
 
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--aitest-space-2);
   font-weight: 600;
   color: var(--aitest-text-2);
   font-size: 0.85rem;
@@ -1220,19 +1220,19 @@ export default {
 
 .form-input, .form-select {
   width: 100%;
-  padding: 10px 12px;
+  padding: var(--aitest-space-3) var(--aitest-space-3);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   font-size: 0.9rem;
   color: var(--aitest-text-1);
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
 
 .model-name-row {
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   align-items: center;
 }
 
@@ -1241,8 +1241,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   white-space: nowrap;
   font-size: 0.85rem;
@@ -1253,13 +1253,13 @@ export default {
 .fetch-models-btn:hover:not(:disabled) { background: #6D28D9; }
 .fetch-models-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
-.model-list-selector { margin-top: 10px; }
+.model-list-selector { margin-top: var(--aitest-space-3); }
 
 .model-list-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .toggle-model-list-btn {
@@ -1275,26 +1275,26 @@ export default {
 .toggle-model-list-btn:hover { color: var(--aitest-primary-hover); }
 
 .model-list-panel {
-  margin-top: 10px;
+  margin-top: var(--aitest-space-3);
   max-height: 220px;
   overflow-y: auto;
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  background: #FFFFFF;
-  padding: 8px;
+  border-radius: var(--aitest-radius-lg);
+  background: var(--aitest-surface);
+  padding: var(--aitest-space-2);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--aitest-space-2);
 }
 
 .model-list-item {
   width: 100%;
   text-align: left;
   border: 1px solid var(--aitest-border);
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   color: var(--aitest-text-2);
-  border-radius: 6px;
-  padding: 10px 12px;
+  border-radius: var(--aitest-radius);
+  padding: var(--aitest-space-3) var(--aitest-space-3);
   cursor: pointer;
   transition: all 0.15s;
   word-break: break-all;
@@ -1314,7 +1314,7 @@ export default {
 
 .model-list-empty {
   color: var(--aitest-text-3);
-  padding: 8px 4px;
+  padding: var(--aitest-space-2) var(--aitest-space-1);
   font-size: 0.85rem;
 }
 
@@ -1327,13 +1327,13 @@ export default {
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 15px;
+  gap: var(--aitest-space-4);
 }
 
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   cursor: pointer;
   user-select: none;
 }
@@ -1343,11 +1343,11 @@ export default {
   accent-color: var(--aitest-primary);
 }
 
-.required { color: #DC2626; }
+.required { color: var(--aitest-danger); }
 
 .form-hint {
   display: block;
-  margin-top: 5px;
+  margin-top: var(--aitest-space-1);
   color: var(--aitest-text-3);
   font-size: 0.8rem;
   font-style: italic;
@@ -1355,17 +1355,17 @@ export default {
 
 .modal-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   justify-content: flex-end;
-  margin-top: 24px;
+  margin-top: var(--aitest-space-6);
 }
 
 .cancel-btn {
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-2);
   border: 1.5px solid var(--aitest-border);
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-weight: 500;
   font-size: 0.9rem;
@@ -1378,8 +1378,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-weight: 500;
   font-size: 0.9rem;
@@ -1393,8 +1393,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
@@ -1406,32 +1406,32 @@ export default {
 
 .test-result {
   display: flex;
-  gap: 20px;
+  gap: var(--aitest-space-5);
   align-items: flex-start;
 }
 
 .result-icon { font-size: 3rem; flex-shrink: 0; }
 
 .result-content h4 {
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--aitest-space-3) 0;
   color: var(--aitest-text-1);
 }
 
-.test-result.success .result-content h4 { color: #059669; }
-.test-result.error .result-content h4 { color: #DC2626; }
+.test-result.success .result-content h4 { color: var(--aitest-success); }
+.test-result.error .result-content h4 { color: var(--aitest-danger); }
 
 .api-response {
-  margin-top: 15px;
-  padding: 15px;
+  margin-top: var(--aitest-space-4);
+  padding: var(--aitest-space-4);
   background: var(--aitest-canvas);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   border-left: 3px solid var(--aitest-primary);
 }
 
 .api-response label {
   font-weight: 600;
   color: var(--aitest-text-2);
-  margin-bottom: 8px;
+  margin-bottom: var(--aitest-space-2);
   font-size: 0.85rem;
 }
 
@@ -1443,7 +1443,7 @@ export default {
 
 @media (max-width: 768px) {
   .configs-grid { grid-template-columns: 1fr; }
-  .config-header { flex-direction: column; gap: 15px; align-items: flex-start; }
+  .config-header { flex-direction: column; gap: var(--aitest-space-4); align-items: flex-start; }
   .config-details { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
   .model-name-row { flex-direction: column; align-items: stretch; }

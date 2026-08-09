@@ -349,7 +349,7 @@ export default {
 
 <style scoped>
 .generation-config {
-  padding: 28px 24px;
+  padding: 28px var(--aitest-space-6);
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
@@ -359,9 +359,9 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: var(--aitest-space-6);
   flex-wrap: wrap;
-  gap: 15px;
+  gap: var(--aitest-space-4);
 }
 
 .section-header h2 {
@@ -375,8 +375,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 22px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) 22px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
@@ -388,13 +388,13 @@ export default {
 .configs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .config-card {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 14px;
-  padding: 24px;
+  padding: var(--aitest-space-6);
   border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: transform 0.2s, box-shadow 0.2s;
@@ -409,69 +409,69 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
-  padding-bottom: 14px;
+  margin-bottom: var(--aitest-space-5);
+  padding-bottom: var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .config-title h3 {
   color: var(--aitest-text-1);
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--aitest-space-3) 0;
   font-size: 1.15rem;
   font-weight: 700;
 }
 
 .config-badges {
   display: flex;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   flex-wrap: wrap;
 }
 
 .status-badge, .mode-badge {
-  padding: 3px 10px;
+  padding: 3px var(--aitest-space-3);
   border-radius: 20px;
   font-size: 0.72rem;
   font-weight: 600;
 }
 
-.status-badge { background: #FEF2F2; color: #DC2626; }
-.status-badge.active { background: #F0FDF4; color: #059669; }
+.status-badge { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
+.status-badge.active { background: var(--aitest-success-bg); color: var(--aitest-success); }
 .mode-badge { background: var(--aitest-info-bg); color: var(--aitest-primary); }
 
 .config-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   flex-wrap: wrap;
 }
 
 .enable-btn, .edit-btn, .delete-btn {
-  padding: 6px 12px;
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 500;
   transition: all 0.15s;
 }
 
-.enable-btn { background: #059669; color: #FFFFFF; }
+.enable-btn { background: var(--aitest-success); color: #FFFFFF; }
 .enable-btn:hover { background: #047857; }
-.edit-btn { background: #F59E0B; color: #FFFFFF; }
-.edit-btn:hover { background: #D97706; }
-.delete-btn { background: #DC2626; color: #FFFFFF; }
+.edit-btn { background: var(--aitest-warning); color: #FFFFFF; }
+.edit-btn:hover { background: var(--aitest-warning); }
+.delete-btn { background: var(--aitest-danger); color: #FFFFFF; }
 .delete-btn:hover { background: #B91C1C; }
 
-.config-details { margin-top: 15px; }
+.config-details { margin-top: var(--aitest-space-4); }
 
 .detail-section {
-  margin-bottom: 14px;
-  padding: 12px;
+  margin-bottom: var(--aitest-space-4);
+  padding: var(--aitest-space-3);
   background: var(--aitest-canvas);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
 }
 
 .detail-section h4 {
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--aitest-space-3) 0;
   color: var(--aitest-text-1);
   font-size: 0.9rem;
   font-weight: 600;
@@ -481,28 +481,28 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: var(--aitest-space-2) 0;
   font-size: 0.85rem;
 }
 
 .detail-item label { color: var(--aitest-text-2); font-weight: 500; }
 .detail-item span { color: var(--aitest-text-2); font-weight: 600; }
-.detail-item span.enabled { color: #059669; }
-.detail-item span.disabled { color: #DC2626; }
+.detail-item span.enabled { color: var(--aitest-success); }
+.detail-item span.disabled { color: var(--aitest-danger); }
 
 .config-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-top: 15px;
-  padding-top: 14px;
+  gap: var(--aitest-space-3);
+  margin-top: var(--aitest-space-4);
+  padding-top: var(--aitest-space-4);
   border-top: 1px solid var(--aitest-border);
 }
 
 .meta-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--aitest-space-1);
 }
 
 .meta-item label {
@@ -518,27 +518,27 @@ export default {
 
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
+  padding: 80px var(--aitest-space-5);
   color: var(--aitest-text-2);
 }
 
-.empty-icon { font-size: 4rem; margin-bottom: 20px; }
+.empty-icon { font-size: 4rem; margin-bottom: var(--aitest-space-5); }
 
 .empty-state h3 {
   color: var(--aitest-text-1);
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .add-first-config-btn {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 14px 28px;
-  border-radius: 8px;
+  padding: var(--aitest-space-4) 28px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   transition: all 0.2s;
 }
 
@@ -556,7 +556,7 @@ export default {
 }
 
 .modal-content {
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   border-radius: 14px;
   padding: 0;
   max-width: 700px;
@@ -571,7 +571,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: var(--aitest-space-5) var(--aitest-space-6);
   border-bottom: 1px solid var(--aitest-border);
 }
 
@@ -587,40 +587,40 @@ export default {
   font-size: 1.3rem;
   cursor: pointer;
   color: var(--aitest-text-3);
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: var(--aitest-space-1) var(--aitest-space-2);
+  border-radius: var(--aitest-radius);
   transition: all 0.15s;
 }
 
 .close-btn:hover { color: var(--aitest-text-1); background: var(--aitest-surface-subtle); }
 
-.modal-body { padding: 24px; }
+.modal-body { padding: var(--aitest-space-6); }
 
 .form-section {
   margin-bottom: 22px;
-  padding: 18px;
+  padding: var(--aitest-space-5);
   background: var(--aitest-canvas);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
 }
 
 .form-section h4 {
-  margin: 0 0 14px 0;
+  margin: 0 0 var(--aitest-space-4) 0;
   color: var(--aitest-text-1);
   font-size: 1rem;
   font-weight: 600;
 }
 
-.form-group { margin-bottom: 16px; }
+.form-group { margin-bottom: var(--aitest-space-4); }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: var(--aitest-space-4);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--aitest-space-2);
   font-weight: 600;
   color: var(--aitest-text-2);
   font-size: 0.85rem;
@@ -628,12 +628,12 @@ export default {
 
 .form-input, .form-select {
   width: 100%;
-  padding: 10px 12px;
+  padding: var(--aitest-space-3) var(--aitest-space-3);
   border: 1.5px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   font-size: 0.9rem;
   color: var(--aitest-text-1);
-  background: #FFFFFF;
+  background: var(--aitest-surface);
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
@@ -645,7 +645,7 @@ export default {
 }
 
 .field-hint {
-  margin-top: 5px;
+  margin-top: var(--aitest-space-1);
   font-size: 0.78rem;
   color: var(--aitest-text-3);
   font-style: italic;
@@ -654,7 +654,7 @@ export default {
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   cursor: pointer;
   user-select: none;
 }
@@ -662,27 +662,27 @@ export default {
 .checkbox-label input[type="checkbox"] { width: auto; accent-color: var(--aitest-primary); }
 
 .checkbox-hint {
-  margin-top: 5px;
+  margin-top: var(--aitest-space-1);
   font-size: 0.78rem;
   color: var(--aitest-text-3);
   font-style: italic;
 }
 
-.required { color: #DC2626; }
+.required { color: var(--aitest-danger); }
 
 .modal-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   justify-content: flex-end;
-  margin-top: 24px;
+  margin-top: var(--aitest-space-6);
 }
 
 .cancel-btn {
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-2);
   border: 1.5px solid var(--aitest-border);
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-weight: 500;
   font-size: 0.9rem;
@@ -695,8 +695,8 @@ export default {
   background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-3) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
@@ -708,8 +708,8 @@ export default {
 
 @media (max-width: 768px) {
   .configs-grid { grid-template-columns: 1fr; }
-  .config-header { flex-direction: column; gap: 15px; align-items: flex-start; }
+  .config-header { flex-direction: column; gap: var(--aitest-space-4); align-items: flex-start; }
   .form-row { grid-template-columns: 1fr; }
-  .detail-item { flex-direction: column; align-items: flex-start; gap: 5px; }
+  .detail-item { flex-direction: column; align-items: flex-start; gap: var(--aitest-space-1); }
 }
 </style>

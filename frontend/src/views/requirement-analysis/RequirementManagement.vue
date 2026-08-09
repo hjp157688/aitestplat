@@ -1265,7 +1265,7 @@ onMounted(() => {
 
 <style scoped>
 .requirement-management {
-  padding: 28px 24px;
+  padding: 28px var(--aitest-space-6);
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
@@ -1275,41 +1275,41 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   flex-wrap: wrap;
 }
 
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
 }
 
 .pagination-wrapper {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: var(--aitest-space-4);
 }
 
 .ai-upload-area {
   text-align: center;
-  padding: 20px 0;
+  padding: var(--aitest-space-5) 0;
 }
 
 .ai-parsing {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
+  gap: var(--aitest-space-2);
+  margin-top: var(--aitest-space-4);
   color: var(--aitest-text-2);
 }
 
@@ -1317,28 +1317,28 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 16px;
+  margin-top: var(--aitest-space-4);
 }
 
 .ai-gen-selection {
   background: var(--aitest-canvas);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  padding: 14px 16px;
-  margin-bottom: 20px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-4) var(--aitest-space-4);
+  margin-bottom: var(--aitest-space-5);
 }
 
 .ai-gen-selected-label {
   font-weight: 600;
   color: var(--aitest-text-1);
   font-size: 0.9rem;
-  margin-bottom: 8px;
+  margin-bottom: var(--aitest-space-2);
 }
 
 .ai-gen-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--aitest-space-2);
   max-height: 120px;
   overflow: auto;
 }
@@ -1348,7 +1348,7 @@ onMounted(() => {
 }
 
 .ai-gen-hint {
-  margin: 10px 0 0;
+  margin: var(--aitest-space-3) 0 0;
   font-size: 0.8rem;
   color: var(--aitest-text-3);
   line-height: 1.6;
@@ -1360,13 +1360,13 @@ onMounted(() => {
 
 /* ---------- 业务知识检索 ---------- */
 .knowledge-section {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .knowledge-toolbar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   flex-wrap: wrap;
 }
 
@@ -1383,24 +1383,24 @@ onMounted(() => {
 }
 
 .per-req-knowledge {
-  margin-top: 12px;
+  margin-top: var(--aitest-space-3);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   max-height: 360px;
   overflow: auto;
 }
 
 .req-knowledge-block {
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-3) var(--aitest-space-3);
 }
 
 .req-knowledge-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   flex-wrap: wrap;
 }
 
@@ -1424,21 +1424,21 @@ onMounted(() => {
   color: var(--aitest-primary);
   font-weight: 600;
   background: var(--aitest-primary-subtle);
-  padding: 1px 8px;
+  padding: 1px var(--aitest-space-2);
   border-radius: 10px;
 }
 
 .selected-knowledge-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  gap: var(--aitest-space-2);
+  margin-top: var(--aitest-space-2);
 }
 
 .knowledge-panel {
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  margin-top: 10px;
+  border-radius: var(--aitest-radius-lg);
+  margin-top: var(--aitest-space-3);
   overflow: hidden;
 }
 
@@ -1446,7 +1446,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   background: var(--aitest-canvas);
   border-bottom: 1px solid var(--aitest-border);
   font-size: 0.82rem;
@@ -1465,7 +1465,7 @@ onMounted(() => {
 }
 
 .knowledge-empty {
-  padding: 24px;
+  padding: var(--aitest-space-6);
   text-align: center;
   color: var(--aitest-text-3);
   font-size: 0.85rem;
@@ -1474,8 +1474,8 @@ onMounted(() => {
 .knowledge-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: var(--aitest-space-3);
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   cursor: pointer;
   border-bottom: 1px solid var(--aitest-surface-subtle);
   font-size: 0.85rem;
@@ -1498,7 +1498,7 @@ onMounted(() => {
 .knowledge-item-type {
   flex-shrink: 0;
   font-size: 0.72rem;
-  padding: 1px 6px;
+  padding: 1px var(--aitest-space-2);
   border-radius: 10px;
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-3);
@@ -1532,7 +1532,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   border-top: 1px solid var(--aitest-border);
   background: var(--aitest-canvas);
   font-size: 0.82rem;
@@ -1542,26 +1542,26 @@ onMounted(() => {
 .sync-tabs {
   display: flex;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .sync-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .sync-toolbar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .detail-title {
-  margin: 0 0 16px 0;
+  margin: 0 0 var(--aitest-space-4) 0;
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--aitest-text-1);
@@ -1569,10 +1569,10 @@ onMounted(() => {
 
 .detail-spec {
   background: var(--aitest-canvas);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 14px;
+  padding: var(--aitest-space-4);
+  border-radius: var(--aitest-radius-lg);
+  margin-bottom: var(--aitest-space-5);
+  font-size: var(--aitest-font-size-md);
   line-height: 1.8;
   max-height: 300px;
   overflow: auto;
@@ -1583,6 +1583,6 @@ onMounted(() => {
 .detail-spec :deep(img) {
   max-width: 100%;
   height: auto;
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
 }
 </style>
