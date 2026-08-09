@@ -682,7 +682,7 @@ export default {
     },
 
     statusTagType(status) {
-      const map = { uploaded: 'info', processing: 'warning', ready: 'success', failed: 'danger' }
+      const map = { uploaded: 'info', processing: 'warning', ready: 'primary', failed: 'danger' }
       return map[status] || 'info'
     },
 
@@ -1104,7 +1104,7 @@ export default {
   color: var(--aitest-text-1);
   line-height: 1.2;
 }
-.overview-stat__num--go { color: var(--aitest-success); }
+.overview-stat__num--go { color: var(--aitest-primary); }
 .overview-stat__label {
   font-size: 0.8rem;
   color: var(--aitest-text-2);
