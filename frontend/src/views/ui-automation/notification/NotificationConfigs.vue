@@ -438,17 +438,14 @@ export default {
 
 .notification-tabs :deep(.el-tabs__nav-scroll) {
   padding: 0;
-  display: flex;
-  justify-content: center;
 }
 
 .notification-tabs :deep(.el-tabs__nav) {
-  display: flex;
-  float: none;
   background: var(--aitest-surface-subtle);
 }
 
 .notification-tabs :deep(.el-tabs__item) {
+  flex: 1;
   padding: var(--aitest-space-4) var(--aitest-space-8);
   font-size: var(--aitest-font-size-md);
   font-weight: 500;
