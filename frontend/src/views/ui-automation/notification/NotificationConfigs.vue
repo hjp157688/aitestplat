@@ -425,15 +425,15 @@ export default {
 }
 
 .content-wrapper {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: var(--aitest-surface);
+  border-radius: var(--aitest-radius-lg);
+  box-shadow: var(--aitest-shadow-sm);
   overflow: hidden;
 }
 
 .notification-tabs :deep(.el-tabs__nav-wrap) {
   background: var(--aitest-surface-subtle);
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .notification-tabs :deep(.el-tabs__nav-scroll) {
@@ -447,21 +447,21 @@ export default {
 
 .notification-tabs :deep(.el-tabs__item) {
   padding: var(--aitest-space-4) var(--aitest-space-8);
-  font-size: 15px;
+  font-size: var(--aitest-font-size-md);
   font-weight: 500;
-  color: var(--aitest-text-3);
+  color: var(--aitest-text-2);
   border: none;
   position: relative;
 }
 
 .notification-tabs :deep(.el-tabs__item:hover) {
   color: var(--aitest-primary);
-  background: rgba(102, 126, 234, 0.08);
+  background: var(--aitest-primary-subtle);
 }
 
 .notification-tabs :deep(.el-tabs__item.is-active) {
   color: var(--aitest-primary);
-  background: white;
+  background: var(--aitest-surface);
   border-bottom: 2px solid var(--aitest-primary);
 }
 
