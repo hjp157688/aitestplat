@@ -455,7 +455,7 @@ export default {
   color: var(--aitest-text-2);
   border: none;
   position: relative;
-  text-align: center;
+  justify-content: center;
 }
 
 .notification-tabs :deep(.el-tabs__item:hover) {
