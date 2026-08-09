@@ -345,7 +345,7 @@ onMounted(() => {
 }
 
 .stats-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--aitest-space-10);
 }
 
 .stat-card {
@@ -365,7 +365,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20px;
+  margin-right: var(--aitest-space-5);
   color: white;
   font-size: 24px;
 }
@@ -375,7 +375,7 @@ onMounted(() => {
 }
 
 .stat-icon.bg-green {
-  background-color: #52c41a;
+  background-color: var(--aitest-success);
 }
 
 .stat-icon.bg-purple {
@@ -383,11 +383,11 @@ onMounted(() => {
 }
 
 .stat-icon.bg-orange {
-  background-color: #fa8c16;
+  background-color: var(--aitest-warning);
 }
 
 .stat-icon.bg-red {
-  background-color: #f5222d;
+  background-color: var(--aitest-danger);
 }
 
 .stat-icon.bg-cyan {
@@ -395,7 +395,7 @@ onMounted(() => {
 }
 
 .stat-icon.bg-indigo {
-  background-color: #597ef7;
+  background-color: var(--aitest-info);
 }
 
 .stat-info {
@@ -405,17 +405,17 @@ onMounted(() => {
 .stat-value {
   font-size: 28px;
   font-weight: bold;
-  color: #1a1a1a;
-  margin-bottom: 5px;
+  color: var(--aitest-text-1);
+  margin-bottom: var(--aitest-space-1);
 }
 
 .stat-label {
-  font-size: 14px;
-  color: #666;
+  font-size: var(--aitest-font-size-md);
+  color: var(--aitest-text-2);
 }
 
 .content-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--aitest-space-10);
 }
 
 .recent-activities {
@@ -429,8 +429,8 @@ onMounted(() => {
 
 .activity-item {
   display: flex;
-  padding: 15px 0;
-  border-bottom: 1px solid #f0f0f0;
+  padding: var(--aitest-space-4) 0;
+  border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .activity-item:last-child {
@@ -441,32 +441,32 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #f0f0f0;
+  background-color: var(--aitest-surface-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 15px;
-  color: #666;
+  margin-right: var(--aitest-space-4);
+  color: var(--aitest-text-2);
 }
 
 .activity-icon.icon-create {
-  background-color: #e6f7ff;
+  background-color: var(--aitest-info-bg);
   color: var(--aitest-primary);
 }
 
 .activity-icon.icon-edit {
-  background-color: #fff7e6;
-  color: #fa8c16;
+  background-color: var(--aitest-warning-bg);
+  color: var(--aitest-warning);
 }
 
 .activity-icon.icon-delete {
-  background-color: #fff1f0;
-  color: #f5222d;
+  background-color: var(--aitest-danger-bg);
+  color: var(--aitest-danger);
 }
 
 .activity-icon.icon-run {
-  background-color: #f6ffed;
-  color: #52c41a;
+  background-color: var(--aitest-success-bg);
+  color: var(--aitest-success);
 }
 
 .activity-icon.icon-rerun {
@@ -480,8 +480,8 @@ onMounted(() => {
 }
 
 .activity-icon.icon-rename {
-  background-color: #fff7e6;
-  color: #fa8c16;
+  background-color: var(--aitest-warning-bg);
+  color: var(--aitest-warning);
 }
 
 .activity-content {
@@ -489,9 +489,9 @@ onMounted(() => {
 }
 
 .activity-text {
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 5px;
+  font-size: var(--aitest-font-size-md);
+  color: var(--aitest-text-1);
+  margin-bottom: var(--aitest-space-1);
 }
 
 .activity-text .operation-user {
@@ -500,23 +500,23 @@ onMounted(() => {
 }
 
 .activity-text .operation-action {
-  margin: 0 4px;
-  color: #666;
+  margin: 0 var(--aitest-space-1);
+  color: var(--aitest-text-2);
 }
 
 .activity-text .operation-resource {
-  margin-right: 4px;
-  color: #666;
+  margin-right: var(--aitest-space-1);
+  color: var(--aitest-text-2);
 }
 
 .activity-text .resource-name {
   font-weight: 500;
-  color: #333;
+  color: var(--aitest-text-1);
 }
 
 .activity-time {
-  font-size: 12px;
-  color: #999;
+  font-size: var(--aitest-font-size-sm);
+  color: var(--aitest-text-3);
 }
 
 .quick-actions {
@@ -526,26 +526,26 @@ onMounted(() => {
 .actions-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
+  gap: var(--aitest-space-4);
 }
 
 .action-item {
   text-align: center;
-  padding: 15px 10px;
-  border-radius: 8px;
+  padding: var(--aitest-space-4) var(--aitest-space-3);
+  border-radius: var(--aitest-radius-lg);
   background-color: var(--aitest-surface-subtle);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .action-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--aitest-surface-subtle);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .action-item .action-icon {
-  margin: 0 auto 15px;
+  margin: 0 auto var(--aitest-space-4);
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -561,7 +561,7 @@ onMounted(() => {
 }
 
 .action-icon.bg-green {
-  background-color: #52c41a;
+  background-color: var(--aitest-success);
 }
 
 .action-icon.bg-cyan {
@@ -573,32 +573,32 @@ onMounted(() => {
 }
 
 .action-icon.bg-orange {
-  background-color: #fa8c16;
+  background-color: var(--aitest-warning);
 }
 
 .action-icon.bg-red {
-  background-color: #f5222d;
+  background-color: var(--aitest-danger);
 }
 
 .action-icon.bg-indigo {
-  background-color: #597ef7;
+  background-color: var(--aitest-info);
 }
 
 .action-label {
-  font-size: 16px;
-  color: #333;
+  font-size: var(--aitest-font-size-lg);
+  color: var(--aitest-text-1);
   font-weight: 500;
 }
 
 .features-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--aitest-space-10);
 }
 
 .section-title {
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 20px;
-  color: #1a1a1a;
+  margin-bottom: var(--aitest-space-5);
+  color: var(--aitest-text-1);
 }
 
 .feature-card {
@@ -611,11 +611,11 @@ onMounted(() => {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background-color: #f0f0f0;
+  background-color: var(--aitest-surface-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  margin: 0 auto var(--aitest-space-5);
   font-size: 36px;
   color: var(--aitest-primary);
 }
@@ -623,19 +623,19 @@ onMounted(() => {
 .feature-title {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 10px;
-  color: #1a1a1a;
+  margin-bottom: var(--aitest-space-3);
+  color: var(--aitest-text-1);
 }
 
 .feature-description {
-  font-size: 14px;
-  color: #666;
+  font-size: var(--aitest-font-size-md);
+  color: var(--aitest-text-2);
   line-height: 1.6;
 }
 
 .loading-container,
 .empty-container {
-  padding: 40px 0;
+  padding: var(--aitest-space-10) 0;
 }
 
 @media screen and (max-width: 1920px) {

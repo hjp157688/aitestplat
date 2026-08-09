@@ -389,7 +389,7 @@ onMounted(async () => {
 }
 
 .page-header {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   border-bottom: 1px solid var(--el-border-color-lighter);
   background: white;
   margin-bottom: 0;
@@ -397,37 +397,37 @@ onMounted(async () => {
 
 .main-content {
   flex: 1;
-  padding: 20px;
+  padding: var(--aitest-space-5);
   overflow: auto;
   background: var(--aitest-canvas);
 }
 
 .pagination {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: flex-end;
 }
 
 .script-detail {
-  padding: 10px;
+  padding: var(--aitest-space-3);
 }
 
 .script-content {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
 }
 
 .script-content h4 {
-  margin: 0 0 10px 0;
-  color: #333;
+  margin: 0 0 var(--aitest-space-3) 0;
+  color: var(--aitest-text-1);
 }
 
 .code-view {
   background-color: #1e1e1e;
   color: #d4d4d4;
-  padding: 15px;
-  border-radius: 4px;
+  padding: var(--aitest-space-4);
+  border-radius: var(--aitest-radius-sm);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
+  font-size: var(--aitest-font-size-base);
   line-height: 1.5;
   max-height: 400px;
   overflow: auto;
@@ -445,14 +445,14 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   background-color: var(--aitest-surface-subtle);
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .script-name {
   font-weight: bold;
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
 }
 
 .editor-info {
@@ -472,9 +472,9 @@ onMounted(async () => {
   outline: none;
   resize: none;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.5;
-  padding: 15px;
+  padding: var(--aitest-space-4);
   background-color: #1e1e1e;
   color: #d4d4d4;
   tab-size: 2;

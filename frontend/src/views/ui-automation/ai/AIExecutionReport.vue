@@ -579,31 +579,31 @@ const handleClose = () => {
   justify-content: center;
   padding: 60px 0;
   color: var(--el-text-color-secondary);
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
 }
 
 .report-loading .el-icon {
   font-size: 32px;
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .report-container {
   max-height: 600px;
   overflow-y: auto;
-  padding-right: 10px;
+  padding-right: var(--aitest-space-3);
 }
 
 .report-type-tabs {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
+  margin-bottom: var(--aitest-space-5);
+  padding-bottom: var(--aitest-space-3);
   border-bottom: 1px solid var(--aitest-border);
 }
 
 .report-content {
-  padding: 10px 0;
+  padding: var(--aitest-space-3) 0;
 }
 
 .report-section {
@@ -611,35 +611,35 @@ const handleClose = () => {
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
   font-weight: 600;
   color: var(--aitest-text-1);
-  margin-bottom: 16px;
-  padding-bottom: 8px;
+  margin-bottom: var(--aitest-space-4);
+  padding-bottom: var(--aitest-space-2);
   border-bottom: 2px solid var(--aitest-border);
 }
 
 .overview-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 .overview-card {
   background: var(--aitest-canvas);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-4);
   text-align: center;
 }
 
 .card-label {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--el-text-color-secondary);
-  margin-bottom: 8px;
+  margin-bottom: var(--aitest-space-2);
 }
 
 .card-value {
-  font-size: 20px;
+  font-size: var(--aitest-font-size-xl);
   font-weight: 600;
   color: var(--aitest-text-1);
 }
@@ -670,7 +670,7 @@ const handleClose = () => {
 }
 
 .stats-table-content td {
-  padding: 10px 16px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-border);
 }
 
@@ -681,11 +681,11 @@ const handleClose = () => {
 .stat-value {
   font-weight: 600;
   text-align: right;
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
 }
 
 .success-row {
-  background-color: #F0F9FF;
+  background-color: var(--aitest-info-bg);
 }
 
 .info-row {
@@ -693,15 +693,15 @@ const handleClose = () => {
 }
 
 .danger-row {
-  background-color: #FEF0F0;
+  background-color: var(--aitest-danger-bg);
 }
 
 .warning-row {
-  background-color: #FDF6EC;
+  background-color: var(--aitest-warning-bg);
 }
 
 .timeline-container {
-  padding: 10px 0;
+  padding: var(--aitest-space-3) 0;
 }
 
 .timeline-task-content {
@@ -712,15 +712,15 @@ const handleClose = () => {
 
 .task-description {
   flex: 1;
-  margin-right: 12px;
-  font-size: 14px;
+  margin-right: var(--aitest-space-3);
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-1);
 }
 
 .steps-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .step-card {
@@ -731,7 +731,7 @@ const handleClose = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .step-number {
@@ -740,8 +740,8 @@ const handleClose = () => {
 }
 
 .step-content > div {
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: var(--aitest-space-2);
+  font-size: var(--aitest-font-size-md);
 }
 
 .step-thinking {
@@ -752,20 +752,20 @@ const handleClose = () => {
 .performance-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 .metric-card {
   background: var(--aitest-canvas);
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-5);
   text-align: center;
 }
 
 .metric-label {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--el-text-color-secondary);
-  margin-bottom: 8px;
+  margin-bottom: var(--aitest-space-2);
 }
 
 .metric-value {
@@ -781,11 +781,11 @@ const handleClose = () => {
 .gif-image {
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
 }
 
 .report-error {
-  padding: 40px 0;
+  padding: var(--aitest-space-10) 0;
   text-align: center;
 }
 
@@ -805,6 +805,6 @@ const handleClose = () => {
 }
 
 .report-container::-webkit-scrollbar-thumb:hover {
-  background: #C0C4CC;
+  background: var(--aitest-text-3);
 }
 </style>

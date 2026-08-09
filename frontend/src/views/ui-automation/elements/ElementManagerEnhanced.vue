@@ -1346,30 +1346,30 @@ const updatePage = async () => {
 }
 
 .sidebar-header {
-  padding: 15px;
+  padding: var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-border);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 
 .header-actions {
   display: flex;
-  gap: 5px;
+  gap: var(--aitest-space-1);
   margin-left: auto;
 }
 
 .page-tree {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: var(--aitest-space-3);
 }
 
 .tree-node {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 0;
+  gap: var(--aitest-space-1);
+  padding: var(--aitest-space-1) 0;
 }
 
 .node-label {
@@ -1380,9 +1380,9 @@ const updatePage = async () => {
 }
 
 .element-type-tag {
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: var(--aitest-font-size-sm);
+  padding: 2px var(--aitest-space-2);
+  border-radius: var(--aitest-radius-sm);
   background-color: var(--el-color-primary-light-9);
   color: var(--el-color-primary);
 }
@@ -1390,7 +1390,7 @@ const updatePage = async () => {
 .main-content {
   flex: 1;
   overflow: auto;
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .empty-state {
@@ -1401,25 +1401,25 @@ const updatePage = async () => {
 }
 
 .element-header {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
+  padding-bottom: var(--aitest-space-5);
   border-bottom: 1px solid var(--aitest-border);
 }
 
 .element-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 
 .element-form {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
 }
 
 .form-help-text {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--el-text-color-secondary);
-  margin-top: 5px;
+  margin-top: var(--aitest-space-1);
 }
 
 /* 右键菜单样式 */
@@ -1428,18 +1428,18 @@ const updatePage = async () => {
   z-index: 9999;
   background: white;
   border: 1px solid var(--aitest-border);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  padding: 5px 0;
+  padding: var(--aitest-space-1) 0;
   margin: 0;
   list-style: none;
   min-width: 120px;
 }
 
 .context-menu li {
-  padding: 8px 15px;
+  padding: var(--aitest-space-2) var(--aitest-space-4);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--el-text-color-regular);
 }
 

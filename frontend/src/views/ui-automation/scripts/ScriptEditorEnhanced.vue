@@ -583,7 +583,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: var(--aitest-space-5);
   border-bottom: 1px solid var(--el-border-color-lighter);
   background: white;
 }
@@ -613,12 +613,12 @@ onMounted(async () => {
 }
 
 .panel-header {
-  padding: 15px;
+  padding: var(--aitest-space-4);
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .panel-header h3 {
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--aitest-space-3) 0;
 }
 
 .center-panel {
@@ -633,7 +633,7 @@ onMounted(async () => {
 }
 
 .panel-content {
-  padding: 15px;
+  padding: var(--aitest-space-4);
   flex: 1;
   overflow-y: auto;
 }
@@ -642,7 +642,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   border-bottom: 1px solid var(--el-border-color-lighter);
   background-color: var(--aitest-surface-subtle);
 }
@@ -651,7 +651,7 @@ onMounted(async () => {
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 
 .code-editor-container {
@@ -666,9 +666,9 @@ onMounted(async () => {
   outline: none;
   resize: none;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.5;
-  padding: 15px;
+  padding: var(--aitest-space-4);
   background-color: #1e1e1e;
   color: #d4d4d4;
   tab-size: 2;
@@ -678,11 +678,11 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 15px;
+  padding: var(--aitest-space-1) var(--aitest-space-4);
   border-top: 1px solid var(--el-border-color-lighter);
   background-color: var(--aitest-surface-subtle);
-  font-size: 12px;
-  color: #666;
+  font-size: var(--aitest-font-size-sm);
+  color: var(--aitest-text-2);
 }
 
 .tree-node {
@@ -690,13 +690,13 @@ onMounted(async () => {
   align-items: center;
   flex: 1;
   justify-content: space-between;
-  font-size: 14px;
-  padding-right: 8px;
+  font-size: var(--aitest-font-size-md);
+  padding-right: var(--aitest-space-2);
 }
 
 .node-icon {
-  margin-right: 5px;
-  font-size: 16px;
+  margin-right: var(--aitest-space-1);
+  font-size: var(--aitest-font-size-lg);
 }
 
 .node-label {
@@ -705,33 +705,33 @@ onMounted(async () => {
 
 .node-actions {
   display: flex;
-  gap: 5px;
+  gap: var(--aitest-space-1);
 }
 
 .log-controls {
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .log-output {
   height: 400px;
   overflow-y: auto;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 4px;
-  padding: 10px;
+  border-radius: var(--aitest-radius-sm);
+  padding: var(--aitest-space-3);
   background-color: #1e1e1e;
   color: #fff;
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
 }
 
 .log-entry {
-  margin-bottom: 5px;
+  margin-bottom: var(--aitest-space-1);
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 
 .log-time {
-  color: #888;
+  color: var(--aitest-text-3);
 }
 
 .log-level {
@@ -752,16 +752,16 @@ onMounted(async () => {
 }
 
 .element-detail {
-  padding: 10px;
+  padding: var(--aitest-space-3);
 }
 
 .element-detail h4 {
-  margin: 0 0 15px 0;
-  color: #333;
+  margin: 0 0 var(--aitest-space-4) 0;
+  color: var(--aitest-text-1);
 }
 
 .element-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 </style>

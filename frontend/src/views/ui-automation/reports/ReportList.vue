@@ -517,7 +517,7 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .report-view {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -528,12 +528,12 @@ onMounted(async () => {
   flex: 1;
   overflow: auto;
   background: white;
-  padding: 20px;
-  border-radius: 4px;
+  padding: var(--aitest-space-5);
+  border-radius: var(--aitest-radius-sm);
 }
 
 .pagination-container {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: flex-end;
 }
@@ -544,35 +544,35 @@ onMounted(async () => {
     margin-top: 30px;
 
     h4 {
-      margin: 0 0 20px 0;
+      margin: 0 0 var(--aitest-space-5) 0;
       color: var(--aitest-text-1);
     }
 
     .stat-card {
       background: var(--aitest-canvas);
-      padding: 20px;
-      border-radius: 4px;
+      padding: var(--aitest-space-5);
+      border-radius: var(--aitest-radius-sm);
       text-align: center;
 
       &.success {
-        background: #f0f9ff;
+        background: var(--aitest-info-bg);
         border: 1px solid #b3e5fc;
       }
 
       &.danger {
-        background: #fef0f0;
+        background: var(--aitest-danger-bg);
         border: 1px solid #fde2e2;
       }
 
       &.warning {
-        background: #fdf6ec;
+        background: var(--aitest-warning-bg);
         border: 1px solid #faecd8;
       }
 
       .stat-label {
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
         color: var(--el-text-color-secondary);
-        margin-bottom: 10px;
+        margin-bottom: var(--aitest-space-3);
       }
 
       .stat-value {
@@ -586,9 +586,9 @@ onMounted(async () => {
       margin-top: 30px;
 
       h5 {
-        margin: 0 0 15px 0;
+        margin: 0 0 var(--aitest-space-4) 0;
         color: var(--aitest-text-1);
-        font-size: 16px;
+        font-size: var(--aitest-font-size-lg);
       }
     }
   }
@@ -597,18 +597,18 @@ onMounted(async () => {
     margin-top: 30px;
 
     h4 {
-      margin: 0 0 15px 0;
+      margin: 0 0 var(--aitest-space-4) 0;
       color: var(--aitest-text-1);
     }
 
     .result-data {
       background: var(--aitest-canvas);
-      padding: 15px;
-      border-radius: 4px;
+      padding: var(--aitest-space-4);
+      border-radius: var(--aitest-radius-sm);
       max-height: 400px;
       overflow: auto;
       font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-      font-size: 12px;
+      font-size: var(--aitest-font-size-sm);
       line-height: 1.5;
     }
   }
@@ -617,7 +617,7 @@ onMounted(async () => {
     margin-top: 30px;
 
     h4 {
-      margin: 0 0 15px 0;
+      margin: 0 0 var(--aitest-space-4) 0;
       color: var(--aitest-text-1);
     }
   }
@@ -625,17 +625,17 @@ onMounted(async () => {
 
 // 统一的错误信息样式
 .errors-container {
-  padding: 10px;
+  padding: var(--aitest-space-3);
   height: 100%;
   overflow-y: auto;
 }
 
 .error-item {
-  background: #fff;
+  background: var(--aitest-surface);
   border: 2px solid var(--el-color-danger);
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 15px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-5);
+  margin-bottom: var(--aitest-space-4);
 }
 
 .error-item:last-child {
@@ -649,12 +649,12 @@ onMounted(async () => {
 
 .error-text {
   margin: 0;
-  padding: 15px;
+  padding: var(--aitest-space-4);
   background: #2d2d2d;
-  color: #ff6b6b;
-  border-radius: 4px;
+  color: var(--aitest-danger);
+  border-radius: var(--aitest-radius-sm);
   font-family: 'Courier New', Courier, monospace;
-  font-size: 13px;
+  font-size: var(--aitest-font-size-base);
   line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -665,37 +665,37 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
+  margin-bottom: var(--aitest-space-4);
+  padding-bottom: var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-border);
 }
 
 .error-header .el-tag {
-  font-size: 16px;
-  padding: 10px 15px;
+  font-size: var(--aitest-font-size-lg);
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   font-weight: 600;
 }
 
 // 用例详情样式
 .case-detail {
   h4 {
-    margin: 0 0 20px 0;
+    margin: 0 0 var(--aitest-space-5) 0;
     color: var(--aitest-text-1);
-    font-size: 16px;
+    font-size: var(--aitest-font-size-lg);
   }
 
   .log-container {
     max-height: 500px;
     overflow-y: auto;
     background: var(--aitest-canvas);
-    padding: 15px;
-    border-radius: 4px;
+    padding: var(--aitest-space-4);
+    border-radius: var(--aitest-radius-sm);
 
     .log-item {
-      margin-bottom: 15px;
-      padding: 12px;
+      margin-bottom: var(--aitest-space-4);
+      padding: var(--aitest-space-3);
       background: white;
-      border-radius: 4px;
+      border-radius: var(--aitest-radius-sm);
       border-left: 3px solid var(--el-color-primary);
 
       &:last-child {
@@ -705,8 +705,8 @@ onMounted(async () => {
       .log-header {
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 8px;
+        gap: var(--aitest-space-3);
+        margin-bottom: var(--aitest-space-2);
 
         .log-action {
           font-weight: 500;
@@ -715,20 +715,20 @@ onMounted(async () => {
 
         .log-desc {
           color: var(--el-text-color-secondary);
-          font-size: 14px;
+          font-size: var(--aitest-font-size-md);
         }
       }
 
       .log-error {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: var(--aitest-space-2);
         color: var(--el-color-danger);
-        background: #fef0f0;
-        padding: 8px 12px;
-        border-radius: 4px;
-        margin-top: 8px;
-        font-size: 14px;
+        background: var(--aitest-danger-bg);
+        padding: var(--aitest-space-2) var(--aitest-space-3);
+        border-radius: var(--aitest-radius-sm);
+        margin-top: var(--aitest-space-2);
+        font-size: var(--aitest-font-size-md);
       }
     }
   }
@@ -736,29 +736,29 @@ onMounted(async () => {
   .screenshot-container {
     max-height: 600px;
     overflow-y: auto;
-    padding: 10px;
+    padding: var(--aitest-space-3);
 
     .screenshot-item {
       margin-bottom: 30px;
       text-align: center;
 
       h5 {
-        margin: 0 0 15px 0;
+        margin: 0 0 var(--aitest-space-4) 0;
         color: var(--aitest-text-1);
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
       }
 
       .screenshot-img {
         max-width: 100%;
         border: 1px solid var(--el-border-color-lighter);
-        border-radius: 4px;
+        border-radius: var(--aitest-radius-sm);
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       }
 
       .screenshot-time {
-        margin: 10px 0 0 0;
+        margin: var(--aitest-space-3) 0 0 0;
         color: var(--el-text-color-secondary);
-        font-size: 12px;
+        font-size: var(--aitest-font-size-sm);
       }
     }
   }

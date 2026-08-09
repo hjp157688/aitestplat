@@ -322,36 +322,36 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .page-container {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .card-container {
-  background-color: #fff;
-  border-radius: 4px;
-  padding: 20px;
+  background-color: var(--aitest-surface);
+  border-radius: var(--aitest-radius-sm);
+  padding: var(--aitest-space-5);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
 .pagination-container {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: flex-end;
 }
 
 .record-detail {
   .detail-item {
-    margin-bottom: 15px;
+    margin-bottom: var(--aitest-space-4);
     .label {
       font-weight: bold;
-      margin-right: 10px;
+      margin-right: var(--aitest-space-3);
     }
   }
 
   .log-container {
     background-color: #1e1e1e;
     color: #fff;
-    padding: 15px;
-    border-radius: 4px;
+    padding: var(--aitest-space-4);
+    border-radius: var(--aitest-radius-sm);
     max-height: 400px;
     overflow-y: auto;
     font-family: monospace;
@@ -366,9 +366,9 @@ onUnmounted(() => {
   .task-description-container {
     background-color: var(--aitest-canvas);
     border: 1px solid var(--aitest-border);
-    border-radius: 4px;
-    padding: 12px 15px;
-    margin-top: 8px;
+    border-radius: var(--aitest-radius-sm);
+    padding: var(--aitest-space-3) var(--aitest-space-4);
+    margin-top: var(--aitest-space-2);
 
     .task-description-content {
       color: var(--el-text-color-regular);
@@ -380,6 +380,6 @@ onUnmounted(() => {
 }
 
 .mt-15 {
-  margin-top: 15px;
+  margin-top: var(--aitest-space-4);
 }
 </style>

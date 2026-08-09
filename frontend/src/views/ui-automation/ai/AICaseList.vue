@@ -239,22 +239,22 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .page-container {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .card-container {
-  background-color: #fff;
-  border-radius: 4px;
-  padding: 20px;
+  background-color: var(--aitest-surface);
+  border-radius: var(--aitest-radius-sm);
+  padding: var(--aitest-space-5);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
 .filter-bar {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .pagination-container {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: flex-end;
 }

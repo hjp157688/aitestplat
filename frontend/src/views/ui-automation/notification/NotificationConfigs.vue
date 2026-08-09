@@ -419,7 +419,7 @@ export default {
 
 <style scoped>
 .notification-configs-container {
-  padding: 24px;
+  padding: var(--aitest-space-6);
   background: var(--aitest-canvas);
   min-height: 100vh;
 }
@@ -446,10 +446,10 @@ export default {
 }
 
 .notification-tabs :deep(.el-tabs__item) {
-  padding: 16px 32px;
+  padding: var(--aitest-space-4) var(--aitest-space-8);
   font-size: 15px;
   font-weight: 500;
-  color: #6c757d;
+  color: var(--aitest-text-3);
   border: none;
   position: relative;
 }
@@ -476,30 +476,30 @@ export default {
 
 .tab-content {
   min-height: 600px;
-  padding: 24px;
+  padding: var(--aitest-space-6);
 }
 
 .config-section {
-  padding: 20px 0;
+  padding: var(--aitest-space-5) 0;
 }
 
 .config-section h3 {
-  margin: 0 0 20px 0;
+  margin: 0 0 var(--aitest-space-5) 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--aitest-text-1);
 }
 
 .form-item-hint {
-  font-size: 12px;
-  color: #999;
-  margin-top: 4px;
+  font-size: var(--aitest-font-size-sm);
+  color: var(--aitest-text-3);
+  margin-top: var(--aitest-space-1);
 }
 
 .form-actions {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+  margin-top: var(--aitest-space-5);
+  padding-top: var(--aitest-space-5);
+  border-top: 1px solid var(--aitest-surface-subtle);
   text-align: right;
 }
 

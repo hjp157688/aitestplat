@@ -20,13 +20,13 @@ const { t } = useI18n()
 
 <style scoped>
 .ui-automation-container {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   height: 100%;
   overflow-y: auto;
 }
 
 .stats-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--aitest-space-10);
 }
 
 .stat-card {
@@ -46,7 +46,7 @@ const { t } = useI18n()
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20px;
+  margin-right: var(--aitest-space-5);
   color: white;
   font-size: 24px;
 }
@@ -56,7 +56,7 @@ const { t } = useI18n()
 }
 
 .stat-icon.bg-green {
-  background-color: #52c41a;
+  background-color: var(--aitest-success);
 }
 
 .stat-icon.bg-purple {
@@ -64,11 +64,11 @@ const { t } = useI18n()
 }
 
 .stat-icon.bg-orange {
-  background-color: #fa8c16;
+  background-color: var(--aitest-warning);
 }
 
 .stat-icon.bg-red {
-  background-color: #f5222d;
+  background-color: var(--aitest-danger);
 }
 
 .stat-icon.bg-cyan {
@@ -82,17 +82,17 @@ const { t } = useI18n()
 .stat-value {
   font-size: 28px;
   font-weight: bold;
-  color: #1a1a1a;
-  margin-bottom: 5px;
+  color: var(--aitest-text-1);
+  margin-bottom: var(--aitest-space-1);
 }
 
 .stat-label {
-  font-size: 14px;
-  color: #666;
+  font-size: var(--aitest-font-size-md);
+  color: var(--aitest-text-2);
 }
 
 .content-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--aitest-space-10);
 }
 
 .recent-activities {
@@ -106,8 +106,8 @@ const { t } = useI18n()
 
 .activity-item {
   display: flex;
-  padding: 15px 0;
-  border-bottom: 1px solid #f0f0f0;
+  padding: var(--aitest-space-4) 0;
+  border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .activity-item:last-child {
@@ -118,12 +118,12 @@ const { t } = useI18n()
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #f0f0f0;
+  background-color: var(--aitest-surface-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 15px;
-  color: #666;
+  margin-right: var(--aitest-space-4);
+  color: var(--aitest-text-2);
 }
 
 .activity-content {
@@ -131,14 +131,14 @@ const { t } = useI18n()
 }
 
 .activity-text {
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 5px;
+  font-size: var(--aitest-font-size-md);
+  color: var(--aitest-text-1);
+  margin-bottom: var(--aitest-space-1);
 }
 
 .activity-time {
-  font-size: 12px;
-  color: #999;
+  font-size: var(--aitest-font-size-sm);
+  color: var(--aitest-text-3);
 }
 
 .quick-actions {
@@ -148,43 +148,43 @@ const { t } = useI18n()
 .actions-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .action-item {
   text-align: center;
-  padding: 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   background-color: var(--aitest-surface-subtle);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .action-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--aitest-surface-subtle);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .action-item .action-icon {
-  margin: 0 auto 15px;
+  margin: 0 auto var(--aitest-space-4);
 }
 
 .action-label {
-  font-size: 16px;
-  color: #333;
+  font-size: var(--aitest-font-size-lg);
+  color: var(--aitest-text-1);
   font-weight: 500;
 }
 
 .features-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--aitest-space-10);
 }
 
 .section-title {
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 20px;
-  color: #1a1a1a;
+  margin-bottom: var(--aitest-space-5);
+  color: var(--aitest-text-1);
 }
 
 .feature-card {
@@ -197,11 +197,11 @@ const { t } = useI18n()
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background-color: #f0f0f0;
+  background-color: var(--aitest-surface-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  margin: 0 auto var(--aitest-space-5);
   font-size: 36px;
   color: var(--aitest-primary);
 }
@@ -209,18 +209,18 @@ const { t } = useI18n()
 .feature-title {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 10px;
-  color: #1a1a1a;
+  margin-bottom: var(--aitest-space-3);
+  color: var(--aitest-text-1);
 }
 
 .feature-description {
-  font-size: 14px;
-  color: #666;
+  font-size: var(--aitest-font-size-md);
+  color: var(--aitest-text-2);
   line-height: 1.6;
 }
 
 .loading-container,
 .empty-container {
-  padding: 40px 0;
+  padding: var(--aitest-space-10) 0;
 }
 </style>

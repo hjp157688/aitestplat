@@ -623,46 +623,46 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .page-container {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   height: 100%;
   overflow-y: auto;
   background: var(--aitest-canvas);
 }
 
 .card-container {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 20px;
+  background-color: var(--aitest-surface);
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-5);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .filter-bar {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .pagination-container {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: flex-end;
 }
 
 .execution-detail {
   .execution-tabs {
-    margin-top: 20px;
+    margin-top: var(--aitest-space-5);
   }
 
   .logs-container {
     max-height: 500px;
     overflow-y: auto;
     background: var(--aitest-canvas);
-    padding: 15px;
-    border-radius: 4px;
+    padding: var(--aitest-space-4);
+    border-radius: var(--aitest-radius-sm);
 
     .log-item {
-      margin-bottom: 15px;
-      padding: 12px;
+      margin-bottom: var(--aitest-space-4);
+      padding: var(--aitest-space-3);
       background: white;
-      border-radius: 4px;
+      border-radius: var(--aitest-radius-sm);
       border-left: 3px solid var(--el-color-primary);
 
       &:last-child {
@@ -672,8 +672,8 @@ onMounted(async () => {
       .log-header {
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 8px;
+        gap: var(--aitest-space-3);
+        margin-bottom: var(--aitest-space-2);
 
         .log-action {
           font-weight: 500;
@@ -682,26 +682,26 @@ onMounted(async () => {
 
         .log-desc {
           color: var(--el-text-color-secondary);
-          font-size: 14px;
+          font-size: var(--aitest-font-size-md);
         }
       }
 
       .log-error {
         display: flex;
         align-items: flex-start;  /* 改为 flex-start，适配多行文本 */
-        gap: 8px;
+        gap: var(--aitest-space-2);
         color: var(--el-color-danger);
-        background: #fef0f0;
-        padding: 8px 12px;
-        border-radius: 4px;
-        margin-top: 8px;
-        font-size: 14px;
+        background: var(--aitest-danger-bg);
+        padding: var(--aitest-space-2) var(--aitest-space-3);
+        border-radius: var(--aitest-radius-sm);
+        margin-top: var(--aitest-space-2);
+        font-size: var(--aitest-font-size-md);
 
         .error-message {
           margin: 0;
           padding: 0;
           font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-          font-size: 13px;
+          font-size: var(--aitest-font-size-base);
           line-height: 1.6;
           white-space: pre-wrap;  /* 保留换行符和空格 */
           word-break: break-word;  /* 长单词换行 */
@@ -719,16 +719,16 @@ onMounted(async () => {
   .screenshots-container {
     max-height: 600px;
     overflow-y: auto;
-    padding: 10px;
+    padding: var(--aitest-space-3);
 
     .screenshot-item {
       margin-bottom: 30px;
       text-align: center;
 
       h5 {
-        margin: 0 0 15px 0;
+        margin: 0 0 var(--aitest-space-4) 0;
         color: var(--aitest-text-1);
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
       }
 
       .screenshot-wrapper {
@@ -738,63 +738,63 @@ onMounted(async () => {
       .screenshot-img {
         max-width: 100%;
         border: 1px solid var(--el-border-color-lighter);
-        border-radius: 4px;
+        border-radius: var(--aitest-radius-sm);
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       }
 
       .screenshot-error {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 12px 20px;
-        background: #fef0f0;
+        gap: var(--aitest-space-2);
+        padding: var(--aitest-space-3) var(--aitest-space-5);
+        background: var(--aitest-danger-bg);
         color: var(--el-color-danger);
         border: 1px solid #fbc4c4;
-        border-radius: 4px;
-        font-size: 14px;
+        border-radius: var(--aitest-radius-sm);
+        font-size: var(--aitest-font-size-md);
 
         .el-icon {
-          font-size: 16px;
+          font-size: var(--aitest-font-size-lg);
         }
       }
 
       .img-load-error {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 12px 20px;
-        background: #fff7e6;
+        gap: var(--aitest-space-2);
+        padding: var(--aitest-space-3) var(--aitest-space-5);
+        background: var(--aitest-warning-bg);
         color: var(--el-color-warning);
         border: 1px solid #f5dab1;
-        border-radius: 4px;
-        font-size: 14px;
-        margin-top: 10px;
+        border-radius: var(--aitest-radius-sm);
+        font-size: var(--aitest-font-size-md);
+        margin-top: var(--aitest-space-3);
 
         i {
-          font-size: 16px;
+          font-size: var(--aitest-font-size-lg);
         }
       }
 
       .screenshot-time {
-        margin: 10px 0 0 0;
+        margin: var(--aitest-space-3) 0 0 0;
         color: var(--el-text-color-secondary);
-        font-size: 12px;
+        font-size: var(--aitest-font-size-sm);
       }
     }
   }
 
   .errors-container {
-    padding: 10px;
+    padding: var(--aitest-space-3);
     height: 100%;
     overflow-y: auto;
   }
 
   .error-item {
-    background: #fff;
+    background: var(--aitest-surface);
     border: 2px solid var(--el-color-danger);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 15px;
+    border-radius: var(--aitest-radius-lg);
+    padding: var(--aitest-space-5);
+    margin-bottom: var(--aitest-space-4);
   }
 
   .error-item:last-child {
@@ -808,12 +808,12 @@ onMounted(async () => {
 
   .error-text {
     margin: 0;
-    padding: 15px;
+    padding: var(--aitest-space-4);
     background: #2d2d2d;
-    color: #ff6b6b;
-    border-radius: 4px;
+    color: var(--aitest-danger);
+    border-radius: var(--aitest-radius-sm);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
     line-height: 1.6;
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -824,14 +824,14 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 15px;
-    padding-bottom: 15px;
+    margin-bottom: var(--aitest-space-4);
+    padding-bottom: var(--aitest-space-4);
     border-bottom: 1px solid var(--aitest-border);
   }
 
   .error-header .el-tag {
-    font-size: 16px;
-    padding: 10px 15px;
+    font-size: var(--aitest-font-size-lg);
+    padding: var(--aitest-space-3) var(--aitest-space-4);
     font-weight: 600;
   }
 }

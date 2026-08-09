@@ -769,23 +769,23 @@ const handleNewSuite = async () => {
 
 <style scoped lang="scss">
 .page-container {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   background: var(--aitest-canvas);
   min-height: 100vh;
 }
 
 .card-container {
   background: white;
-  padding: 20px;
-  border-radius: 4px;
+  padding: var(--aitest-space-5);
+  border-radius: var(--aitest-radius-sm);
 }
 
 .filter-bar {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .pagination-container {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: flex-end;
 }
@@ -793,20 +793,20 @@ const handleNewSuite = async () => {
 // 测试用例选择器样式
 .test-case-selector {
   display: flex;
-  gap: 20px;
+  gap: var(--aitest-space-5);
   width: 100%;
 }
 
 .selector-panel {
   flex: 1;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
   overflow: hidden;
 }
 
 .panel-header {
   background: var(--aitest-canvas);
-  padding: 12px 15px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   border-bottom: 1px solid var(--el-border-color-lighter);
   display: flex;
   justify-content: space-between;
@@ -814,18 +814,18 @@ const handleNewSuite = async () => {
 
   h4 {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
     color: var(--aitest-text-1);
   }
 }
 
 .panel-content {
-  padding: 10px;
+  padding: var(--aitest-space-3);
 }
 
 
 :deep(.selected-row) {
-  background-color: #f0f9ff !important;
+  background-color: var(--aitest-info-bg) !important;
 }
 
 :deep(.el-table__row) {
@@ -837,10 +837,10 @@ const handleNewSuite = async () => {
 }
 
 .mode-description {
-  margin-top: 8px;
+  margin-top: var(--aitest-space-2);
 
   .description-text {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
     color: var(--el-text-color-secondary);
     line-height: 1.5;
   }

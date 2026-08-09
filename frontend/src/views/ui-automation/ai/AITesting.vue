@@ -297,37 +297,37 @@ const confirmSaveCase = async () => {
 
 <style lang="scss" scoped>
 .page-container {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .card-container {
-  background-color: #fff;
-  border-radius: 4px;
-  padding: 20px;
+  background-color: var(--aitest-surface);
+  border-radius: var(--aitest-radius-sm);
+  padding: var(--aitest-space-5);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   min-height: calc(100vh - 140px);
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
   font-weight: 600;
-  margin-bottom: 15px;
-  padding-left: 10px;
+  margin-bottom: var(--aitest-space-4);
+  padding-left: var(--aitest-space-3);
   border-left: 4px solid var(--el-color-primary);
 }
 
 .task-list-container {
   background-color: var(--aitest-canvas);
-  border-radius: 4px;
-  padding: 15px;
-  margin-bottom: 20px;
+  border-radius: var(--aitest-radius-sm);
+  padding: var(--aitest-space-4);
+  margin-bottom: var(--aitest-space-5);
   height: calc(100vh - 200px);
   overflow-y: auto;
   
   .task-item {
     display: flex;
     align-items: flex-start;
-    padding: 10px;
+    padding: var(--aitest-space-3);
     border-bottom: 1px solid var(--aitest-border);
     transition: all 0.3s;
     
@@ -336,7 +336,7 @@ const confirmSaveCase = async () => {
     }
     
     &.completed {
-      background-color: #f0f9eb;
+      background-color: var(--aitest-success-bg);
       .task-desc {
         color: var(--el-color-success);
         text-decoration: line-through;
@@ -352,9 +352,9 @@ const confirmSaveCase = async () => {
     }
     
     .task-status-icon {
-      margin-right: 10px;
+      margin-right: var(--aitest-space-3);
       margin-top: 2px;
-      font-size: 16px;
+      font-size: var(--aitest-font-size-lg);
     }
     
     .task-content {
@@ -363,7 +363,7 @@ const confirmSaveCase = async () => {
       
       .task-id {
         font-weight: bold;
-        margin-right: 5px;
+        margin-right: var(--aitest-space-1);
       }
     }
   }
@@ -372,7 +372,7 @@ const confirmSaveCase = async () => {
 .empty-tasks {
   color: var(--el-text-color-secondary);
   text-align: center;
-  padding: 20px;
+  padding: var(--aitest-space-5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -389,16 +389,16 @@ const confirmSaveCase = async () => {
   
   .el-icon {
     font-size: 24px;
-    margin-bottom: 10px;
+    margin-bottom: var(--aitest-space-3);
   }
 }
 
 .log-container {
   background-color: #1e1e1e;
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
   height: 300px;
   overflow-y: auto;
-  padding: 15px;
+  padding: var(--aitest-space-4);
   color: #fff;
   font-family: 'Consolas', 'Monaco', monospace;
   
@@ -412,7 +412,7 @@ const confirmSaveCase = async () => {
     margin: 0;
     white-space: pre-wrap;
     word-wrap: break-word;
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
     line-height: 1.5;
   }
 }
