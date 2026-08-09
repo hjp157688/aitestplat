@@ -448,13 +448,14 @@ export default {
 
 .notification-tabs :deep(.el-tabs__item) {
   flex: 1;
+  display: block;
+  text-align: center;
   padding: var(--aitest-space-4) var(--aitest-space-8);
   font-size: var(--aitest-font-size-md);
   font-weight: 500;
   color: var(--aitest-text-2);
   border: none;
   position: relative;
-  justify-content: center;
 }
 
 .notification-tabs :deep(.el-tabs__item:hover) {
