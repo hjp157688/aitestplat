@@ -1383,8 +1383,8 @@ const updatePage = async () => {
   font-size: 12px;
   padding: 2px 6px;
   border-radius: 4px;
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
 }
 
 .main-content {
@@ -1418,7 +1418,7 @@ const updatePage = async () => {
 
 .form-help-text {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin-top: 5px;
 }
 
@@ -1440,11 +1440,11 @@ const updatePage = async () => {
   padding: 8px 15px;
   cursor: pointer;
   font-size: 14px;
-  color: #606266;
+  color: var(--el-text-color-regular);
 }
 
 .context-menu li:hover {
   background-color: var(--aitest-canvas);
-  color: #409eff;
+  color: var(--el-color-primary);
 }
 </style>

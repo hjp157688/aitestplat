@@ -111,7 +111,7 @@
               </el-select>
             </template>
           </el-input>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+          <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 4px;">
             提示：请输入完整的URL地址，包含协议（http:// 或 https://）
           </div>
         </el-form-item>
@@ -158,7 +158,7 @@
               </el-select>
             </template>
           </el-input>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+          <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 4px;">
             提示：请输入完整的URL地址，包含协议（http:// 或 https://）
           </div>
         </el-form-item>

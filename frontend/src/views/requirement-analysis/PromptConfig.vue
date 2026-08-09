@@ -603,7 +603,7 @@ export default {
 }
 
 .section-header h2 {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0;
   font-size: 1.2rem;
   font-weight: 700;
@@ -615,7 +615,7 @@ export default {
 }
 
 .load-defaults-btn {
-  background: #7C3AED;
+  background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
   padding: 10px 22px;
@@ -672,7 +672,7 @@ export default {
 }
 
 .config-title h3 {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0 0 10px 0;
   font-size: 1.15rem;
   font-weight: 700;
@@ -693,7 +693,7 @@ export default {
 
 .type-badge.writer { background: #F0FDF4; color: #059669; }
 .type-badge.reviewer { background: #FFFBEB; color: #D97706; }
-.type-badge.api_testcase_generator { background: #EFF6FF; color: var(--aitest-primary); }
+.type-badge.api_testcase_generator { background: var(--aitest-info-bg); color: var(--aitest-primary); }
 
 .status-badge { background: #FEF2F2; color: #DC2626; }
 .status-badge.active { background: #F0FDF4; color: #059669; }
@@ -727,14 +727,14 @@ export default {
 
 .prompt-preview label {
   font-size: 0.8rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-weight: 500;
   display: block;
   margin-bottom: 8px;
 }
 
 .content-preview {
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   padding: 12px;
   border-radius: 8px;
   color: var(--aitest-text-2);
@@ -757,7 +757,7 @@ export default {
 
 .meta-item label {
   font-size: 0.78rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-weight: 500;
 }
 
@@ -775,7 +775,7 @@ export default {
 .empty-icon { font-size: 4rem; margin-bottom: 20px; }
 
 .empty-state h3 {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin-bottom: 10px;
 }
 
@@ -799,7 +799,7 @@ export default {
 
 .add-first-config-btn { background: var(--aitest-primary); color: #FFFFFF; }
 .add-first-config-btn:hover { background: var(--aitest-primary-hover); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
-.load-defaults-first-btn { background: #7C3AED; color: #FFFFFF; }
+.load-defaults-first-btn { background: var(--aitest-primary); color: #FFFFFF; }
 .load-defaults-first-btn:hover { background: #6D28D9; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); }
 
 .config-modal, .preview-modal, .defaults-modal {
@@ -837,7 +837,7 @@ export default {
 
 .modal-header h3 {
   margin: 0;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-weight: 700;
 }
 
@@ -846,13 +846,13 @@ export default {
   border: none;
   font-size: 1.3rem;
   cursor: pointer;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   padding: 4px 8px;
   border-radius: 6px;
   transition: all 0.15s;
 }
 
-.close-btn:hover { color: #0F172A; background: var(--aitest-surface-subtle); }
+.close-btn:hover { color: var(--aitest-text-1); background: var(--aitest-surface-subtle); }
 
 .modal-body { padding: 24px; }
 
@@ -872,7 +872,7 @@ export default {
   border: 1.5px solid var(--aitest-border);
   border-radius: 8px;
   font-size: 0.9rem;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   background: #FFFFFF;
   transition: border-color 0.2s;
   box-sizing: border-box;
@@ -912,14 +912,14 @@ export default {
 .char-count {
   text-align: right;
   font-size: 0.75rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   margin-top: 4px;
 }
 
 .textarea-tips {
   margin-top: 10px;
   padding: 14px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   border-radius: 8px;
   border-left: 3px solid var(--aitest-primary);
 }
@@ -953,7 +953,7 @@ export default {
 .checkbox-hint {
   margin-top: 5px;
   font-size: 0.8rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-style: italic;
 }
 
@@ -968,7 +968,7 @@ export default {
 
 .cancel-btn {
   background: var(--aitest-surface-subtle);
-  color: #475569;
+  color: var(--aitest-text-2);
   border: 1.5px solid var(--aitest-border);
   padding: 10px 20px;
   border-radius: 8px;
@@ -993,7 +993,7 @@ export default {
 }
 
 .confirm-btn:hover:not(:disabled) { background: var(--aitest-primary-hover); }
-.confirm-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+.confirm-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
 .preview-content, .defaults-content { margin-bottom: 20px; }
 
@@ -1002,7 +1002,7 @@ export default {
   gap: 20px;
   margin-bottom: 20px;
   padding: 14px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   border-radius: 8px;
 }
 
@@ -1023,7 +1023,7 @@ export default {
 }
 
 .content-text {
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   padding: 20px;
   border-radius: 8px;
   color: var(--aitest-text-2);
@@ -1058,10 +1058,10 @@ export default {
 .tab-btn.active {
   color: var(--aitest-primary);
   border-bottom-color: var(--aitest-primary);
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
 }
 
-.tab-btn:hover { background: #F8FAFC; }
+.tab-btn:hover { background: var(--aitest-canvas); }
 
 @media (max-width: 768px) {
   .configs-grid { grid-template-columns: 1fr; }

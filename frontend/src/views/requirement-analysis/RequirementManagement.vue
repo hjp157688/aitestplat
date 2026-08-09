@@ -1321,7 +1321,7 @@ onMounted(() => {
 }
 
 .ai-gen-selection {
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   border: 1px solid var(--aitest-border);
   border-radius: 8px;
   padding: 14px 16px;
@@ -1330,7 +1330,7 @@ onMounted(() => {
 
 .ai-gen-selected-label {
   font-weight: 600;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-size: 0.9rem;
   margin-bottom: 8px;
 }
@@ -1407,7 +1407,7 @@ onMounted(() => {
 .req-knowledge-title {
   flex: 1;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-size: 0.85rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1447,7 +1447,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   border-bottom: 1px solid var(--aitest-border);
   font-size: 0.82rem;
   font-weight: 600;
@@ -1534,7 +1534,7 @@ onMounted(() => {
   align-items: center;
   padding: 8px 12px;
   border-top: 1px solid var(--aitest-border);
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   font-size: 0.82rem;
   color: var(--aitest-text-2);
 }
@@ -1564,11 +1564,11 @@ onMounted(() => {
   margin: 0 0 16px 0;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--aitest-text-1);
 }
 
 .detail-spec {
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 20px;

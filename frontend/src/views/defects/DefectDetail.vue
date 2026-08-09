@@ -379,7 +379,7 @@ onMounted(() => {
     margin: 0;
     line-height: 1.7;
     white-space: pre-wrap;
-    color: #606266;
+    color: var(--el-text-color-regular);
   }
 }
 
@@ -400,7 +400,7 @@ onMounted(() => {
 
 .timeline-comment {
   margin-top: 4px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 
@@ -416,7 +416,7 @@ onMounted(() => {
 }
 
 .transition-status {
-  color: #606266;
+  color: var(--el-text-color-regular);
 }
 
 .comment-list,
@@ -441,7 +441,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 

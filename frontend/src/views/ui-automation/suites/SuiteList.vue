@@ -56,12 +56,12 @@
         </el-table-column>
         <el-table-column :label="$t('uiAutomation.suite.passedCount')" width="90">
           <template #default="{ row }">
-            <span style="color: #67c23a; font-weight: bold;">{{ row.passed_count || 0 }}</span>
+            <span style="color: var(--el-color-success); font-weight: bold;">{{ row.passed_count || 0 }}</span>
           </template>
         </el-table-column>
         <el-table-column :label="$t('uiAutomation.suite.failedCount')" width="90">
           <template #default="{ row }">
-            <span style="color: #f56c6c; font-weight: bold;">{{ row.failed_count || 0 }}</span>
+            <span style="color: var(--el-color-danger); font-weight: bold;">{{ row.failed_count || 0 }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="created_at" :label="$t('uiAutomation.common.createTime')" width="180" :formatter="formatDate" />
@@ -799,7 +799,7 @@ const handleNewSuite = async () => {
 
 .selector-panel {
   flex: 1;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -807,7 +807,7 @@ const handleNewSuite = async () => {
 .panel-header {
   background: var(--aitest-canvas);
   padding: 12px 15px;
-  border-bottom: 1px solid #dcdfe6;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -841,7 +841,7 @@ const handleNewSuite = async () => {
 
   .description-text {
     font-size: 12px;
-    color: #909399;
+    color: var(--el-text-color-secondary);
     line-height: 1.5;
   }
 }

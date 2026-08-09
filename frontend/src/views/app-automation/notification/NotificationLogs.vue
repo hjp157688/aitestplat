@@ -212,13 +212,13 @@ const parsedContent = computed(() => {
 
 <style scoped>
 .notification-logs { padding: 20px; background: #fff; border-radius: 8px; }
-.filters { margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 6px; }
+.filters { margin-bottom: 20px; padding: 20px; background: var(--aitest-surface-subtle); border-radius: 6px; }
 .pagination { margin-top: 20px; display: flex; justify-content: flex-end; }
 .content-box { width: 100%; }
 .parsed-content { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid var(--aitest-border); }
-.content-row { display: flex; padding: 10px 0; border-bottom: 1px solid #f0f2f5; }
+.content-row { display: flex; padding: 10px 0; border-bottom: 1px solid var(--aitest-surface-subtle); }
 .content-row:last-child { border-bottom: none; }
-.label { font-weight: 600; color: #606266; min-width: 90px; margin-right: 12px; }
+.label { font-weight: 600; color: var(--el-text-color-regular); min-width: 90px; margin-right: 12px; }
 .value { color: var(--aitest-text-1); flex: 1; word-break: break-word; }
 .raw-content { white-space: pre-wrap; word-break: break-word; margin: 0; padding: 12px; background: var(--aitest-canvas); border-radius: 6px; font-size: 13px; max-height: 300px; overflow-y: auto; }
 </style>

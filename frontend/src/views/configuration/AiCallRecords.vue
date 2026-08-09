@@ -210,8 +210,8 @@ export default {
   margin-bottom: 16px;
 }
 .stat-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--aitest-canvas);
+  border: 1px solid var(--aitest-border);
   border-radius: 10px;
   padding: 12px 16px;
 }
@@ -219,7 +219,7 @@ export default {
 .stat-card.danger .stat-value { color: #ef4444; }
 .stat-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--aitest-text-2);
   margin-bottom: 4px;
 }
 .stat-value {
@@ -236,11 +236,11 @@ export default {
   align-items: center;
 }
 .filter-item { width: 170px; }
-.records-table { border: 1px solid #e2e8f0; }
+.records-table { border: 1px solid var(--aitest-border); }
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
-  color: #475569;
+  color: var(--aitest-text-2);
 }
 .error-text {
   color: #dc2626;

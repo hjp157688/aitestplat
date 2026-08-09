@@ -560,7 +560,7 @@ defineExpose({
   padding: 8px;
   font-weight: 500;
   font-size: 12px;
-  color: #606266;
+  color: var(--el-text-color-regular);
 }
 
 .rows {
@@ -613,8 +613,8 @@ defineExpose({
 }
 
 .data-factory-btn {
-  background-color: #409eff !important;
-  border-color: #409eff !important;
+  background-color: var(--el-color-primary) !important;
+  border-color: var(--el-color-primary) !important;
   color: white !important;
 }
 
@@ -624,8 +624,8 @@ defineExpose({
 }
 
 .variable-helper-btn {
-  background-color: #67c23a;
-  border-color: #67c23a;
+  background-color: var(--el-color-success);
+  border-color: var(--el-color-success);
   color: white;
 }
 
@@ -636,12 +636,12 @@ defineExpose({
 
 .file-name {
   font-size: 12px;
-  color: #606266;
+  color: var(--el-text-color-regular);
   margin-left: 8px;
 }
 
 .required-mark {
-  color: #f56c6c;
+  color: var(--el-color-danger);
   font-weight: 600;
   font-size: 14px;
   margin-right: 2px;
@@ -698,6 +698,6 @@ defineExpose({
 }
 
 :deep(.el-table__row.current-row) {
-  background-color: #ecf5ff;
+  background-color: var(--el-color-primary-light-9);
 }
 </style>

@@ -227,11 +227,11 @@ const loadChartsData = async () => {
   try {
     const res = await api.get('/reports/reports/status_distribution/', { params })
     const data = [
-      { value: res.data.passed, name: t('report.passed'), itemStyle: { color: '#67C23A' } },
-      { value: res.data.failed, name: t('report.failed'), itemStyle: { color: '#F56C6C' } },
-      { value: res.data.blocked, name: t('report.blocked'), itemStyle: { color: '#E6A23C' } },
-      { value: res.data.retest, name: t('report.retest'), itemStyle: { color: '#409EFF' } },
-      { value: res.data.untested, name: t('report.untested'), itemStyle: { color: '#909399' } }
+      { value: res.data.passed, name: t('report.passed'), itemStyle: { color: 'var(--el-color-success)' } },
+      { value: res.data.failed, name: t('report.failed'), itemStyle: { color: 'var(--el-color-danger)' } },
+      { value: res.data.blocked, name: t('report.blocked'), itemStyle: { color: 'var(--el-color-warning)' } },
+      { value: res.data.retest, name: t('report.retest'), itemStyle: { color: 'var(--el-color-primary)' } },
+      { value: res.data.untested, name: t('report.untested'), itemStyle: { color: 'var(--el-text-color-secondary)' } }
     ]
 
     statusChart.setOption({
@@ -268,8 +268,8 @@ const loadChartsData = async () => {
         type: 'line',
         stack: 'Total',
         smooth: true,
-        areaStyle: { opacity: 0.3, color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#409EFF' }, { offset: 1, color: '#fff' }]) },
-        itemStyle: { color: '#409EFF' },
+        areaStyle: { opacity: 0.3, color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'var(--el-color-primary)' }, { offset: 1, color: '#fff' }]) },
+        itemStyle: { color: 'var(--el-color-primary)' },
         data: counts
       }]
     })
@@ -341,7 +341,7 @@ const loadChartsData = async () => {
           type: 'bar',
           stack: 'total',
           label: { show: true },
-          itemStyle: { color: '#409EFF' },
+          itemStyle: { color: 'var(--el-color-primary)' },
           data: execCounts
         },
         {
@@ -349,7 +349,7 @@ const loadChartsData = async () => {
           type: 'bar',
           stack: 'total',
           label: { show: true },
-          itemStyle: { color: '#F56C6C' },
+          itemStyle: { color: 'var(--el-color-danger)' },
           data: defectCounts
         }
       ]
@@ -440,10 +440,10 @@ onUnmounted(() => {
   font-size: 24px;
 }
 
-.total-plans .card-icon { background: #e8f3ff; color: #409EFF; }
-.total-cases .card-icon { background: #f0f9eb; color: #67C23A; }
-.pass-rate .card-icon { background: #fdf6ec; color: #E6A23C; }
-.defects .card-icon { background: #fef0f0; color: #F56C6C; }
+.total-plans .card-icon { background: #e8f3ff; color: var(--el-color-primary); }
+.total-cases .card-icon { background: #f0f9eb; color: var(--el-color-success); }
+.pass-rate .card-icon { background: #fdf6ec; color: var(--el-color-warning); }
+.defects .card-icon { background: #fef0f0; color: var(--el-color-danger); }
 
 .card-content {
   flex: 1;
@@ -458,7 +458,7 @@ onUnmounted(() => {
 
 .card-label {
   font-size: 14px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin-top: 4px;
 }
 
@@ -467,7 +467,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
 }
 
 .charts-container {
@@ -538,7 +538,7 @@ onUnmounted(() => {
 
 .metric-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin-bottom: 5px;
 }
 </style>

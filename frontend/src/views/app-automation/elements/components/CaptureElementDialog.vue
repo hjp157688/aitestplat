@@ -106,7 +106,7 @@
             <el-select v-model="formData.tags" multiple filterable allow-create :placeholder="$t('appAutomation.element.capture.tagsPlaceholder')" style="width: 100%">
               <el-option :label="$t('appAutomation.element.capture.exampleTag')" value="登录" />
             </el-select>
-            <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+            <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
               <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.capture.tagsTip') }}
             </div>
           </el-form-item>
@@ -152,14 +152,14 @@
                   :title="$t('appAutomation.element.capture.createCategoryTitle')"
                 />
               </div>
-              <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+              <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
                 <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.capture.imageCategoryTip') }}
               </div>
             </el-form-item>
 
             <el-form-item :label="$t('appAutomation.element.capture.templateFileName')" required>
               <el-input v-model="templateFileName" :placeholder="$t('appAutomation.element.capture.templateFileNamePlaceholder')" />
-              <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+              <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
                 <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.capture.templateFileNameTip') }}
               </div>
             </el-form-item>
@@ -175,7 +175,7 @@
 
             <el-form-item :label="$t('appAutomation.element.capture.threshold')">
               <el-slider v-model="formData.config.image_threshold" :min="0.5" :max="1.0" :step="0.05" show-input />
-              <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+              <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
                 <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.capture.thresholdTip') }}
               </div>
             </el-form-item>
@@ -186,7 +186,7 @@
                 :active-text="$t('appAutomation.element.capture.rgbColor')"
                 :inactive-text="$t('appAutomation.element.capture.grayscale')"
               />
-              <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+              <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
                 <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.capture.colorModeTip') }}
               </div>
             </el-form-item>
@@ -216,7 +216,7 @@
           :placeholder="$t('appAutomation.element.capture.categoryNamePlaceholder')"
           @keyup.enter="handleCreateCategory"
         />
-        <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+        <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
           <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.capture.categoryNameTip') }}
         </div>
       </el-form-item>
@@ -898,7 +898,7 @@ watch(() => props.modelValue, (val) => {
 .capture-left {
   flex: 1;
   min-width: 0;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 4px;
   overflow: hidden;
   background: var(--aitest-canvas);
@@ -925,7 +925,7 @@ watch(() => props.modelValue, (val) => {
 
 .selection-box {
   position: absolute;
-  border: 2px solid #409eff;
+  border: 2px solid var(--el-color-primary);
   background: rgba(64, 158, 255, 0.1);
   cursor: move;
   pointer-events: auto;
@@ -935,7 +935,7 @@ watch(() => props.modelValue, (val) => {
   position: absolute;
   top: -25px;
   left: 0;
-  background: #409eff;
+  background: var(--el-color-primary);
   color: white;
   padding: 2px 8px;
   border-radius: 3px;
@@ -951,7 +951,7 @@ watch(() => props.modelValue, (val) => {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #f56c6c;
+  background: var(--el-color-danger);
   color: white;
   border: none;
   cursor: pointer;
@@ -969,7 +969,7 @@ watch(() => props.modelValue, (val) => {
   position: absolute;
   width: 8px;
   height: 8px;
-  background: #409eff;
+  background: var(--el-color-primary);
   border: 1px solid white;
   border-radius: 50%;
   pointer-events: auto;

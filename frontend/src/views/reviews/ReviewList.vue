@@ -305,9 +305,9 @@ const getReviewProgress = (review) => {
 
 const getProgressColor = (review) => {
   const progress = getReviewProgress(review)
-  if (progress === 100) return '#67c23a'
-  if (progress >= 50) return '#e6a23c'
-  return '#f56c6c'
+  if (progress === 100) return 'var(--el-color-success)'
+  if (progress >= 50) return 'var(--el-color-warning)'
+  return 'var(--el-color-danger)'
 }
 
 const canReview = (review) => {
@@ -350,9 +350,9 @@ onMounted(() => {
 }
 
 .priority-tag {
-  &.low { color: #67c23a; }
-  &.medium { color: #e6a23c; }
-  &.high { color: #f56c6c; }
-  &.urgent { color: #f56c6c; font-weight: bold; }
+  &.low { color: var(--el-color-success); }
+  &.medium { color: var(--el-color-warning); }
+  &.high { color: var(--el-color-danger); }
+  &.urgent { color: var(--el-color-danger); font-weight: bold; }
 }
 </style>

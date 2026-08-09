@@ -193,7 +193,7 @@
                                             <el-button
                                                 link
                                                 size="small"
-                                                style="color: #f56c6c"
+                                                style="color: var(--el-color-danger)"
                                                 @click.stop="deleteCustomComponent(element)"
                                             >
                                                 {{ $t('appAutomation.common.delete') }}
@@ -821,7 +821,7 @@
                             <el-tag v-if="row.element_type === 'image' && row.config?.image_category" type="info" size="small">
                                 {{ row.config.image_category }}
                             </el-tag>
-                            <span v-else style="color: #909399;">-</span>
+                            <span v-else style="color: var(--el-text-color-secondary);">-</span>
                         </template>
                     </el-table-column>
 
@@ -2930,12 +2930,12 @@ defineExpose({
 
 .variable-hint {
     font-size: 12px;
-    color: #909399;
+    color: var(--el-text-color-secondary);
     margin: 0 0 8px 0;
 }
 
 .hint-danger {
-    color: #f56c6c;
+    color: var(--el-color-danger);
 }
 
 .palette-list {
@@ -2947,11 +2947,11 @@ defineExpose({
     align-items: baseline;
     justify-content: space-between;
     padding: 8px 10px;
-    border: 1px dashed #dcdfe6;
+    border: 1px dashed var(--el-border-color-lighter);
     border-radius: 4px;
     margin-bottom: 8px;
     cursor: grab;
-    background: #fafafa;
+    background: var(--aitest-surface-subtle);
 }
 
 .palette-left {
@@ -2973,7 +2973,7 @@ defineExpose({
 }
 
 .palette-empty {
-    color: #909399;
+    color: var(--el-text-color-secondary);
     font-size: 12px;
     padding: 8px 10px;
 }
@@ -2984,7 +2984,7 @@ defineExpose({
 }
 
 .palette-type {
-    color: #909399;
+    color: var(--el-text-color-secondary);
     font-size: 12px;
     line-height: 20px;
 }
@@ -2996,7 +2996,7 @@ defineExpose({
 .custom-steps-label {
     font-size: 14px;
     font-weight: 500;
-    color: #606266;
+    color: var(--el-text-color-regular);
     margin-bottom: 8px;
 }
 
@@ -3066,7 +3066,7 @@ defineExpose({
 }
 
 .scene-hint {
-    color: #909399;
+    color: var(--el-text-color-secondary);
     font-size: 13px;
     padding: 12px;
 }
@@ -3087,8 +3087,8 @@ defineExpose({
 }
 
 .scene-item.active {
-    border-color: #409eff;
-    background: #ecf5ff;
+    border-color: var(--el-color-primary);
+    background: var(--el-color-primary-light-9);
 }
 
 .scene-item-main {
@@ -3098,7 +3098,7 @@ defineExpose({
 }
 
 .scene-index {
-    background: #409eff;
+    background: var(--el-color-primary);
     color: #fff;
     font-size: 12px;
     padding: 2px 6px;
@@ -3110,7 +3110,7 @@ defineExpose({
 }
 
 .scene-type {
-    color: #909399;
+    color: var(--el-text-color-secondary);
     font-size: 12px;
 }
 
@@ -3123,14 +3123,14 @@ defineExpose({
 }
 
 .scene-item.is-expanded {
-    border-color: #e6a23c;
+    border-color: var(--el-color-warning);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     margin-bottom: 0;
 }
 
 .custom-sub-steps {
-    border: 1px solid #e6a23c;
+    border: 1px solid var(--el-color-warning);
     border-top: none;
     border-radius: 0 0 6px 6px;
     background: #fdf6ec;
@@ -3141,18 +3141,18 @@ defineExpose({
     margin-bottom: 4px !important;
     padding: 7px 10px !important;
     margin-left: 16px !important;
-    border-color: #dcdfe6 !important;
+    border-color: var(--el-border-color-lighter) !important;
     background: #fff !important;
     font-size: 13px;
 }
 
 .sub-step-item.active {
-    border-color: #e6a23c !important;
+    border-color: var(--el-color-warning) !important;
     background: #fef0e0 !important;
 }
 
 .sub-index {
-    background: #e6a23c !important;
+    background: var(--el-color-warning) !important;
     font-size: 11px !important;
     padding: 1px 5px !important;
 }
@@ -3167,14 +3167,14 @@ defineExpose({
 }
 
 .config-empty {
-    color: #909399;
+    color: var(--el-text-color-secondary);
     font-size: 13px;
     padding: 16px;
 }
 
 .package-title {
     font-size: 12px;
-    color: #909399;
+    color: var(--el-text-color-secondary);
     margin-bottom: 6px;
 }
 
@@ -3210,12 +3210,12 @@ defineExpose({
 .package-meta {
     display: flex;
     gap: 8px;
-    color: #909399;
+    color: var(--el-text-color-secondary);
     font-size: 12px;
 }
 
 .package-empty {
-    color: #909399;
+    color: var(--el-text-color-secondary);
     font-size: 12px;
     padding: 6px 0;
 }
@@ -3259,7 +3259,7 @@ defineExpose({
     align-items: center;
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 1px solid #dcdfe6;
+    border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .group-title {

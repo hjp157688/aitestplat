@@ -420,10 +420,10 @@ const initPieChart = () => {
           show: false
         },
         data: [
-          { value: stats.completed || 0, name: t('uiAutomation.ai.executionReport.completed'), itemStyle: { color: '#67C23A' } },
-          { value: stats.pending || 0, name: t('uiAutomation.ai.executionReport.pending'), itemStyle: { color: '#909399' } },
-          { value: stats.failed || 0, name: t('uiAutomation.ai.executionReport.failed'), itemStyle: { color: '#F56C6C' } },
-          { value: stats.skipped || 0, name: t('uiAutomation.ai.executionReport.skipped'), itemStyle: { color: '#E6A23C' } }
+          { value: stats.completed || 0, name: t('uiAutomation.ai.executionReport.completed'), itemStyle: { color: 'var(--el-color-success)' } },
+          { value: stats.pending || 0, name: t('uiAutomation.ai.executionReport.pending'), itemStyle: { color: 'var(--el-text-color-secondary)' } },
+          { value: stats.failed || 0, name: t('uiAutomation.ai.executionReport.failed'), itemStyle: { color: 'var(--el-color-danger)' } },
+          { value: stats.skipped || 0, name: t('uiAutomation.ai.executionReport.skipped'), itemStyle: { color: 'var(--el-color-warning)' } }
         ].filter(item => item.value > 0)
       }
     ]
@@ -480,7 +480,7 @@ const initBarChart = () => {
         type: 'bar',
         data: data.map(item => item.value),
         itemStyle: {
-          color: '#409EFF'
+          color: 'var(--el-color-primary)'
         }
       }
     ]
@@ -578,7 +578,7 @@ const handleClose = () => {
   align-items: center;
   justify-content: center;
   padding: 60px 0;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 16px;
 }
 
@@ -634,7 +634,7 @@ const handleClose = () => {
 
 .card-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin-bottom: 8px;
 }
 
@@ -724,7 +724,7 @@ const handleClose = () => {
 }
 
 .step-card {
-  border-left: 3px solid #409EFF;
+  border-left: 3px solid var(--el-color-primary);
 }
 
 .step-header {
@@ -736,7 +736,7 @@ const handleClose = () => {
 
 .step-number {
   font-weight: 600;
-  color: #409EFF;
+  color: var(--el-color-primary);
 }
 
 .step-content > div {
@@ -745,7 +745,7 @@ const handleClose = () => {
 }
 
 .step-thinking {
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-style: italic;
 }
 
@@ -764,14 +764,14 @@ const handleClose = () => {
 
 .metric-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin-bottom: 8px;
 }
 
 .metric-value {
   font-size: 24px;
   font-weight: 600;
-  color: #409EFF;
+  color: var(--el-color-primary);
 }
 
 .gif-container {
@@ -800,7 +800,7 @@ const handleClose = () => {
 }
 
 .report-container::-webkit-scrollbar-thumb {
-  background: #DCDFE6;
+  background: var(--el-border-color-lighter);
   border-radius: 3px;
 }
 

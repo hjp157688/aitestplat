@@ -72,7 +72,7 @@ import { DataAnalysis, Cellphone, Picture, Document, Aim } from '@element-plus/i
   
   p {
     font-size: 16px;
-    color: #909399;
+    color: var(--el-text-color-secondary);
   }
 }
 
@@ -103,7 +103,7 @@ import { DataAnalysis, Cellphone, Picture, Document, Aim } from '@element-plus/i
       font-size: 36px;
       color: white;
       
-      &.bg-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+      &.bg-blue { background: linear-gradient(135deg, var(--aitest-primary) 0%, #764ba2 100%); }
       &.bg-green { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
       &.bg-purple { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
       &.bg-orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
@@ -119,7 +119,7 @@ import { DataAnalysis, Cellphone, Picture, Document, Aim } from '@element-plus/i
     
     .feature-desc {
       font-size: 14px;
-      color: #909399;
+      color: var(--el-text-color-secondary);
       line-height: 1.6;
     }
   }

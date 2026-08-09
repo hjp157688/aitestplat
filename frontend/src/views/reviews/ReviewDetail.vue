@@ -319,9 +319,9 @@ const reviewProgress = computed(() => {
 
 const progressColor = computed(() => {
   const progress = reviewProgress.value
-  if (progress === 100) return '#67c23a'
-  if (progress >= 50) return '#e6a23c'
-  return '#f56c6c'
+  if (progress === 100) return 'var(--el-color-success)'
+  if (progress >= 50) return 'var(--el-color-warning)'
+  return 'var(--el-color-danger)'
 })
 
 const canEdit = computed(() => {
@@ -561,12 +561,12 @@ onMounted(() => {
       .stat-number {
         font-size: 28px;
         font-weight: bold;
-        color: #409eff;
+        color: var(--el-color-primary);
         margin-bottom: 4px;
       }
 
       .stat-label {
-        color: #909399;
+        color: var(--el-text-color-secondary);
         font-size: 14px;
       }
     }
@@ -603,7 +603,7 @@ onMounted(() => {
       }
 
       .comment-time {
-        color: #909399;
+        color: var(--el-text-color-secondary);
         font-size: 12px;
       }
     }
@@ -614,37 +614,37 @@ onMounted(() => {
     }
 
     .comment-testcase {
-      color: #409eff;
+      color: var(--el-color-primary);
       font-size: 12px;
     }
   }
 
   .empty-comments {
     text-align: center;
-    color: #909399;
+    color: var(--el-text-color-secondary);
     padding: 40px;
   }
 }
 
 .priority-tag {
-  &.low { color: #67c23a; }
-  &.medium { color: #e6a23c; }
-  &.high { color: #f56c6c; }
-  &.critical { color: #f56c6c; font-weight: bold; }
-  &.urgent { color: #f56c6c; font-weight: bold; }
+  &.low { color: var(--el-color-success); }
+  &.medium { color: var(--el-color-warning); }
+  &.high { color: var(--el-color-danger); }
+  &.critical { color: var(--el-color-danger); font-weight: bold; }
+  &.urgent { color: var(--el-color-danger); font-weight: bold; }
 }
 
 // 检查清单样式
 .checklist-summary {
   .checklist-stats {
     font-size: 12px;
-    color: #606266;
+    color: var(--el-text-color-regular);
     cursor: pointer;
   }
 }
 
 .no-checklist {
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 
@@ -656,15 +656,15 @@ onMounted(() => {
     margin-bottom: 4px;
 
     .pass-icon {
-      color: #67c23a;
+      color: var(--el-color-success);
     }
 
     .fail-icon {
-      color: #f56c6c;
+      color: var(--el-color-danger);
     }
 
     .pending-icon {
-      color: #909399;
+      color: var(--el-text-color-secondary);
     }
   }
 }
@@ -672,7 +672,7 @@ onMounted(() => {
 // 提交评审对话框中的检查清单样式
 .checklist-form-item {
   .checklist-container {
-    border: 1px solid #dcdfe6;
+    border: 1px solid var(--el-border-color-lighter);
     border-radius: 4px;
 
     .checklist-header {
@@ -681,7 +681,7 @@ onMounted(() => {
       align-items: center;
       padding: 12px 16px;
       background-color: var(--aitest-canvas);
-      border-bottom: 1px solid #dcdfe6;
+      border-bottom: 1px solid var(--el-border-color-lighter);
 
       .checklist-title {
         font-weight: 500;

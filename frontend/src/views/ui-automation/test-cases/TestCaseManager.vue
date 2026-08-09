@@ -1218,7 +1218,7 @@ onMounted(async () => {
 
 .page-header {
   padding: 20px;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   background: white;
   margin-bottom: 0;
 }
@@ -1231,7 +1231,7 @@ onMounted(async () => {
 
 .left-panel {
   width: 350px;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--el-border-color-lighter);
   background: white;
   display: flex;
   flex-direction: column;
@@ -1239,7 +1239,7 @@ onMounted(async () => {
 
 .panel-header {
   padding: 15px;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1256,7 +1256,7 @@ onMounted(async () => {
 }
 
 .test-case-item {
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
   margin-bottom: 10px;
   padding: 15px;
@@ -1265,12 +1265,12 @@ onMounted(async () => {
 }
 
 .test-case-item:hover {
-  border-color: #409eff;
+  border-color: var(--el-color-primary);
   box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
 }
 
 .test-case-item.active {
-  border-color: #409eff;
+  border-color: var(--el-color-primary);
   background-color: #f0f8ff;
 }
 
@@ -1312,7 +1312,7 @@ onMounted(async () => {
 }
 
 .step-count {
-  color: #409eff;
+  color: var(--el-color-primary);
   font-weight: 500;
 }
 
@@ -1338,7 +1338,7 @@ onMounted(async () => {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .detail-header h3 {
@@ -1356,9 +1356,9 @@ onMounted(async () => {
   flex-direction: column;
   min-height: 0;
   margin-bottom: 20px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
-  background: #fafafa;
+  background: var(--aitest-surface-subtle);
   overflow: hidden;
 }
 
@@ -1409,7 +1409,7 @@ onMounted(async () => {
 }
 
 .step-item {
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
   margin-bottom: 10px;
   background: white;
@@ -1417,7 +1417,7 @@ onMounted(async () => {
 }
 
 .step-item:hover {
-  border-color: #409eff;
+  border-color: var(--el-color-primary);
 }
 
 .step-header {
@@ -1425,7 +1425,7 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 15px;
-  background: #fafafa;
+  background: var(--aitest-surface-subtle);
   border-radius: 6px 6px 0 0;
 }
 
@@ -1441,7 +1441,7 @@ onMounted(async () => {
 }
 
 .step-number {
-  background: #409eff;
+  background: var(--el-color-primary);
   color: white;
   width: 24px;
   height: 24px;
@@ -1460,7 +1460,7 @@ onMounted(async () => {
 
 .step-content {
   padding: 15px;
-  border-top: 1px solid #e6e6e6;
+  border-top: 1px solid var(--el-border-color-lighter);
 }
 
 .step-param {
@@ -1481,7 +1481,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
   background: white;
   overflow: hidden;
@@ -1493,8 +1493,8 @@ onMounted(async () => {
 
 .execution-result .result-header {
   padding: 15px;
-  border-bottom: 1px solid #e6e6e6;
-  background: #fafafa;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--aitest-surface-subtle);
   border-radius: 6px 6px 0 0;
 }
 
@@ -1548,7 +1548,7 @@ onMounted(async () => {
   padding: 12px;
   background: white;
   border-radius: 4px;
-  border-left: 3px solid #409eff;
+  border-left: 3px solid var(--el-color-primary);
 }
 
 .log-item:last-child {
@@ -1564,11 +1564,11 @@ onMounted(async () => {
 
 .log-action {
   font-weight: 500;
-  color: #606266;
+  color: var(--el-text-color-regular);
 }
 
 .log-desc {
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 14px;
 }
 
@@ -1576,7 +1576,7 @@ onMounted(async () => {
   display: flex;
   align-items: flex-start;  /* 改为 flex-start，适配多行文本 */
   gap: 8px;
-  color: #f56c6c;
+  color: var(--el-color-danger);
   background: #fef0f0;
   padding: 8px 12px;
   border-radius: 4px;
@@ -1624,13 +1624,13 @@ onMounted(async () => {
   min-height: 200px;
   background: var(--aitest-canvas);
   border-radius: 8px;
-  border: 2px solid #e6e6e6;
+  border: 2px solid var(--el-border-color-lighter);
   overflow: hidden;
   transition: border-color 0.3s ease;
 }
 
 .screenshot-item:hover .screenshot-wrapper {
-  border-color: #409eff;
+  border-color: var(--el-color-primary);
 }
 
 .screenshot-wrapper img {
@@ -1683,7 +1683,7 @@ onMounted(async () => {
 }
 
 .screenshot-error {
-  color: #f56c6c;
+  color: var(--el-color-danger);
 }
 
 .screenshot-info {
@@ -1763,7 +1763,7 @@ onMounted(async () => {
 
 .error-item {
   background: #fff;
-  border: 2px solid #f56c6c;
+  border: 2px solid var(--el-color-danger);
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 15px;
@@ -1794,7 +1794,7 @@ onMounted(async () => {
 
 .error-step {
   background: #fef0f0;
-  color: #f56c6c;
+  color: var(--el-color-danger);
   padding: 5px 12px;
   border-radius: 4px;
   font-weight: 600;
@@ -1802,7 +1802,7 @@ onMounted(async () => {
 }
 
 .error-meta {
-  background: #f9f9f9;
+  background: var(--aitest-surface-subtle);
   padding: 15px;
   border-radius: 6px;
   margin-bottom: 15px;
@@ -1820,7 +1820,7 @@ onMounted(async () => {
 
 .meta-label {
   font-weight: 600;
-  color: #606266;
+  color: var(--el-text-color-regular);
   min-width: 80px;
   margin-right: 10px;
 }
@@ -1883,8 +1883,8 @@ onMounted(async () => {
 }
 
 .data-factory-btn {
-  background-color: #409eff !important;
-  border-color: #409eff !important;
+  background-color: var(--el-color-primary) !important;
+  border-color: var(--el-color-primary) !important;
   color: white !important;
 }
 
@@ -1894,8 +1894,8 @@ onMounted(async () => {
 }
 
 .variable-helper-btn {
-  background-color: #67c23a;
-  border-color: #67c23a;
+  background-color: var(--el-color-success);
+  border-color: var(--el-color-success);
   color: white;
 }
 

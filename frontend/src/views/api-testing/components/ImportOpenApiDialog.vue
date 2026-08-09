@@ -476,6 +476,6 @@ watch(tagFilter, () => {
   font-size: 11px; padding: 1px 6px; border-radius: 3px;
   background: var(--el-fill-color-light); color: var(--el-text-color-secondary);
 }
-.body-tag { background: #ecf5ff; color: #409eff; }
-.auth-tag { background: #fef0f0; color: #f56c6c; }
+.body-tag { background: var(--el-color-primary-light-9); color: var(--el-color-primary); }
+.auth-tag { background: #fef0f0; color: var(--el-color-danger); }
 </style>

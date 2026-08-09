@@ -724,7 +724,7 @@ onUnmounted(() => {
 
     p {
       font-size: 14px;
-      color: #909399;
+      color: var(--el-text-color-secondary);
       margin: 0;
       line-height: 1.6;
     }
@@ -732,7 +732,7 @@ onUnmounted(() => {
 
   .mode-tabs {
     display: flex;
-    background: #f0f2f5;
+    background: var(--aitest-surface-subtle);
     border-radius: 8px;
     padding: 4px;
     margin-bottom: 24px;
@@ -743,7 +743,7 @@ onUnmounted(() => {
       border: none;
       border-radius: 6px;
       font-size: 14px;
-      color: #909399;
+      color: var(--el-text-color-secondary);
       cursor: pointer;
       transition: all 0.3s ease;
       background: transparent;
@@ -756,7 +756,7 @@ onUnmounted(() => {
       }
 
       &:hover:not(.active) {
-        color: #606266;
+        color: var(--el-text-color-regular);
       }
     }
   }
@@ -766,13 +766,13 @@ onUnmounted(() => {
     height: 40px;
     border-radius: 4px;
     cursor: pointer;
-    border: 1px solid #dcdfe6;
+    border: 1px solid var(--el-border-color-lighter);
   }
 
   .login-form {
     :deep(.el-input__wrapper) {
       padding: 8px 16px;
-      box-shadow: 0 0 0 1px #dcdfe6 inset;
+      box-shadow: 0 0 0 1px var(--el-border-color-lighter) inset;
       transition: all 0.3s ease;
 
       &:hover {
@@ -813,7 +813,7 @@ onUnmounted(() => {
     margin-top: 24px;
 
     .register-link {
-      color: #909399;
+      color: var(--el-text-color-secondary);
       text-decoration: none;
       font-size: 14px;
       transition: all 0.3s ease;

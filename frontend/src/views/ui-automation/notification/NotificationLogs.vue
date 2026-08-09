@@ -562,7 +562,7 @@ export default {
 .page-actions {
   margin-bottom: 20px;
   padding: 20px;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   border-radius: 6px;
 }
 
@@ -602,7 +602,7 @@ export default {
   display: flex;
   align-items: flex-start;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--aitest-surface-subtle);
 }
 
 .content-item:last-child {
@@ -616,7 +616,7 @@ export default {
 
 .content-label {
   font-weight: 600;
-  color: #606266;
+  color: var(--el-text-color-regular);
   min-width: 100px;
   flex-shrink: 0;
   margin-right: 16px;
@@ -642,7 +642,7 @@ export default {
   border: 1px solid var(--aitest-border);
   font-size: 13px;
   line-height: 1.6;
-  color: #606266;
+  color: var(--el-text-color-regular);
   max-height: 400px;
   overflow-y: auto;
 }

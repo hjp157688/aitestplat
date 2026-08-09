@@ -607,7 +607,7 @@ onMounted(async () => {
   }
 
   .testcase-selection-tip {
-    color: #606266;
+    color: var(--el-text-color-regular);
     font-size: 14px;
   }
 }
@@ -627,9 +627,9 @@ onMounted(async () => {
 }
 
 .priority-tag {
-  &.low { color: #67c23a; }
-  &.medium { color: #e6a23c; }
-  &.high { color: #f56c6c; }
-  &.critical { color: #f56c6c; font-weight: bold; }
+  &.low { color: var(--el-color-success); }
+  &.medium { color: var(--el-color-warning); }
+  &.high { color: var(--el-color-danger); }
+  &.critical { color: var(--el-color-danger); font-weight: bold; }
 }
 </style>

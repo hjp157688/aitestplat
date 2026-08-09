@@ -2220,7 +2220,7 @@ onMounted(async () => {
       }
 
       .tool-item {
-        background: #f8f9fa;
+        background: var(--aitest-surface-subtle);
         border: 1px solid #e9ecef;
         border-radius: 8px;
         padding: 15px;
@@ -2232,7 +2232,7 @@ onMounted(async () => {
 
         &:hover {
           background: #fff;
-          border-color: #409eff;
+          border-color: var(--el-color-primary);
           box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
           transform: translateY(-2px);
         }
@@ -2245,7 +2245,7 @@ onMounted(async () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #409eff;
+          color: var(--el-color-primary);
           font-size: 20px;
         }
 
@@ -2274,7 +2274,7 @@ onMounted(async () => {
 
         &:hover .tool-arrow {
           transform: translateX(5px);
-          color: #409eff;
+          color: var(--el-color-primary);
         }
       }
     }
@@ -2298,7 +2298,7 @@ onMounted(async () => {
 
       .scenario-icon {
         font-size: 48px;
-        color: #409eff;
+        color: var(--el-color-primary);
         margin-bottom: 15px;
       }
 
@@ -2336,13 +2336,13 @@ onMounted(async () => {
   .tool-form {
     margin-bottom: 20px;
     padding: 15px;
-    background: #f8f9fa;
+    background: var(--aitest-surface-subtle);
     border-radius: 8px;
 
     .form-tip {
       margin-left: 10px;
       font-size: 12px;
-      color: #909399;
+      color: var(--el-text-color-secondary);
     }
   }
 
@@ -2352,12 +2352,12 @@ onMounted(async () => {
     .form-tip {
       margin-left: 10px;
       font-size: 12px;
-      color: #909399;
+      color: var(--el-text-color-secondary);
     }
   }
 
   .tool-result {
-    background: #f8f9fa;
+    background: var(--aitest-surface-subtle);
     border: 1px solid #e9ecef;
     border-radius: 8px;
     padding: 15px;
@@ -2391,7 +2391,7 @@ onMounted(async () => {
         padding: 20px;
         background: #fff;
         border-radius: 8px;
-        border: 2px dashed #dcdfe6;
+        border: 2px dashed var(--el-border-color-lighter);
         min-height: 200px;
 
         img {
@@ -2402,7 +2402,7 @@ onMounted(async () => {
         }
 
         .no-image {
-          color: #909399;
+          color: var(--el-text-color-secondary);
           font-size: 14px;
         }
       }
@@ -2523,7 +2523,7 @@ onMounted(async () => {
         width: 50px;
         text-align: right;
         font-size: 14px;
-        color: #409eff;
+        color: var(--el-color-primary);
         font-weight: 600;
         flex-shrink: 0;
       }
@@ -2581,13 +2581,13 @@ onMounted(async () => {
         display: flex;
         gap: 15px;
         font-size: 12px;
-        color: #606266;
+        color: var(--el-text-color-regular);
         
         span {
           padding: 2px 8px;
           background: #fff;
           border-radius: 4px;
-          border: 1px solid #dcdfe6;
+          border: 1px solid var(--el-border-color-lighter);
         }
       }
     }
@@ -2599,7 +2599,7 @@ onMounted(async () => {
       padding: 10px;
       background: var(--aitest-canvas);
       border-radius: 6px;
-      border: 1px solid #dcdfe6;
+      border: 1px solid var(--el-border-color-lighter);
       display: flex;
       flex-direction: column;
       min-width: 0;
@@ -2625,7 +2625,7 @@ onMounted(async () => {
       min-height: 200px;
       background: var(--aitest-canvas);
       border-radius: 6px;
-      border: 1px solid #dcdfe6;
+      border: 1px solid var(--el-border-color-lighter);
     }
   }
   
@@ -2707,7 +2707,7 @@ onMounted(async () => {
   .format-options {
     margin-top: 15px;
     padding: 15px;
-    background: #f0f2f5;
+    background: var(--aitest-surface-subtle);
     border-radius: 8px;
     
     .options-bar {
@@ -2723,7 +2723,7 @@ onMounted(async () => {
         
         .option-label {
           font-size: 14px;
-          color: #606266;
+          color: var(--el-text-color-regular);
           font-weight: 500;
         }
       }
@@ -2746,7 +2746,7 @@ onMounted(async () => {
   .diff-options {
     margin-top: 15px;
     padding: 15px;
-    background: #f0f2f5;
+    background: var(--aitest-surface-subtle);
     border-radius: 8px;
   }
 }
@@ -2767,18 +2767,18 @@ onMounted(async () => {
     justify-content: center;
     border: 2px dashed #d9d9d9;
     border-radius: 8px;
-    background: #fafafa;
+    background: var(--aitest-surface-subtle);
     transition: all 0.3s;
     
     &:hover {
-      border-color: #409eff;
+      border-color: var(--el-color-primary);
       background: #f0f9ff;
     }
   }
   
   .el-upload__tip {
     margin-top: 10px;
-    color: #909399;
+    color: var(--el-text-color-secondary);
     font-size: 12px;
   }
 }
@@ -2799,11 +2799,11 @@ onMounted(async () => {
     justify-content: center;
     border: 2px dashed #d9d9d9;
     border-radius: 8px;
-    background: #fafafa;
+    background: var(--aitest-surface-subtle);
     transition: all 0.3s;
     
     &:hover {
-      border-color: #409eff;
+      border-color: var(--el-color-primary);
       background: #f0f9ff;
     }
   }
@@ -2822,13 +2822,13 @@ onMounted(async () => {
     
     .upload-text {
       font-size: 14px;
-      color: #606266;
+      color: var(--el-text-color-regular);
       font-weight: 500;
     }
     
     .upload-tip {
       font-size: 12px;
-      color: #909399;
+      color: var(--el-text-color-secondary);
     }
   }
   
@@ -2881,7 +2881,7 @@ onMounted(async () => {
 .image-preview {
   width: 100%;
   max-width: 400px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 8px;
   overflow: hidden;
   margin-top: 10px;
@@ -2919,7 +2919,7 @@ onMounted(async () => {
   .result-display {
     height: 100%;
     min-height: 300px;
-    background: #f8f9fa;
+    background: var(--aitest-surface-subtle);
     border: 1px solid #e9ecef;
     border-radius: 8px;
     padding: 15px;

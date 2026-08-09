@@ -93,8 +93,8 @@
       <el-table-column :label="$t('appAutomation.scheduledTask.executionStats')" width="140">
         <template #default="{ row }">
           <span>{{ $t('appAutomation.scheduledTask.total') }} {{ row.total_runs }}  </span>
-          <span style="color:#67c23a">{{ $t('appAutomation.common.success') }} {{ row.successful_runs }}  </span>
-          <span style="color:#f56c6c">{{ $t('appAutomation.common.failed') }} {{ row.failed_runs }}</span>
+          <span style="color:var(--el-color-success)">{{ $t('appAutomation.common.success') }} {{ row.successful_runs }}  </span>
+          <span style="color:var(--el-color-danger)">{{ $t('appAutomation.common.failed') }} {{ row.failed_runs }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('appAutomation.common.operation')" width="200" fixed="right">
@@ -201,7 +201,7 @@
                   <div>{{ $t('appAutomation.scheduledTask.cronHelp.everyMonth') }}</div>
                 </div>
               </template>
-              <span style="cursor: pointer; color: #409EFF;">{{ $t('appAutomation.scheduledTask.cronHelpLink') }}</span>
+              <span style="cursor: pointer; color: var(--el-color-primary);">{{ $t('appAutomation.scheduledTask.cronHelpLink') }}</span>
             </el-tooltip>
           </div>
         </el-form-item>
@@ -437,8 +437,8 @@ const formatDateTime = (s) => {
 
 <style scoped>
 .scheduled-tasks { padding: 20px; display: flex; flex-direction: column; height: 100%; }
-.filters { margin-bottom: 20px; background: #f8f9fa; padding: 20px; border-radius: 8px; }
+.filters { margin-bottom: 20px; background: var(--aitest-surface-subtle); padding: 20px; border-radius: 8px; }
 .pagination { margin-top: 20px; display: flex; justify-content: flex-end; }
 .cron-help { margin-top: 8px; font-size: 12px; }
-.unit { margin-left: 8px; color: #606266; }
+.unit { margin-left: 8px; color: var(--el-text-color-regular); }
 </style>

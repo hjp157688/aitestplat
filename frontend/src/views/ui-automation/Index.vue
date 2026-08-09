@@ -155,7 +155,7 @@ const { t } = useI18n()
   text-align: center;
   padding: 20px;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: var(--aitest-surface-subtle);
   cursor: pointer;
   transition: all 0.3s ease;
 }

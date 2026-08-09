@@ -84,12 +84,12 @@ const children = computed(() => {
 .schema-node-header { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 0; }
 .schema-node-leaf { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
 .schema-prop-name { font-weight: 500; color: #268bd2; }
-.schema-prop-type { color: #909399; font-family: monospace; }
-.schema-prop-desc { color: #606266; font-size: 12px; margin-left: 8px; }
-.schema-prop-example { color: #909399; font-size: 12px; margin-left: 8px; font-family: monospace; }
-.schema-prop-default { color: #909399; font-size: 12px; margin-left: 8px; font-family: monospace; }
+.schema-prop-type { color: var(--el-text-color-secondary); font-family: monospace; }
+.schema-prop-desc { color: var(--el-text-color-regular); font-size: 12px; margin-left: 8px; }
+.schema-prop-example { color: var(--el-text-color-secondary); font-size: 12px; margin-left: 8px; font-family: monospace; }
+.schema-prop-default { color: var(--el-text-color-secondary); font-size: 12px; margin-left: 8px; font-family: monospace; }
 .schema-node-children { border-left: 1px dashed #e4e7ed; }
 .schema-section { margin-bottom: 16px; }
 .schema-section h4 { margin: 0 0 8px; font-size: 14px; }
-.schema-status-group h5 { margin: 8px 0 4px; font-size: 13px; color: #409eff; }
+.schema-status-group h5 { margin: 8px 0 4px; font-size: 13px; color: var(--el-color-primary); }
 </style>

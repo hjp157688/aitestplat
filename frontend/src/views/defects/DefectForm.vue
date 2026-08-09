@@ -455,7 +455,7 @@ onMounted(async () => {
 
 .upload-tip {
   margin-top: 4px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 12px;
   line-height: 1.5;
 }

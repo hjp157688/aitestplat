@@ -315,8 +315,8 @@ onUnmounted(() => {
   font-size: 12px;
   
   .stat-item {
-    &.success { color: #67c23a; }
-    &.danger { color: #f56c6c; }
+    &.success { color: var(--el-color-success); }
+    &.danger { color: var(--el-color-danger); }
   }
 }
 

@@ -87,7 +87,7 @@
             <el-tag v-if="row.element_type === 'image' && row.config?.image_category" type="info" size="small">
               {{ row.config.image_category }}
             </el-tag>
-            <span v-else style="color: #909399;">-</span>
+            <span v-else style="color: var(--el-text-color-secondary);">-</span>
           </template>
         </el-table-column>
 
@@ -496,7 +496,7 @@ onMounted(() => {
       overflow: hidden;
       
       &:hover {
-        border-color: #409eff;
+        border-color: var(--el-color-primary);
       }
     }
   }
@@ -510,7 +510,7 @@ onMounted(() => {
   .batch-actions {
     margin-top: 15px;
     padding: 10px;
-    background: #ecf5ff;
+    background: var(--el-color-primary-light-9);
     border: 1px solid #b3d8ff;
     border-radius: 4px;
     display: flex;
@@ -518,7 +518,7 @@ onMounted(() => {
     justify-content: space-between;
     
     span {
-      color: #409eff;
+      color: var(--el-color-primary);
       font-weight: 500;
     }
   }

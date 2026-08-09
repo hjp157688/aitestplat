@@ -64,15 +64,15 @@
                 :stroke-width="16"
                 :text-inside="true"
               />
-              <span v-else style="color:#909399">{{ $t('appAutomation.report.noCases') }}</span>
+              <span v-else style="color:var(--el-text-color-secondary)">{{ $t('appAutomation.report.noCases') }}</span>
             </template>
           </el-table-column>
           <el-table-column :label="$t('appAutomation.report.caseStatistics')" min-width="180">
             <template #default="{ row }">
               <div class="step-stats">
-                <span style="color:#67c23a">{{ $t('appAutomation.status.passed') }} {{ row.passed_count || 0 }}</span>
+                <span style="color:var(--el-color-success)">{{ $t('appAutomation.status.passed') }} {{ row.passed_count || 0 }}</span>
                 <el-divider direction="vertical" />
-                <span style="color:#f56c6c">{{ $t('appAutomation.status.failed') }} {{ row.failed_count || 0 }}</span>
+                <span style="color:var(--el-color-danger)">{{ $t('appAutomation.status.failed') }} {{ row.failed_count || 0 }}</span>
                 <el-divider direction="vertical" />
                 <span>{{ $t('appAutomation.report.total') }} {{ row.test_case_count || 0 }}</span>
               </div>
@@ -175,9 +175,9 @@
           <el-table-column :label="$t('appAutomation.report.stepStatistics')" min-width="180">
             <template #default="{ row }">
               <div class="step-stats">
-                <span style="color:#67c23a">{{ $t('appAutomation.status.passed') }} {{ row.passed_steps || 0 }}</span>
+                <span style="color:var(--el-color-success)">{{ $t('appAutomation.status.passed') }} {{ row.passed_steps || 0 }}</span>
                 <el-divider direction="vertical" />
-                <span style="color:#f56c6c">{{ $t('appAutomation.status.failed') }} {{ row.failed_steps || 0 }}</span>
+                <span style="color:var(--el-color-danger)">{{ $t('appAutomation.status.failed') }} {{ row.failed_steps || 0 }}</span>
                 <el-divider direction="vertical" />
                 <span>{{ $t('appAutomation.report.total') }} {{ row.total_steps || 0 }}</span>
               </div>
@@ -287,9 +287,9 @@
         <el-table-column :label="$t('appAutomation.report.stepStatistics')" width="200">
           <template #default="{ row }">
             <div class="step-stats">
-              <span style="color:#67c23a">{{ $t('appAutomation.status.passed') }} {{ row.passed_steps || 0 }}</span>
+              <span style="color:var(--el-color-success)">{{ $t('appAutomation.status.passed') }} {{ row.passed_steps || 0 }}</span>
               <el-divider direction="vertical" />
-              <span style="color:#f56c6c">{{ $t('appAutomation.status.failed') }} {{ row.failed_steps || 0 }}</span>
+              <span style="color:var(--el-color-danger)">{{ $t('appAutomation.status.failed') }} {{ row.failed_steps || 0 }}</span>
               <el-divider direction="vertical" />
               <span>{{ $t('appAutomation.report.total') }} {{ row.total_steps || 0 }}</span>
             </div>
@@ -428,10 +428,10 @@ const suiteStatsCards = computed(() => {
     ? Math.round(executed.reduce((sum, s) => sum + getSuitePassRate(s), 0) / executed.length)
     : 0
   return [
-    { label: t('appAutomation.report.suiteTotal'), value: suitePagination.total, color: '#409eff' },
-    { label: t('appAutomation.report.executed'), value: executed.length, color: '#67c23a' },
-    { label: t('appAutomation.report.recentFailed'), value: failed.length, color: '#f56c6c' },
-    { label: t('appAutomation.report.avgPassRate'), value: avgRate + '%', color: '#e6a23c' },
+    { label: t('appAutomation.report.suiteTotal'), value: suitePagination.total, color: 'var(--el-color-primary)' },
+    { label: t('appAutomation.report.executed'), value: executed.length, color: 'var(--el-color-success)' },
+    { label: t('appAutomation.report.recentFailed'), value: failed.length, color: 'var(--el-color-danger)' },
+    { label: t('appAutomation.report.avgPassRate'), value: avgRate + '%', color: 'var(--el-color-warning)' },
   ]
 })
 
@@ -532,10 +532,10 @@ const caseStatsCards = computed(() => {
     ? Math.round(data.reduce((sum, r) => sum + (r.pass_rate || 0), 0) / data.length)
     : 0
   return [
-    { label: t('appAutomation.report.totalReports'), value: casePagination.total, color: '#409eff' },
-    { label: t('appAutomation.report.pagePassed'), value: success, color: '#67c23a' },
-    { label: t('appAutomation.report.pageFailed'), value: failed, color: '#f56c6c' },
-    { label: t('appAutomation.report.pageAvgPassRate'), value: avgRate + '%', color: '#e6a23c' },
+    { label: t('appAutomation.report.totalReports'), value: casePagination.total, color: 'var(--el-color-primary)' },
+    { label: t('appAutomation.report.pagePassed'), value: success, color: 'var(--el-color-success)' },
+    { label: t('appAutomation.report.pageFailed'), value: failed, color: 'var(--el-color-danger)' },
+    { label: t('appAutomation.report.pageAvgPassRate'), value: avgRate + '%', color: 'var(--el-color-warning)' },
   ]
 })
 
@@ -585,9 +585,9 @@ async function deleteCaseReport(row) {
 // getDisplayStatus 已从 helpers 导入
 
 function getPassRateColor(rate) {
-  if (rate >= 80) return '#67c23a'
-  if (rate >= 50) return '#e6a23c'
-  return '#f56c6c'
+  if (rate >= 80) return 'var(--el-color-success)'
+  if (rate >= 50) return 'var(--el-color-warning)'
+  return 'var(--el-color-danger)'
 }
 
 function formatDuration(seconds) {
@@ -605,16 +605,16 @@ function formatDuration(seconds) {
 .stat-card { flex: 1; }
 .stat-content { text-align: center; }
 .stat-number { font-size: 28px; font-weight: bold; line-height: 1.6; }
-.stat-label { font-size: 13px; color: #909399; }
-.filters { margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+.stat-label { font-size: 13px; color: var(--el-text-color-secondary); }
+.filters { margin-bottom: 20px; padding: 20px; background: var(--aitest-surface-subtle); border-radius: 8px; }
 .pagination { margin-top: 20px; display: flex; justify-content: flex-end; }
 .step-stats { display: flex; align-items: center; font-size: 13px; }
 .detail-section { margin-top: 24px; }
 .detail-section h4 { margin-bottom: 12px; color: var(--aitest-text-1); }
 .detail-stat { text-align: center; padding: 16px; border-radius: 8px; }
 .detail-stat-num { font-size: 24px; font-weight: bold; }
-.detail-stat-label { font-size: 13px; color: #606266; margin-top: 4px; }
-.success-bg { background: #f0f9eb; color: #67c23a; }
-.danger-bg { background: #fef0f0; color: #f56c6c; }
-.info-bg { background: #f4f4f5; color: #909399; }
+.detail-stat-label { font-size: 13px; color: var(--el-text-color-regular); margin-top: 4px; }
+.success-bg { background: #f0f9eb; color: var(--el-color-success); }
+.danger-bg { background: #fef0f0; color: var(--el-color-danger); }
+.info-bg { background: #f4f4f5; color: var(--el-text-color-secondary); }
 </style>

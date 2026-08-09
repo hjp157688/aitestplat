@@ -365,7 +365,7 @@ export default {
 }
 
 .section-header h2 {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0;
   font-size: 1.2rem;
   font-weight: 700;
@@ -415,7 +415,7 @@ export default {
 }
 
 .config-title h3 {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0 0 10px 0;
   font-size: 1.15rem;
   font-weight: 700;
@@ -436,7 +436,7 @@ export default {
 
 .status-badge { background: #FEF2F2; color: #DC2626; }
 .status-badge.active { background: #F0FDF4; color: #059669; }
-.mode-badge { background: #EFF6FF; color: var(--aitest-primary); }
+.mode-badge { background: var(--aitest-info-bg); color: var(--aitest-primary); }
 
 .config-actions {
   display: flex;
@@ -466,13 +466,13 @@ export default {
 .detail-section {
   margin-bottom: 14px;
   padding: 12px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   border-radius: 8px;
 }
 
 .detail-section h4 {
   margin: 0 0 10px 0;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -507,7 +507,7 @@ export default {
 
 .meta-item label {
   font-size: 0.78rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-weight: 500;
 }
 
@@ -525,7 +525,7 @@ export default {
 .empty-icon { font-size: 4rem; margin-bottom: 20px; }
 
 .empty-state h3 {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin-bottom: 10px;
 }
 
@@ -577,7 +577,7 @@ export default {
 
 .modal-header h3 {
   margin: 0;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-weight: 700;
 }
 
@@ -586,26 +586,26 @@ export default {
   border: none;
   font-size: 1.3rem;
   cursor: pointer;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   padding: 4px 8px;
   border-radius: 6px;
   transition: all 0.15s;
 }
 
-.close-btn:hover { color: #0F172A; background: var(--aitest-surface-subtle); }
+.close-btn:hover { color: var(--aitest-text-1); background: var(--aitest-surface-subtle); }
 
 .modal-body { padding: 24px; }
 
 .form-section {
   margin-bottom: 22px;
   padding: 18px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   border-radius: 8px;
 }
 
 .form-section h4 {
   margin: 0 0 14px 0;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-size: 1rem;
   font-weight: 600;
 }
@@ -632,7 +632,7 @@ export default {
   border: 1.5px solid var(--aitest-border);
   border-radius: 8px;
   font-size: 0.9rem;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   background: #FFFFFF;
   transition: border-color 0.2s;
   box-sizing: border-box;
@@ -647,7 +647,7 @@ export default {
 .field-hint {
   margin-top: 5px;
   font-size: 0.78rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-style: italic;
 }
 
@@ -664,7 +664,7 @@ export default {
 .checkbox-hint {
   margin-top: 5px;
   font-size: 0.78rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-style: italic;
 }
 
@@ -679,7 +679,7 @@ export default {
 
 .cancel-btn {
   background: var(--aitest-surface-subtle);
-  color: #475569;
+  color: var(--aitest-text-2);
   border: 1.5px solid var(--aitest-border);
   padding: 10px 20px;
   border-radius: 8px;
@@ -704,7 +704,7 @@ export default {
 }
 
 .confirm-btn:hover:not(:disabled) { background: var(--aitest-primary-hover); }
-.confirm-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+.confirm-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
 @media (max-width: 768px) {
   .configs-grid { grid-template-columns: 1fr; }

@@ -526,7 +526,7 @@ onMounted(async () => {
   padding: 8px;
   font-weight: 500;
   font-size: 12px;
-  color: #606266;
+  color: var(--el-text-color-regular);
 }
 
 .variables-body {

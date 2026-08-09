@@ -988,7 +988,7 @@ export default {
 }
 
 .section-header h2 {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0;
   font-size: 1.2rem;
   font-weight: 700;
@@ -1045,7 +1045,7 @@ export default {
 }
 
 .config-title h3 {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin: 0 0 10px 0;
   font-size: 1.15rem;
   font-weight: 700;
@@ -1064,8 +1064,8 @@ export default {
   font-weight: 600;
 }
 
-.model-badge.deepseek { background: #EFF6FF; color: var(--aitest-primary); }
-.model-badge.qwen { background: #F5F3FF; color: #7C3AED; }
+.model-badge.deepseek { background: var(--aitest-info-bg); color: var(--aitest-primary); }
+.model-badge.qwen { background: #F5F3FF; color: var(--aitest-primary); }
 .model-badge.siliconflow { background: #ECFEFF; color: #0891B2; }
 .model-badge.zhipu { background: #DBEAFE; color: #1D4ED8; }
 .model-badge.other { background: var(--aitest-surface-subtle); color: var(--aitest-text-2); }
@@ -1075,9 +1075,9 @@ export default {
 .role-badge.writer { background: #F0FDF4; color: #059669; }
 .role-badge.reviewer { background: #FFFBEB; color: #D97706; }
 .role-badge.tokenizer { background: #F0F9FF; color: #0284C7; }
-.role-badge.browser_use_text { background: #F8FAFC; color: #64748B; }
+.role-badge.browser_use_text { background: var(--aitest-canvas); color: var(--aitest-text-2); }
 .role-badge.embedding { background: #FCE7F3; color: #DB2777; }
-.role-badge.api_testcase_generator { background: #EFF6FF; color: var(--aitest-primary); }
+.role-badge.api_testcase_generator { background: var(--aitest-info-bg); color: var(--aitest-primary); }
 
 .status-badge { background: #FEF2F2; color: #DC2626; }
 .status-badge.active { background: #F0FDF4; color: #059669; }
@@ -1100,7 +1100,7 @@ export default {
 
 .test-btn { background: var(--aitest-primary); color: #FFFFFF; }
 .test-btn:hover:not(:disabled) { background: var(--aitest-primary-hover); }
-.test-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+.test-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
 .edit-btn { background: #F59E0B; color: #FFFFFF; }
 .edit-btn:hover { background: #D97706; }
@@ -1122,12 +1122,12 @@ export default {
 
 .detail-item label {
   font-size: 0.8rem;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-weight: 500;
 }
 
 .detail-item span {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-size: 0.88rem;
   word-break: break-all;
 }
@@ -1144,7 +1144,7 @@ export default {
 }
 
 .empty-state h3 {
-  color: #0F172A;
+  color: var(--aitest-text-1);
   margin-bottom: 10px;
 }
 
@@ -1179,7 +1179,7 @@ export default {
 
 .modal-header h3 {
   margin: 0;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   font-weight: 700;
 }
 
@@ -1188,7 +1188,7 @@ export default {
   border: none !important;
   font-size: 1.3rem !important;
   cursor: pointer !important;
-  color: #94A3B8 !important;
+  color: var(--aitest-text-3) !important;
   padding: 4px 8px !important;
   border-radius: 6px !important;
   z-index: 10001 !important;
@@ -1198,7 +1198,7 @@ export default {
 }
 
 .close-btn:hover {
-  color: #0F172A !important;
+  color: var(--aitest-text-1) !important;
   background: var(--aitest-surface-subtle) !important;
 }
 
@@ -1224,7 +1224,7 @@ export default {
   border: 1.5px solid var(--aitest-border);
   border-radius: 8px;
   font-size: 0.9rem;
-  color: #0F172A;
+  color: var(--aitest-text-1);
   background: #FFFFFF;
   transition: border-color 0.2s;
   box-sizing: border-box;
@@ -1238,7 +1238,7 @@ export default {
 
 .fetch-models-btn {
   flex-shrink: 0;
-  background: #7C3AED;
+  background: var(--aitest-primary);
   color: #FFFFFF;
   border: none;
   padding: 10px 16px;
@@ -1251,7 +1251,7 @@ export default {
 }
 
 .fetch-models-btn:hover:not(:disabled) { background: #6D28D9; }
-.fetch-models-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+.fetch-models-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
 .model-list-selector { margin-top: 10px; }
 
@@ -1303,17 +1303,17 @@ export default {
 
 .model-list-item:hover {
   border-color: var(--aitest-primary);
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
 }
 
 .model-list-item.active {
   border-color: var(--aitest-primary);
-  background: #EFF6FF;
+  background: var(--aitest-info-bg);
   color: var(--aitest-primary-hover);
 }
 
 .model-list-empty {
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   padding: 8px 4px;
   font-size: 0.85rem;
 }
@@ -1348,7 +1348,7 @@ export default {
 .form-hint {
   display: block;
   margin-top: 5px;
-  color: #94A3B8;
+  color: var(--aitest-text-3);
   font-size: 0.8rem;
   font-style: italic;
 }
@@ -1362,7 +1362,7 @@ export default {
 
 .cancel-btn {
   background: var(--aitest-surface-subtle);
-  color: #475569;
+  color: var(--aitest-text-2);
   border: 1.5px solid var(--aitest-border);
   padding: 10px 20px;
   border-radius: 8px;
@@ -1387,7 +1387,7 @@ export default {
 }
 
 .test-btn-form:hover:not(:disabled) { background: var(--aitest-primary-hover); }
-.test-btn-form:disabled { background: #CBD5E1; cursor: not-allowed; }
+.test-btn-form:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
 .confirm-btn {
   background: var(--aitest-primary);
@@ -1402,7 +1402,7 @@ export default {
 }
 
 .confirm-btn:hover:not(:disabled) { background: var(--aitest-primary-hover); }
-.confirm-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+.confirm-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
 
 .test-result {
   display: flex;
@@ -1414,7 +1414,7 @@ export default {
 
 .result-content h4 {
   margin: 0 0 10px 0;
-  color: #0F172A;
+  color: var(--aitest-text-1);
 }
 
 .test-result.success .result-content h4 { color: #059669; }
@@ -1423,7 +1423,7 @@ export default {
 .api-response {
   margin-top: 15px;
   padding: 15px;
-  background: #F8FAFC;
+  background: var(--aitest-canvas);
   border-radius: 8px;
   border-left: 3px solid var(--aitest-primary);
 }

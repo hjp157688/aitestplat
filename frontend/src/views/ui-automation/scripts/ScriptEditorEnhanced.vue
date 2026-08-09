@@ -584,7 +584,7 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   background: white;
 }
 
@@ -606,7 +606,7 @@ onMounted(async () => {
 
 .left-panel {
   width: 300px;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--el-border-color-lighter);
   display: flex;
   flex-direction: column;
   background: white;
@@ -614,7 +614,7 @@ onMounted(async () => {
 
 .panel-header {
   padding: 15px;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .panel-header h3 {
@@ -625,7 +625,7 @@ onMounted(async () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--el-border-color-lighter);
 }
 
 .right-panel {
@@ -643,8 +643,8 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  border-bottom: 1px solid #e6e6e6;
-  background-color: #fafafa;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background-color: var(--aitest-surface-subtle);
 }
 
 .toolbar-left,
@@ -679,8 +679,8 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 5px 15px;
-  border-top: 1px solid #e6e6e6;
-  background-color: #fafafa;
+  border-top: 1px solid var(--el-border-color-lighter);
+  background-color: var(--aitest-surface-subtle);
   font-size: 12px;
   color: #666;
 }
@@ -715,7 +715,7 @@ onMounted(async () => {
 .log-output {
   height: 400px;
   overflow-y: auto;
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 4px;
   padding: 10px;
   background-color: #1e1e1e;
@@ -740,15 +740,15 @@ onMounted(async () => {
 }
 
 .log-entry.info .log-level {
-  color: #67c23a;
+  color: var(--el-color-success);
 }
 
 .log-entry.error .log-level {
-  color: #f56c6c;
+  color: var(--el-color-danger);
 }
 
 .log-entry.success .log-level {
-  color: #67c23a;
+  color: var(--el-color-success);
 }
 
 .element-detail {

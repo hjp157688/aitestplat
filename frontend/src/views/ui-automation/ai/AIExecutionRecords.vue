@@ -371,7 +371,7 @@ onUnmounted(() => {
     margin-top: 8px;
 
     .task-description-content {
-      color: #606266;
+      color: var(--el-text-color-regular);
       line-height: 1.6;
       white-space: pre-wrap;
       word-wrap: break-word;

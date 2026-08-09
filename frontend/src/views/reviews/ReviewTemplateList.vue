@@ -441,7 +441,7 @@ onMounted(() => {
       
       .info-label {
         min-width: 80px;
-        color: #909399;
+        color: var(--el-text-color-secondary);
         font-size: 14px;
       }
       
@@ -453,7 +453,7 @@ onMounted(() => {
   }
   
   .template-description {
-    color: #606266;
+    color: var(--el-text-color-regular);
     line-height: 1.6;
     font-size: 14px;
   }
@@ -471,18 +471,18 @@ onMounted(() => {
       
       li {
         margin-bottom: 4px;
-        color: #606266;
+        color: var(--el-text-color-regular);
         font-size: 14px;
         
         &.more-items {
-          color: #909399;
+          color: var(--el-text-color-secondary);
           font-style: italic;
         }
       }
     }
     
     .empty-checklist {
-      color: #909399;
+      color: var(--el-text-color-secondary);
       font-size: 14px;
       font-style: italic;
     }
@@ -502,7 +502,7 @@ onMounted(() => {
       }
       
       .empty-reviewers {
-        color: #909399;
+        color: var(--el-text-color-secondary);
         font-size: 14px;
         font-style: italic;
       }

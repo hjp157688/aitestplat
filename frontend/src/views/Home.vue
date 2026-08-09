@@ -336,7 +336,7 @@ const handleNavigate = (type) => {
       }
 
       &:hover {
-        color: #409eff;
+        color: var(--el-color-primary);
       }
     }
   }
@@ -359,7 +359,7 @@ const handleNavigate = (type) => {
     }
 
     &:hover {
-      color: #409eff;
+      color: var(--el-color-primary);
     }
   }
 }
@@ -389,7 +389,7 @@ const handleNavigate = (type) => {
   }
 
   &:hover {
-    color: #409eff;
+    color: var(--el-color-primary);
     background: rgba(255, 255, 255, 0.85);
   }
 
@@ -413,7 +413,7 @@ const handleNavigate = (type) => {
 
   .trigger-arrow {
     font-size: 12px;
-    color: #909399;
+    color: var(--el-text-color-secondary);
   }
 }
 
@@ -486,27 +486,27 @@ const handleNavigate = (type) => {
 
   &.ai-icon {
     background: #e8f4ff;
-    color: #409eff;
+    color: var(--el-color-primary);
   }
 
   &.api-icon {
     background: #f0f9eb;
-    color: #67c23a;
+    color: var(--el-color-success);
   }
 
   &.ui-icon {
     background: #fdf6ec;
-    color: #e6a23c;
+    color: var(--el-color-warning);
   }
 
   &.data-icon {
     background: #e8f4ff;
-    color: #409eff;
+    color: var(--el-color-primary);
   }
 
   &.defects-icon {
     background: #fef0f0;
-    color: #f56c6c;
+    color: var(--el-color-danger);
   }
 
   &.app-icon {
@@ -928,8 +928,8 @@ const handleNavigate = (type) => {
     height: 56px;
     margin: 0 auto 14px;
     border-radius: 14px;
-    background: linear-gradient(145deg, #ecf5ff 0%, #d9ecff 100%);
-    color: #409eff;
+    background: linear-gradient(145deg, var(--el-color-primary-light-9) 0%, #d9ecff 100%);
+    color: var(--el-color-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -939,7 +939,7 @@ const handleNavigate = (type) => {
   .dialog-desc {
     margin: 0;
     font-size: 14px;
-    color: #606266;
+    color: var(--el-text-color-regular);
     line-height: 1.6;
   }
 }

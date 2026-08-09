@@ -35,7 +35,7 @@
         >
           <el-option :label="$t('appAutomation.element.manual.exampleTag')" value="登录" />
         </el-select>
-        <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+        <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
           <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.manual.tagsTip') }}
         </div>
       </el-form-item>
@@ -80,7 +80,7 @@
               :title="$t('appAutomation.element.manual.createCategoryTitle')"
             />
           </div>
-          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+          <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
             <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.manual.imageCategoryTip') }}
           </div>
         </el-form-item>
@@ -88,7 +88,7 @@
         <el-form-item :label="$t('appAutomation.element.manual.elementImage')">
           <!-- 编辑模式：显示当前图片和更换选项 -->
           <div v-if="isEdit && formData.config.image_path" class="current-image-section">
-            <div style="color: #606266; font-size: 14px; margin-bottom: 10px; font-weight: 500;">
+            <div style="color: var(--el-text-color-regular); font-size: 14px; margin-bottom: 10px; font-weight: 500;">
               <el-icon><Camera /></el-icon> {{ $t('appAutomation.element.manual.currentImage') }}
             </div>
 
@@ -151,11 +151,11 @@
 
             <!-- 新图片预览区域 -->
             <div v-if="showUpload && imagePreview" style="margin-top: 15px">
-              <div style="color: #67C23A; font-size: 14px; margin-bottom: 10px; font-weight: 500;">
+              <div style="color: var(--el-color-success); font-size: 14px; margin-bottom: 10px; font-weight: 500;">
                 <el-icon><SuccessFilled /></el-icon> {{ $t('appAutomation.element.manual.newImage') }}
               </div>
 
-              <div class="image-preview-box" style="border-color: #67C23A;">
+              <div class="image-preview-box" style="border-color: var(--el-color-success);">
                 <el-image
                   :src="imagePreview"
                   style="max-width: 200px; max-height: 150px; border-radius: 4px;"
@@ -171,7 +171,7 @@
                 </div>
               </div>
 
-              <div style="color: #67C23A; font-size: 12px; margin-top: 8px;">
+              <div style="color: var(--el-color-success); font-size: 12px; margin-top: 8px;">
                 <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.manual.replaceTip') }}
               </div>
             </div>
@@ -192,7 +192,7 @@
                 {{ $t('appAutomation.element.manual.selectImage') }}
               </el-button>
               <template #tip>
-                <div style="color: #909399; font-size: 12px;">
+                <div style="color: var(--el-text-color-secondary); font-size: 12px;">
                   {{ $t('appAutomation.element.manual.imageFormatTip') }}
                 </div>
               </template>
@@ -213,7 +213,7 @@
             show-input
             :format-tooltip="val => val.toFixed(2)"
           />
-          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+          <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
             <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.manual.thresholdTip') }}
           </div>
         </el-form-item>
@@ -224,7 +224,7 @@
             :active-text="$t('appAutomation.element.manual.rgbColor')"
             :inactive-text="$t('appAutomation.element.manual.grayscale')"
           />
-          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+          <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
             <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.manual.colorModeTip') }}
           </div>
         </el-form-item>
@@ -282,7 +282,7 @@
           :placeholder="$t('appAutomation.element.manual.categoryNamePlaceholder')"
           @keyup.enter="handleCreateCategory"
         />
-        <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+        <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 5px;">
           <el-icon><InfoFilled /></el-icon> {{ $t('appAutomation.element.manual.categoryNameTip') }}
         </div>
       </el-form-item>
@@ -734,7 +734,7 @@ onMounted(() => {
   padding: 10px;
   background: white;
   border-radius: 4px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color-lighter);
 }
 
 .image-error {
@@ -743,14 +743,14 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 30px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 
 .image-info-box {
   margin-top: 10px;
   font-size: 12px;
-  color: #606266;
+  color: var(--el-text-color-regular);
 }
 
 .info-item {
@@ -761,6 +761,6 @@ onMounted(() => {
 }
 
 .info-item .el-icon {
-  color: #909399;
+  color: var(--el-text-color-secondary);
 }
 </style>

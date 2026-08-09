@@ -428,7 +428,7 @@ onMounted(() => {
 }
 
 .json-content {
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   padding: 15px;
   border-radius: 4px;
   font-family: 'Courier New', monospace;

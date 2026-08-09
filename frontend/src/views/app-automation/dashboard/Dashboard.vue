@@ -295,7 +295,7 @@ onUnmounted(() => {
       font-size: 24px;
       color: white;
       
-      &.bg-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+      &.bg-blue { background: linear-gradient(135deg, var(--aitest-primary) 0%, #764ba2 100%); }
       &.bg-green { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
       &.bg-orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
       &.bg-purple { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
@@ -314,7 +314,7 @@ onUnmounted(() => {
       
       .stat-label {
         font-size: 14px;
-        color: #909399;
+        color: var(--el-text-color-secondary);
       }
     }
   }
@@ -345,7 +345,7 @@ onUnmounted(() => {
       
       .stat-label {
         font-size: 14px;
-        color: #909399;
+        color: var(--el-text-color-secondary);
         margin-bottom: 10px;
       }
       
@@ -353,10 +353,10 @@ onUnmounted(() => {
         font-size: 24px;
         font-weight: bold;
         
-        &.large { font-size: 32px; color: #409eff; }
-        &.success { color: #67c23a; }
-        &.warning { color: #e6a23c; }
-        &.danger { color: #f56c6c; }
+        &.large { font-size: 32px; color: var(--el-color-primary); }
+        &.success { color: var(--el-color-success); }
+        &.warning { color: var(--el-color-warning); }
+        &.danger { color: var(--el-color-danger); }
       }
     }
   }
@@ -394,7 +394,7 @@ onUnmounted(() => {
           gap: 12px;
           align-items: center;
           font-size: 12px;
-          color: #909399;
+          color: var(--el-text-color-secondary);
           
           .device-name {
             display: flex;
@@ -425,7 +425,7 @@ onUnmounted(() => {
       background: var(--aitest-canvas);
       
       &:hover {
-        background: #ecf5ff;
+        background: var(--el-color-primary-light-9);
         transform: translateY(-3px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
@@ -440,7 +440,7 @@ onUnmounted(() => {
         font-size: 24px;
         color: white;
         
-        &.bg-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        &.bg-blue { background: linear-gradient(135deg, var(--aitest-primary) 0%, #764ba2 100%); }
         &.bg-green { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
         &.bg-orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
         &.bg-purple { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }

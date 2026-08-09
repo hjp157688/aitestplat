@@ -439,7 +439,7 @@ onMounted(() => {
 }
 
 .info-label {
-  color: #94a3b8;
+  color: var(--aitest-text-3);
   min-width: 80px;
   flex-shrink: 0;
 }
@@ -452,7 +452,7 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: #94a3b8;
+  color: var(--aitest-text-3);
   grid-column: 1 / -1;
 }
 

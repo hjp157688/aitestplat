@@ -606,7 +606,7 @@ onMounted(() => {
 
 .filters {
   margin-bottom: 20px;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   padding: 20px;
   border-radius: 8px;
 }

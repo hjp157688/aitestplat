@@ -390,7 +390,7 @@ onMounted(async () => {
 
 .page-header {
   padding: 20px;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   background: white;
   margin-bottom: 0;
 }
@@ -446,8 +446,8 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  background-color: #fafafa;
-  border-bottom: 1px solid #e6e6e6;
+  background-color: var(--aitest-surface-subtle);
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .script-name {

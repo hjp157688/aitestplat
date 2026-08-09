@@ -3993,7 +3993,7 @@ const useLocalVariableCategories = () => {
   padding: 6px 10px;
   font-size: 12px;
   line-height: 1.6;
-  color: var(--aitest-text-2, #606266);
+  color: var(--aitest-text-2, var(--el-text-color-regular));
   background: var(--aitest-fill-2, #f5f7fa);
   border-radius: 4px;
   white-space: pre-wrap;

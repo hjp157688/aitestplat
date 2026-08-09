@@ -36,12 +36,12 @@
         <el-table-column prop="total_cases" :label="$t('uiAutomation.report.totalCases')" width="100" />
         <el-table-column prop="passed_cases" :label="$t('uiAutomation.report.passedCases')" width="100">
           <template #default="{ row }">
-            <span style="color: #67c23a; font-weight: bold;">{{ row.passed_cases }}</span>
+            <span style="color: var(--el-color-success); font-weight: bold;">{{ row.passed_cases }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="failed_cases" :label="$t('uiAutomation.report.failedCases')" width="100">
           <template #default="{ row }">
-            <span style="color: #f56c6c; font-weight: bold;">{{ row.failed_cases }}</span>
+            <span style="color: var(--el-color-danger); font-weight: bold;">{{ row.failed_cases }}</span>
           </template>
         </el-table-column>
         <el-table-column :label="$t('uiAutomation.report.passRate')" width="100">
@@ -488,9 +488,9 @@ const getBrowserText = (browser) => {
 }
 
 const getProgressColor = (percentage) => {
-  if (percentage >= 80) return '#67c23a'
-  if (percentage >= 60) return '#e6a23c'
-  return '#f56c6c'
+  if (percentage >= 80) return 'var(--el-color-success)'
+  if (percentage >= 60) return 'var(--el-color-warning)'
+  return 'var(--el-color-danger)'
 }
 
 const formatDate = (dateString) => {
@@ -571,7 +571,7 @@ onMounted(async () => {
 
       .stat-label {
         font-size: 14px;
-        color: #909399;
+        color: var(--el-text-color-secondary);
         margin-bottom: 10px;
       }
 
@@ -632,7 +632,7 @@ onMounted(async () => {
 
 .error-item {
   background: #fff;
-  border: 2px solid #f56c6c;
+  border: 2px solid var(--el-color-danger);
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 15px;
@@ -696,7 +696,7 @@ onMounted(async () => {
       padding: 12px;
       background: white;
       border-radius: 4px;
-      border-left: 3px solid #409eff;
+      border-left: 3px solid var(--el-color-primary);
 
       &:last-child {
         margin-bottom: 0;
@@ -710,11 +710,11 @@ onMounted(async () => {
 
         .log-action {
           font-weight: 500;
-          color: #606266;
+          color: var(--el-text-color-regular);
         }
 
         .log-desc {
-          color: #909399;
+          color: var(--el-text-color-secondary);
           font-size: 14px;
         }
       }
@@ -723,7 +723,7 @@ onMounted(async () => {
         display: flex;
         align-items: center;
         gap: 8px;
-        color: #f56c6c;
+        color: var(--el-color-danger);
         background: #fef0f0;
         padding: 8px 12px;
         border-radius: 4px;
@@ -750,14 +750,14 @@ onMounted(async () => {
 
       .screenshot-img {
         max-width: 100%;
-        border: 1px solid #dcdfe6;
+        border: 1px solid var(--el-border-color-lighter);
         border-radius: 4px;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       }
 
       .screenshot-time {
         margin: 10px 0 0 0;
-        color: #909399;
+        color: var(--el-text-color-secondary);
         font-size: 12px;
       }
     }

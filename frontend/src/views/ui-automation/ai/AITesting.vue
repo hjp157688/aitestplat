@@ -24,7 +24,7 @@
                 :active-text="$t('uiAutomation.ai.on')"
                 :inactive-text="$t('uiAutomation.ai.off')"
               />
-              <span style="margin-left: 10px; color: #909399; font-size: 12px;">
+              <span style="margin-left: 10px; color: var(--el-text-color-secondary); font-size: 12px;">
                 {{ $t('uiAutomation.ai.gifTip') }}
               </span>
             </el-form-item>
@@ -95,9 +95,9 @@
                 :class="task.status"
               >
                 <div class="task-status-icon">
-                  <el-icon v-if="task.status === 'completed'" color="#67C23A"><CircleCheckFilled /></el-icon>
-                  <el-icon v-else-if="task.status === 'in_progress'" class="is-loading" color="#409EFF"><Loading /></el-icon>
-                  <el-icon v-else color="#909399"><CircleCheck /></el-icon>
+                  <el-icon v-if="task.status === 'completed'" color="var(--el-color-success)"><CircleCheckFilled /></el-icon>
+                  <el-icon v-else-if="task.status === 'in_progress'" class="is-loading" color="var(--el-color-primary)"><Loading /></el-icon>
+                  <el-icon v-else color="var(--el-text-color-secondary)"><CircleCheck /></el-icon>
                 </div>
                 <div class="task-content">
                   <span class="task-id">{{ task.id }}.</span>
@@ -313,7 +313,7 @@ const confirmSaveCase = async () => {
   font-weight: 600;
   margin-bottom: 15px;
   padding-left: 10px;
-  border-left: 4px solid #409eff;
+  border-left: 4px solid var(--el-color-primary);
 }
 
 .task-list-container {
@@ -338,15 +338,15 @@ const confirmSaveCase = async () => {
     &.completed {
       background-color: #f0f9eb;
       .task-desc {
-        color: #67c23a;
+        color: var(--el-color-success);
         text-decoration: line-through;
       }
     }
     
     &.in_progress {
-      background-color: #ecf5ff;
+      background-color: var(--el-color-primary-light-9);
       .task-desc {
-        color: #409eff;
+        color: var(--el-color-primary);
         font-weight: bold;
       }
     }
@@ -370,7 +370,7 @@ const confirmSaveCase = async () => {
 }
 
 .empty-tasks {
-  color: #909399;
+  color: var(--el-text-color-secondary);
   text-align: center;
   padding: 20px;
   display: flex;
@@ -385,7 +385,7 @@ const confirmSaveCase = async () => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #409eff;
+  color: var(--el-color-primary);
   
   .el-icon {
     font-size: 24px;
@@ -403,7 +403,7 @@ const confirmSaveCase = async () => {
   font-family: 'Consolas', 'Monaco', monospace;
   
   .empty-logs {
-    color: #909399;
+    color: var(--el-text-color-secondary);
     text-align: center;
     margin-top: 100px;
   }

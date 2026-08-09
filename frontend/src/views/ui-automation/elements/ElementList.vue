@@ -112,7 +112,7 @@
         <el-form-item :label="$t('uiAutomation.element.locatorValue')" prop="locator_value">
           <el-input v-model="createForm.locator_value" :placeholder="$t('uiAutomation.element.rules.locatorRequired')" />
           <div class="el-form-item__help">
-            <small style="color: #606266;">
+            <small style="color: var(--el-text-color-regular);">
               {{ $t('uiAutomation.element.locatorTip.title') }}<br>
               - {{ $t('uiAutomation.element.locatorTip.id') }}<br>
               - {{ $t('uiAutomation.element.locatorTip.css') }}<br>
@@ -156,7 +156,7 @@
         <el-form-item :label="$t('uiAutomation.element.locatorValue')" prop="locator_value">
           <el-input v-model="editForm.locator_value" :placeholder="$t('uiAutomation.element.rules.locatorRequired')" />
           <div class="el-form-item__help">
-            <small style="color: #606266;">
+            <small style="color: var(--el-text-color-regular);">
               {{ $t('uiAutomation.element.locatorTip.title') }}<br>
               - {{ $t('uiAutomation.element.locatorTip.id') }}<br>
               - {{ $t('uiAutomation.element.locatorTip.css') }}<br>

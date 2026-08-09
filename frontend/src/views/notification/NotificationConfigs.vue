@@ -429,7 +429,7 @@ export default {
 }
 
 .notification-tabs :deep(.el-tabs__nav-wrap) {
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   border-bottom: 1px solid #e9ecef;
 }
 
@@ -439,7 +439,7 @@ export default {
 
 .notification-tabs :deep(.el-tabs__nav) {
   display: flex;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
 }
 
 .notification-tabs :deep(.el-tabs__item) {
@@ -452,18 +452,18 @@ export default {
 }
 
 .notification-tabs :deep(.el-tabs__item:hover) {
-  color: #667eea;
+  color: var(--aitest-primary);
   background: rgba(102, 126, 234, 0.08);
 }
 
 .notification-tabs :deep(.el-tabs__item.is-active) {
-  color: #667eea;
+  color: var(--aitest-primary);
   background: white;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid var(--aitest-primary);
 }
 
 .notification-tabs :deep(.el-tabs__active-bar) {
-  background-color: #667eea;
+  background-color: var(--aitest-primary);
   height: 2px;
 }
 

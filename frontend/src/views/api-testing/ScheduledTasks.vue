@@ -177,7 +177,7 @@
                   <div>• {{ $t('apiTesting.scheduledTask.cronHelp.monthly') }}</div>
                 </div>
               </template>
-              <span style="cursor: pointer; color: #409EFF;">{{ $t('apiTesting.scheduledTask.cronHelpLink') }}</span>
+              <span style="cursor: pointer; color: var(--el-color-primary);">{{ $t('apiTesting.scheduledTask.cronHelpLink') }}</span>
             </el-tooltip>
           </div>
         </el-form-item>
@@ -705,7 +705,7 @@ const deleteTask = async (task) => {
 
 .filters {
   margin-bottom: 20px;
-  background: #f8f9fa;
+  background: var(--aitest-surface-subtle);
   padding: 20px;
   border-radius: 8px;
 }
@@ -728,6 +728,6 @@ const deleteTask = async (task) => {
 
 .unit {
   margin-left: 8px;
-  color: #606266;
+  color: var(--el-text-color-regular);
 }
 </style>

@@ -663,7 +663,7 @@ onMounted(async () => {
       padding: 12px;
       background: white;
       border-radius: 4px;
-      border-left: 3px solid #409eff;
+      border-left: 3px solid var(--el-color-primary);
 
       &:last-child {
         margin-bottom: 0;
@@ -677,11 +677,11 @@ onMounted(async () => {
 
         .log-action {
           font-weight: 500;
-          color: #606266;
+          color: var(--el-text-color-regular);
         }
 
         .log-desc {
-          color: #909399;
+          color: var(--el-text-color-secondary);
           font-size: 14px;
         }
       }
@@ -690,7 +690,7 @@ onMounted(async () => {
         display: flex;
         align-items: flex-start;  /* 改为 flex-start，适配多行文本 */
         gap: 8px;
-        color: #f56c6c;
+        color: var(--el-color-danger);
         background: #fef0f0;
         padding: 8px 12px;
         border-radius: 4px;
@@ -737,7 +737,7 @@ onMounted(async () => {
 
       .screenshot-img {
         max-width: 100%;
-        border: 1px solid #dcdfe6;
+        border: 1px solid var(--el-border-color-lighter);
         border-radius: 4px;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       }
@@ -748,7 +748,7 @@ onMounted(async () => {
         gap: 8px;
         padding: 12px 20px;
         background: #fef0f0;
-        color: #f56c6c;
+        color: var(--el-color-danger);
         border: 1px solid #fbc4c4;
         border-radius: 4px;
         font-size: 14px;
@@ -764,7 +764,7 @@ onMounted(async () => {
         gap: 8px;
         padding: 12px 20px;
         background: #fff7e6;
-        color: #e6a23c;
+        color: var(--el-color-warning);
         border: 1px solid #f5dab1;
         border-radius: 4px;
         font-size: 14px;
@@ -777,7 +777,7 @@ onMounted(async () => {
 
       .screenshot-time {
         margin: 10px 0 0 0;
-        color: #909399;
+        color: var(--el-text-color-secondary);
         font-size: 12px;
       }
     }
@@ -791,7 +791,7 @@ onMounted(async () => {
 
   .error-item {
     background: #fff;
-    border: 2px solid #f56c6c;
+    border: 2px solid var(--el-color-danger);
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 15px;

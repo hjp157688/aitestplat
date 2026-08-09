@@ -814,13 +814,13 @@ onBeforeUnmount(() => {
   gap: 12px;
   padding: 10px 16px;
   margin-top: 12px;
-  background: #ecf5ff;
+  background: var(--el-color-primary-light-9);
   border: 1px solid #b3d8ff;
   border-radius: 4px;
   font-size: 14px;
 
   strong {
-    color: #409eff;
+    color: var(--el-color-primary);
   }
 }
 
@@ -848,7 +848,7 @@ onBeforeUnmount(() => {
     min-width: 45px;
     text-align: right;
     font-size: 12px;
-    color: #606266;
+    color: var(--el-text-color-regular);
     font-weight: 500;
   }
 }
@@ -867,7 +867,7 @@ onBeforeUnmount(() => {
 
   :deep(.el-card__header) {
     padding: 16px 20px;
-    background-color: #fafafa;
+    background-color: var(--aitest-surface-subtle);
     border-bottom: 1px solid var(--aitest-border);
   }
 
@@ -880,8 +880,8 @@ onBeforeUnmount(() => {
 :deep(.el-table) {
   .el-table__header {
     th {
-      background-color: #fafafa;
-      color: #606266;
+      background-color: var(--aitest-surface-subtle);
+      color: var(--el-text-color-regular);
       font-weight: 600;
     }
   }

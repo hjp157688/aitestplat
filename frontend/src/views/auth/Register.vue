@@ -333,7 +333,7 @@ refreshCaptcha()
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--aitest-primary) 0%, #764ba2 100%);
 }
 
 .register-form {
@@ -355,7 +355,7 @@ refreshCaptcha()
     }
 
     p {
-      color: #909399;
+      color: var(--el-text-color-secondary);
       margin: 0;
     }
   }
@@ -365,7 +365,7 @@ refreshCaptcha()
     height: 40px;
     border-radius: 4px;
     cursor: pointer;
-    border: 1px solid #dcdfe6;
+    border: 1px solid var(--el-border-color-lighter);
   }
 
   .form-footer {
@@ -373,7 +373,7 @@ refreshCaptcha()
     margin-top: 20px;
 
     a {
-      color: #409eff;
+      color: var(--el-color-primary);
       text-decoration: none;
 
       &:hover {

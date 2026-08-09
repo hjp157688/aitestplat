@@ -748,7 +748,7 @@ onMounted(async () => {
 
 .page-header {
   padding: 20px;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   margin-bottom: 0;
 }
 
@@ -765,7 +765,7 @@ onMounted(async () => {
 
 .left-panel {
   width: 350px;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--el-border-color-lighter);
   display: flex;
   flex-direction: column;
 }
@@ -781,8 +781,8 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  border-bottom: 1px solid #e6e6e6;
-  background-color: #fafafa;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background-color: var(--aitest-surface-subtle);
 }
 
 .page-object-list {
@@ -792,7 +792,7 @@ onMounted(async () => {
 }
 
 .page-object-item {
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
   padding: 15px;
   margin-bottom: 10px;
@@ -801,12 +801,12 @@ onMounted(async () => {
 }
 
 .page-object-item:hover {
-  border-color: #409eff;
+  border-color: var(--el-color-primary);
   box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
 }
 
 .page-object-item.active {
-  border-color: #409eff;
+  border-color: var(--el-color-primary);
   background-color: #f0f8ff;
 }
 
@@ -859,8 +859,8 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  border-bottom: 1px solid #e6e6e6;
-  background-color: #fafafa;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background-color: var(--aitest-surface-subtle);
 }
 
 .design-area {
@@ -870,7 +870,7 @@ onMounted(async () => {
 
 .element-library {
   width: 250px;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--el-border-color-lighter);
   padding: 15px;
   overflow-y: auto;
 }
@@ -888,7 +888,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   padding: 8px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 4px;
   margin-bottom: 8px;
   cursor: grab;
@@ -896,7 +896,7 @@ onMounted(async () => {
 }
 
 .element-item:hover {
-  border-color: #409eff;
+  border-color: var(--el-color-primary);
   background-color: #f0f8ff;
 }
 
@@ -946,7 +946,7 @@ onMounted(async () => {
 }
 
 .canvas-element {
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
   padding: 12px;
   cursor: pointer;
@@ -954,7 +954,7 @@ onMounted(async () => {
 }
 
 .canvas-element:hover {
-  border-color: #409eff;
+  border-color: var(--el-color-primary);
   box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
 }
 
