@@ -589,57 +589,57 @@ onMounted(() => {
 
 <style scoped>
 .notification-management {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   background: var(--aitest-canvas);
   min-height: 100%;
 }
 
 .notification-tabs {
-  background: white;
-  border-radius: 8px;
+  background: var(--aitest-surface);
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
 }
 
 .tab-content {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .filters {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
   background: var(--aitest-surface-subtle);
-  padding: 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
 }
 
 .pagination {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: flex-end;
 }
 
 .config-section {
-  margin-bottom: 24px;
+  margin-bottom: var(--aitest-space-6);
 }
 
 .config-section h4 {
-  margin: 0 0 16px 0;
+  margin: 0 0 var(--aitest-space-4) 0;
   color: var(--aitest-text-1);
   font-weight: 600;
 }
 
 .recipient-header,
 .webhook-header {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .notification-detail .content-pre {
   white-space: pre-wrap;
   word-wrap: break-word;
   background: var(--aitest-canvas);
-  padding: 12px;
-  border-radius: 4px;
+  padding: var(--aitest-space-3);
+  border-radius: var(--aitest-radius-sm);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   line-height: 1.5;
 }
 </style>

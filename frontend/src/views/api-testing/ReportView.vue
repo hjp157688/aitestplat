@@ -130,7 +130,7 @@ onMounted(() => {
 
 <style scoped>
 .report-view {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   height: 100%;
   display: flex;
   flex-direction: column;

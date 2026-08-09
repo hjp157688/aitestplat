@@ -500,32 +500,32 @@ onMounted(async () => {
 
 <style scoped>
 .environment-management {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .local-env-header {
-  margin-bottom: 15px;
-  padding-bottom: 15px;
+  margin-bottom: var(--aitest-space-4);
+  padding-bottom: var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-border);
 }
 
 .scope-help {
-  margin-top: 5px;
+  margin-top: var(--aitest-space-1);
 }
 
 .variables-editor {
   border: 1px solid var(--aitest-border);
-  border-radius: 4px;
-  background: white;
+  border-radius: var(--aitest-radius-sm);
+  background: var(--aitest-surface);
 }
 
 .variables-header {
   display: flex;
   background: var(--aitest-canvas);
   border-bottom: 1px solid var(--aitest-border);
-  padding: 8px;
+  padding: var(--aitest-space-2);
   font-weight: 500;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--el-text-color-regular);
 }
 
@@ -537,21 +537,21 @@ onMounted(async () => {
 .variable-row {
   display: flex;
   border-bottom: 1px solid var(--aitest-border);
-  padding: 8px;
+  padding: var(--aitest-space-2);
   min-height: 40px;
   align-items: center;
 }
 
 .variable-row:hover {
-  background: #fafbfc;
+  background: var(--aitest-surface-subtle);
 }
 
 .column {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 4px;
+  gap: var(--aitest-space-2);
+  padding: 0 var(--aitest-space-1);
 }
 
 .column:last-child {
@@ -560,9 +560,9 @@ onMounted(async () => {
 }
 
 .variables-footer {
-  padding: 8px;
+  padding: var(--aitest-space-2);
   border-top: 1px solid var(--aitest-border);
-  background: #fafbfc;
+  background: var(--aitest-surface-subtle);
 }
 
 .view-variables {

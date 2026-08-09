@@ -895,7 +895,7 @@ onMounted(() => {
 
 <style scoped>
 .automation-testing {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -904,7 +904,7 @@ onMounted(() => {
 .content-layout {
   display: flex;
   flex: 1;
-  gap: 20px;
+  gap: var(--aitest-space-5);
   overflow: hidden;
 }
 
@@ -912,19 +912,19 @@ onMounted(() => {
   width: 300px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: var(--aitest-space-4);
 }
 
 .project-selector {
   background: var(--aitest-surface);
-  padding: 15px;
-  border-radius: 6px;
+  padding: var(--aitest-space-4);
+  border-radius: var(--aitest-radius);
   border: 1px solid var(--aitest-border);
 }
 
 .suite-list {
   background: var(--aitest-surface);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   border: 1px solid var(--aitest-border);
   overflow: hidden;
 }
@@ -933,7 +933,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   background: var(--aitest-canvas);
   border-bottom: 1px solid var(--aitest-border);
   font-weight: 500;
@@ -943,7 +943,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-border);
   cursor: pointer;
   transition: background-color 0.3s;
@@ -964,18 +964,18 @@ onMounted(() => {
 
 .suite-name {
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: var(--aitest-space-1);
 }
 
 .suite-meta {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-3);
 }
 
 .main-content {
   flex: 1;
   background: var(--aitest-surface);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   border: 1px solid var(--aitest-border);
   overflow: hidden;
   display: flex;
@@ -991,7 +991,7 @@ onMounted(() => {
 
 .suite-detail {
   flex: 1;
-  padding: 20px;
+  padding: var(--aitest-space-5);
   overflow: auto;
 }
 
@@ -1003,7 +1003,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .suite-title h4 {
@@ -1013,22 +1013,22 @@ onMounted(() => {
 
 .suite-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 
 .suite-description {
   color: var(--aitest-text-2);
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .suite-meta {
   display: flex;
-  gap: 15px;
+  gap: var(--aitest-space-4);
   align-items: center;
 }
 
 .meta-text {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-3);
 }
 
@@ -1041,13 +1041,13 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .section-header h5 {
   margin: 0;
   color: var(--aitest-text-1);
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
 }
 
 .add-request-content {
@@ -1058,7 +1058,7 @@ onMounted(() => {
 .request-tree-node {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--aitest-space-1);
   flex: 1;
 }
 
@@ -1069,13 +1069,13 @@ onMounted(() => {
 
 .execution-summary {
   margin-bottom: 30px;
-  padding: 20px;
+  padding: var(--aitest-space-5);
   background: var(--aitest-surface-subtle);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .execution-results h4 {
-  margin: 0 0 15px 0;
+  margin: 0 0 var(--aitest-space-4) 0;
   color: var(--aitest-text-1);
 }
 </style>

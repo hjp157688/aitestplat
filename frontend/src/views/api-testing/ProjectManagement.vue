@@ -409,11 +409,11 @@ onMounted(async () => {
 
 <style scoped>
 .project-management {
-  padding: 20px;
+  padding: var(--aitest-space-5);
 }
 
 .pagination {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: center;
 }

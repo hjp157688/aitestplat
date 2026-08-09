@@ -3493,11 +3493,11 @@ const useLocalVariableCategories = () => {
 }
 
 .sidebar-header {
-  padding: 16px;
+  padding: var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-border);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   align-items: stretch;
   position: relative;
   background: var(--aitest-surface-subtle);
@@ -3505,7 +3505,7 @@ const useLocalVariableCategories = () => {
 
 .header-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   align-items: center;
   flex-wrap: wrap;
 }
@@ -3516,7 +3516,7 @@ const useLocalVariableCategories = () => {
 }
 
 .header-actions .el-button {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   transition: all 0.2s ease;
 }
 
@@ -3528,7 +3528,7 @@ const useLocalVariableCategories = () => {
 .collection-tree {
   flex: 1;
   overflow: auto;
-  padding: 10px;
+  padding: var(--aitest-space-3);
   min-width: 0;
 }
 
@@ -3547,15 +3547,15 @@ const useLocalVariableCategories = () => {
 .tree-node {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  padding: 4px 0;
+  padding: var(--aitest-space-1) 0;
 }
 
 .tree-node .el-icon {
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
   color: var(--aitest-text-2);
   flex-shrink: 0;
 }
@@ -3563,7 +3563,7 @@ const useLocalVariableCategories = () => {
 .node-label {
   flex: 1;
   min-width: 0;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-1);
   transition: color 0.2s;
   overflow: hidden;
@@ -3602,13 +3602,13 @@ const useLocalVariableCategories = () => {
 }
 
 .node-edit .el-input {
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
 }
 
 /* 方法标签样式 */
 .method-tag {
   font-size: 10px;
-  padding: 2px 8px;
+  padding: 2px var(--aitest-space-2);
   border-radius: 10px;
   color: white;
   font-weight: bold;
@@ -3621,39 +3621,39 @@ const useLocalVariableCategories = () => {
 }
 
 .method-tag.get {
-  background-color: #61affe;
+  background-color: var(--aitest-method-get);
 }
 
 .method-tag.post {
-  background-color: #49cc90;
+  background-color: var(--aitest-method-post);
 }
 
 .method-tag.put {
-  background-color: #fca130;
+  background-color: var(--aitest-method-put);
 }
 
 .method-tag.delete {
-  background-color: #f93e3e;
+  background-color: var(--aitest-method-delete);
 }
 
 .method-tag.patch {
-  background-color: #50e3c2;
+  background-color: var(--aitest-method-patch);
 }
 
 .method-tag.head {
-  background-color: #9013fe;
+  background-color: var(--aitest-method-head);
 }
 
 .method-tag.options {
-  background-color: #0ebeff;
+  background-color: var(--aitest-method-options);
 }
 
 .method-tag.connect {
-  background-color: #7f8c8d;
+  background-color: var(--aitest-method-options);
 }
 
 .method-tag.trace {
-  background-color: #e67e22;
+  background-color: var(--aitest-method-trace);
 }
 
 /* 搜索结果 */
@@ -3664,19 +3664,19 @@ const useLocalVariableCategories = () => {
   right: 0;
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   box-shadow: var(--aitest-shadow-md);
   z-index: 1000;
   max-height: 400px;
   overflow: auto;
-  margin-top: 8px;
+  margin-top: var(--aitest-space-2);
 }
 
 .search-results-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-border);
   background: var(--aitest-surface-subtle);
   font-weight: 500;
@@ -3684,14 +3684,14 @@ const useLocalVariableCategories = () => {
 }
 
 .search-results-list {
-  padding: 8px 0;
+  padding: var(--aitest-space-2) 0;
 }
 
 .search-result-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: var(--aitest-space-3);
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   cursor: pointer;
   transition: background 0.2s;
   border-bottom: 1px solid var(--aitest-border);
@@ -3712,11 +3712,11 @@ const useLocalVariableCategories = () => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 4px;
+  margin-bottom: var(--aitest-space-1);
 }
 
 .search-result-url {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-3);
   white-space: nowrap;
   overflow: hidden;
@@ -3744,14 +3744,14 @@ const useLocalVariableCategories = () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  gap: 20px;
+  padding: var(--aitest-space-6);
+  gap: var(--aitest-space-5);
 }
 
 /* 请求头部 */
 .request-header {
   margin-bottom: 0;
-  padding: 24px;
+  padding: var(--aitest-space-6);
   background: var(--aitest-surface);
   border-radius: 12px;
   border: 1px solid var(--aitest-border);
@@ -3765,8 +3765,8 @@ const useLocalVariableCategories = () => {
 
 .request-line {
   display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-4);
   align-items: center;
   flex-wrap: wrap;
 }
@@ -3777,62 +3777,62 @@ const useLocalVariableCategories = () => {
 }
 
 .method-select :deep(.el-select) {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 /* 为不同方法的选择器添加颜色 */
 .method-select.get :deep(.el-select .el-input__wrapper) {
-  background-color: #61affe !important;
+  background-color: var(--aitest-method-get) !important;
   color: white !important;
-  border-color: #61affe !important;
+  border-color: var(--aitest-method-get) !important;
 }
 
 .method-select.post :deep(.el-select .el-input__wrapper) {
-  background-color: #49cc90 !important;
+  background-color: var(--aitest-method-post) !important;
   color: white !important;
-  border-color: #49cc90 !important;
+  border-color: var(--aitest-method-post) !important;
 }
 
 .method-select.put :deep(.el-select .el-input__wrapper) {
-  background-color: #fca130 !important;
+  background-color: var(--aitest-method-put) !important;
   color: white !important;
-  border-color: #fca130 !important;
+  border-color: var(--aitest-method-put) !important;
 }
 
 .method-select.delete :deep(.el-select .el-input__wrapper) {
-  background-color: #f93e3e !important;
+  background-color: var(--aitest-method-delete) !important;
   color: white !important;
-  border-color: #f93e3e !important;
+  border-color: var(--aitest-method-delete) !important;
 }
 
 .method-select.patch :deep(.el-select .el-input__wrapper) {
-  background-color: #50e3c2 !important;
+  background-color: var(--aitest-method-patch) !important;
   color: white !important;
-  border-color: #50e3c2 !important;
+  border-color: var(--aitest-method-patch) !important;
 }
 
 .method-select.head :deep(.el-select .el-input__wrapper) {
-  background-color: #9013fe !important;
+  background-color: var(--aitest-method-head) !important;
   color: white !important;
-  border-color: #9013fe !important;
+  border-color: var(--aitest-method-head) !important;
 }
 
 .method-select.options :deep(.el-select .el-input__wrapper) {
-  background-color: #0ebeff !important;
+  background-color: var(--aitest-method-options) !important;
   color: white !important;
-  border-color: #0ebeff !important;
+  border-color: var(--aitest-method-options) !important;
 }
 
 .method-select.connect :deep(.el-select .el-input__wrapper) {
-  background-color: #7f8c8d !important;
+  background-color: var(--aitest-method-options) !important;
   color: white !important;
-  border-color: #7f8c8d !important;
+  border-color: var(--aitest-method-options) !important;
 }
 
 .method-select.trace :deep(.el-select .el-input__wrapper) {
-  background-color: #e67e22 !important;
+  background-color: var(--aitest-method-trace) !important;
   color: white !important;
-  border-color: #e67e22 !important;
+  border-color: var(--aitest-method-trace) !important;
 }
 
 /* 方法选择器通用样式 */
@@ -3878,13 +3878,13 @@ const useLocalVariableCategories = () => {
 
 /* 方法选择器下拉菜单样式 */
 .method-select :deep(.el-select-dropdown) {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   box-shadow: var(--aitest-shadow-md);
 }
 
 .method-select :deep(.el-select-dropdown__item) {
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: var(--aitest-space-2) var(--aitest-space-4);
+  border-radius: var(--aitest-radius-sm);
 }
 
 .method-select :deep(.el-select-dropdown__item:hover) {
@@ -3908,43 +3908,43 @@ const useLocalVariableCategories = () => {
   top: 0;
   bottom: 0;
   width: 4px;
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 var(--aitest-radius-sm) var(--aitest-radius-sm) 0;
 }
 
 .method-select :deep(.el-select-dropdown__item.method-get::before) {
-  background-color: #61affe;
+  background-color: var(--aitest-method-get);
 }
 
 .method-select :deep(.el-select-dropdown__item.method-post::before) {
-  background-color: #49cc90;
+  background-color: var(--aitest-method-post);
 }
 
 .method-select :deep(.el-select-dropdown__item.method-put::before) {
-  background-color: #fca130;
+  background-color: var(--aitest-method-put);
 }
 
 .method-select :deep(.el-select-dropdown__item.method-delete::before) {
-  background-color: #f93e3e;
+  background-color: var(--aitest-method-delete);
 }
 
 .method-select :deep(.el-select-dropdown__item.method-patch::before) {
-  background-color: #50e3c2;
+  background-color: var(--aitest-method-patch);
 }
 
 .method-select :deep(.el-select-dropdown__item.method-head::before) {
-  background-color: #9013fe;
+  background-color: var(--aitest-method-head);
 }
 
 .method-select :deep(.el-select-dropdown__item.method-options::before) {
-  background-color: #0ebeff;
+  background-color: var(--aitest-method-options);
 }
 
 .method-select :deep(.el-select-dropdown__item.method-connect::before) {
-  background-color: #7f8c8d;
+  background-color: var(--aitest-method-options);
 }
 
 .method-select :deep(.el-select-dropdown__item.method-trace::before) {
-  background-color: #e67e22;
+  background-color: var(--aitest-method-trace);
 }
 
 .url-input {
@@ -3953,7 +3953,7 @@ const useLocalVariableCategories = () => {
 }
 
 .url-input .el-input {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .env-select {
@@ -3961,12 +3961,12 @@ const useLocalVariableCategories = () => {
 }
 
 .env-select .el-select {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .send-button {
   width: 100px;
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   font-weight: 600;
   transition: all 0.2s ease;
   background: var(--aitest-primary);
@@ -3982,31 +3982,31 @@ const useLocalVariableCategories = () => {
 /* 请求元数据 */
 .request-meta {
   display: flex;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   align-items: center;
   flex-wrap: wrap;
 }
 
 /* 接口描述（导入自 OpenAPI 的 summary/description） */
 .request-description {
-  margin-top: 4px;
-  padding: 6px 10px;
-  font-size: 12px;
+  margin-top: var(--aitest-space-1);
+  padding: var(--aitest-space-2) var(--aitest-space-3);
+  font-size: var(--aitest-font-size-sm);
   line-height: 1.6;
   color: var(--aitest-text-2, var(--el-text-color-regular));
   background: var(--aitest-fill-2, #f5f7fa);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 /* 路径参数编辑区 */
 .path-params-section {
-  margin-top: 8px;
+  margin-top: var(--aitest-space-2);
 }
 .path-params-section h4 {
-  margin: 0 0 6px;
-  font-size: 13px;
+  margin: 0 0 var(--aitest-space-2);
+  font-size: var(--aitest-font-size-base);
   font-weight: 500;
   color: var(--aitest-text-1, #303133);
 }
@@ -4020,17 +4020,17 @@ const useLocalVariableCategories = () => {
 }
 
 .name-input .el-input {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   align-items: center;
 }
 
 .action-buttons .el-button {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   transition: all 0.2s ease;
 }
 
@@ -4040,7 +4040,7 @@ const useLocalVariableCategories = () => {
 }
 
 .action-buttons .el-dropdown {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 /* 标签页内容 */
@@ -4048,7 +4048,7 @@ const useLocalVariableCategories = () => {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
   border-radius: 10px;
-  padding: 24px;
+  padding: var(--aitest-space-6);
   margin-bottom: 0;
   box-shadow: var(--aitest-shadow-sm);
 }
@@ -4068,7 +4068,7 @@ const useLocalVariableCategories = () => {
 }
 
 .response-header {
-  padding: 20px 24px;
+  padding: var(--aitest-space-5) var(--aitest-space-6);
   background: var(--aitest-surface-subtle);
   border-bottom: 1px solid var(--aitest-border);
   display: flex;
@@ -4078,7 +4078,7 @@ const useLocalVariableCategories = () => {
 
 .response-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
   font-weight: 600;
   color: var(--aitest-text-1);
 }
@@ -4086,37 +4086,37 @@ const useLocalVariableCategories = () => {
 .response-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .response-time {
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-2);
   font-weight: 500;
   background: var(--aitest-surface-subtle);
-  padding: 4px 12px;
+  padding: var(--aitest-space-1) var(--aitest-space-3);
   border-radius: 16px;
 }
 
 /* 响应体 */
 .response-body {
-  padding: 24px;
+  padding: var(--aitest-space-6);
   min-height: 400px;
   max-height: 600px;
   overflow: auto;
   background: var(--aitest-surface-subtle);
   border-radius: 10px;
-  margin: 20px;
+  margin: var(--aitest-space-5);
   border: 1px solid var(--aitest-border);
   box-shadow: var(--aitest-shadow-sm);
 }
 
 .response-actions {
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .response-actions .el-button-group {
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
   background: var(--aitest-surface);
   box-shadow: var(--aitest-shadow-xs);
@@ -4137,12 +4137,12 @@ const useLocalVariableCategories = () => {
 
 .response-content {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.6;
   color: var(--aitest-text-1);
   background: var(--aitest-surface);
-  padding: 20px 20px 20px 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-5) var(--aitest-space-5) var(--aitest-space-5) var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
   border: 1px solid var(--aitest-border);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
   white-space: pre-wrap;
@@ -4151,17 +4151,17 @@ const useLocalVariableCategories = () => {
 
 /* 响应头 */
 .response-headers {
-  padding: 24px;
+  padding: var(--aitest-space-6);
   background: var(--aitest-surface-subtle);
   border-radius: 10px;
-  margin: 20px;
+  margin: var(--aitest-space-5);
   border: 1px solid var(--aitest-border);
   max-height: 80vh;
   overflow: auto;
 }
 
 .header-row {
-  padding: 8px 0;
+  padding: var(--aitest-space-2) 0;
   border-bottom: 1px solid var(--aitest-border);
 }
 
@@ -4171,29 +4171,29 @@ const useLocalVariableCategories = () => {
 
 /* 响应区域：一级 tab（响应信息 / 请求信息）切换，内部二级 tab 细分 */
 .result-tabs {
-  margin-top: 4px;
-  padding: 0 20px 20px;
+  margin-top: var(--aitest-space-1);
+  padding: 0 var(--aitest-space-5) var(--aitest-space-5);
 }
 
 .result-tabs :deep(.el-tabs__header) {
-  margin: 0 0 12px;
+  margin: 0 0 var(--aitest-space-3);
 }
 
 /* 嵌套的二级 tabs：去除默认大间距，紧贴上级 tab 内 */
 .nested-tabs :deep(.el-tabs__header) {
-  margin: 0 0 8px;
+  margin: 0 0 var(--aitest-space-2);
 }
 
 /* 请求行（方法 + URL） */
 .request-line {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: var(--aitest-space-2);
+  padding: var(--aitest-space-3) var(--aitest-space-3);
   background: var(--aitest-primary-subtle);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   border: 1px solid var(--aitest-border);
-  margin-bottom: 8px;
+  margin-bottom: var(--aitest-space-2);
 }
 
 .request-line strong {
@@ -4204,7 +4204,7 @@ const useLocalVariableCategories = () => {
 
 .request-url {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  font-size: 13px;
+  font-size: var(--aitest-font-size-base);
   word-break: break-all;
   color: var(--aitest-text-1);
   min-width: 0;
@@ -4212,23 +4212,23 @@ const useLocalVariableCategories = () => {
 
 /* 空数据提示 */
 .empty-tip {
-  padding: 24px 16px;
+  padding: var(--aitest-space-6) var(--aitest-space-4);
   color: var(--aitest-text-3);
-  font-size: 13px;
+  font-size: var(--aitest-font-size-base);
   text-align: center;
   background: var(--aitest-surface-subtle);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 /* 代码编辑器 */
 .code-editor {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.6;
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-4);
   min-height: 200px;
   resize: vertical;
   transition: all 0.2s ease;
@@ -4242,12 +4242,12 @@ const useLocalVariableCategories = () => {
 
 .code-generate {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.6;
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-4);
   min-height: 300px;
   resize: vertical;
 }
@@ -4258,19 +4258,19 @@ const useLocalVariableCategories = () => {
   z-index: 1000;
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   box-shadow: var(--aitest-shadow-md);
-  padding: 8px 0;
+  padding: var(--aitest-space-2) 0;
   min-width: 140px;
   list-style: none;
   margin: 0;
 }
 
 .context-menu li {
-  padding: 10px 16px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-1);
 }
 
@@ -4286,13 +4286,13 @@ const useLocalVariableCategories = () => {
 }
 
 .script-editor-container .el-input {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .script-editor-container .el-input__textarea {
   min-height: 200px;
   font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.6;
 }
 
@@ -4302,18 +4302,18 @@ const useLocalVariableCategories = () => {
   top: 8px;
   right: 8px;
   display: flex;
-  gap: 6px;
+  gap: var(--aitest-space-2);
   z-index: 10;
   background: var(--aitest-surface);
-  border-radius: 8px;
-  padding: 4px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-1);
   box-shadow: var(--aitest-shadow-sm);
 }
 
 .script-buttons .el-button {
-  border-radius: 6px;
-  font-size: 11px;
-  padding: 4px 10px;
+  border-radius: var(--aitest-radius);
+  font-size: var(--aitest-font-size-xs);
+  padding: var(--aitest-space-1) var(--aitest-space-3);
   transition: all 0.2s ease;
   background: transparent;
   border: none;
@@ -4344,25 +4344,25 @@ const useLocalVariableCategories = () => {
 /* Raw 选项 */
 .raw-options {
   display: flex;
-  gap: 8px;
+  gap: var(--aitest-space-2);
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
   flex-wrap: wrap;
   background: var(--aitest-surface);
-  border-radius: 8px;
-  padding: 8px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-2);
   box-shadow: var(--aitest-shadow-xs);
 }
 
 .raw-options .el-select {
   width: 150px;
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .raw-options .el-button {
-  border-radius: 6px;
-  font-size: 11px;
-  padding: 4px 10px;
+  border-radius: var(--aitest-radius);
+  font-size: var(--aitest-font-size-xs);
+  padding: var(--aitest-space-1) var(--aitest-space-3);
   transition: all 0.2s ease;
   background: transparent;
   border: none;
@@ -4397,15 +4397,15 @@ const useLocalVariableCategories = () => {
 }
 
 .raw-body {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.6;
 }
 
 /* 断言编辑器 */
 .assertions-editor {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   background: var(--aitest-surface-subtle);
   border-radius: 12px;
   border: 1px solid var(--aitest-border);
@@ -4415,13 +4415,13 @@ const useLocalVariableCategories = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: var(--aitest-space-5);
+  padding-bottom: var(--aitest-space-4);
   border-bottom: 1px solid var(--aitest-border);
 }
 
 .assertions-header .el-button {
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   background: var(--aitest-primary);
   border: none;
   font-weight: 500;
@@ -4437,7 +4437,7 @@ const useLocalVariableCategories = () => {
 .assertions-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--aitest-space-4);
 }
 
 /* 断言项 */
@@ -4445,7 +4445,7 @@ const useLocalVariableCategories = () => {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
   border-radius: 10px;
-  padding: 24px;
+  padding: var(--aitest-space-6);
   box-shadow: var(--aitest-shadow-xs);
   transition: all 0.2s ease;
 }
@@ -4459,24 +4459,24 @@ const useLocalVariableCategories = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .assertion-name {
   flex: 1;
-  margin-right: 12px;
-  border-radius: 6px;
+  margin-right: var(--aitest-space-3);
+  border-radius: var(--aitest-radius);
 }
 
 .assertion-config {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .assertion-config .el-select {
   width: 200px;
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .assertion-config .el-select.assertion-operator {
@@ -4484,33 +4484,33 @@ const useLocalVariableCategories = () => {
 }
 
 .assertion-params {
-  margin-top: 8px;
+  margin-top: var(--aitest-space-2);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--aitest-space-3);
 }
 
 .assertion-input {
-  margin-bottom: 12px;
-  border-radius: 6px;
+  margin-bottom: var(--aitest-space-3);
+  border-radius: var(--aitest-radius);
 }
 
 /* 标签页按钮 */
 .tab-buttons {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-5);
   flex-wrap: wrap;
 }
 
 .tab-button {
-  padding: 10px 20px;
+  padding: var(--aitest-space-3) var(--aitest-space-5);
   border: 1px solid var(--aitest-border);
   background: var(--aitest-surface);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-2);
 }
 
@@ -4531,9 +4531,9 @@ const useLocalVariableCategories = () => {
 /* 表单行 */
 .form-row {
   display: flex;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--aitest-space-4);
   flex-wrap: wrap;
 }
 
@@ -4550,20 +4550,20 @@ const useLocalVariableCategories = () => {
 }
 
 .form-input .el-input {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 /* 字符串构建器 */
 .string-builder {
   border: 1px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   overflow: hidden;
   background: var(--aitest-surface);
   box-shadow: var(--aitest-shadow-xs);
 }
 
 .string-builder-header {
-  padding: 12px 16px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   background: var(--aitest-surface-subtle);
   border-bottom: 1px solid var(--aitest-border);
   display: flex;
@@ -4572,22 +4572,22 @@ const useLocalVariableCategories = () => {
 }
 
 .string-builder-body {
-  padding: 16px;
+  padding: var(--aitest-space-4);
   min-height: 120px;
   background: var(--aitest-surface);
 }
 
 .string-builder-footer {
-  padding: 12px 16px;
+  padding: var(--aitest-space-3) var(--aitest-space-4);
   background: var(--aitest-surface-subtle);
   border-top: 1px solid var(--aitest-border);
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   justify-content: flex-end;
 }
 
 .string-builder-footer .el-button {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 /* 变量助手 */
@@ -4601,7 +4601,7 @@ const useLocalVariableCategories = () => {
   right: 0;
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   box-shadow: var(--aitest-shadow-md);
   z-index: 1000;
   width: 450px;
@@ -4609,11 +4609,11 @@ const useLocalVariableCategories = () => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  margin-top: 8px;
+  margin-top: var(--aitest-space-2);
 }
 
 .variable-header {
-  padding: 16px 20px;
+  padding: var(--aitest-space-4) var(--aitest-space-5);
   background: var(--aitest-surface-subtle);
   border-bottom: 1px solid var(--aitest-border);
   display: flex;
@@ -4623,7 +4623,7 @@ const useLocalVariableCategories = () => {
 
 .variable-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
   font-weight: 600;
   color: var(--aitest-text-1);
 }
@@ -4634,33 +4634,33 @@ const useLocalVariableCategories = () => {
 }
 
 .variable-categories {
-  padding: 16px;
+  padding: var(--aitest-space-4);
 }
 
 .variable-category {
-  margin-bottom: 24px;
+  margin-bottom: var(--aitest-space-6);
 }
 
 .variable-category-title {
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: var(--aitest-space-3);
   color: var(--aitest-text-1);
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   border-bottom: 1px solid var(--aitest-border);
-  padding-bottom: 6px;
+  padding-bottom: var(--aitest-space-2);
 }
 
 .variable-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--aitest-space-3);
 }
 
 .variable-item {
-  padding: 14px;
+  padding: var(--aitest-space-4);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -4674,66 +4674,66 @@ const useLocalVariableCategories = () => {
 
 .variable-name {
   font-weight: 500;
-  margin-bottom: 6px;
+  margin-bottom: var(--aitest-space-2);
   color: var(--aitest-text-1);
 }
 
 .variable-syntax {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-3);
   font-family: 'Courier New', Courier, monospace;
-  margin-bottom: 6px;
+  margin-bottom: var(--aitest-space-2);
   background: var(--aitest-surface);
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: var(--aitest-space-1) var(--aitest-space-2);
+  border-radius: var(--aitest-radius-sm);
   border: 1px solid var(--aitest-border);
 }
 
 .variable-desc {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-2);
-  margin-bottom: 4px;
+  margin-bottom: var(--aitest-space-1);
 }
 
 .variable-example {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-success);
   font-family: 'Courier New', Courier, monospace;
-  margin-top: 4px;
+  margin-top: var(--aitest-space-1);
   background: var(--aitest-success-bg);
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: var(--aitest-space-1) var(--aitest-space-2);
+  border-radius: var(--aitest-radius-sm);
   border: 1px solid var(--aitest-border);
 }
 
 /* JSONPath 部分 */
 .jsonpath-extractor {
-  margin-top: 16px;
-  padding: 16px;
+  margin-top: var(--aitest-space-4);
+  padding: var(--aitest-space-4);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .jsonpath-input {
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-3);
   align-items: center;
 }
 
 .jsonpath-input .el-input {
   flex: 1;
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .jsonpath-result {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-radius: 6px;
-  padding: 12px;
+  border-radius: var(--aitest-radius);
+  padding: var(--aitest-space-3);
   font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   min-height: 80px;
   white-space: pre-wrap;
   word-break: break-all;
@@ -4743,8 +4743,8 @@ const useLocalVariableCategories = () => {
 
 /* 状态徽章 */
 .status-badge {
-  font-size: 12px;
-  padding: 4px 12px;
+  font-size: var(--aitest-font-size-sm);
+  padding: var(--aitest-space-1) var(--aitest-space-3);
   border-radius: 12px;
   font-weight: 500;
 }
@@ -4773,15 +4773,15 @@ const useLocalVariableCategories = () => {
 .assertions-results {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  gap: var(--aitest-space-4);
+  padding: var(--aitest-space-4);
 }
 
 .assertion-result-item {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-4);
   box-shadow: var(--aitest-shadow-xs);
   transition: all 0.2s ease;
 }
@@ -4797,26 +4797,26 @@ const useLocalVariableCategories = () => {
 .assertion-result-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: var(--aitest-space-3);
+  margin-bottom: var(--aitest-space-3);
 }
 
 .assertion-result-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-left: 20px;
+  gap: var(--aitest-space-2);
+  margin-left: var(--aitest-space-5);
 }
 
 .result-row {
   display: flex;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   align-items: flex-start;
 }
 
 .result-row .label {
   width: 80px;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   font-weight: 500;
   color: var(--aitest-text-2);
   flex-shrink: 0;
@@ -4824,7 +4824,7 @@ const useLocalVariableCategories = () => {
 
 .result-row .value {
   flex: 1;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-1);
   font-family: 'Courier New', Courier, monospace;
   white-space: pre-wrap;
@@ -4839,25 +4839,25 @@ const useLocalVariableCategories = () => {
 .message-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--aitest-space-5);
 }
 
 .message-input-section {
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-5);
 }
 
 .message-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   align-items: center;
-  margin-top: 16px;
+  margin-top: var(--aitest-space-4);
 }
 
 .message-actions .el-button {
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   transition: all 0.2s ease;
 }
 
@@ -4869,14 +4869,14 @@ const useLocalVariableCategories = () => {
 .websocket-response-section {
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-5);
 }
 
 .websocket-response-section h3 {
   margin-top: 0;
-  margin-bottom: 16px;
-  font-size: 16px;
+  margin-bottom: var(--aitest-space-4);
+  font-size: var(--aitest-font-size-lg);
   font-weight: 600;
   color: var(--aitest-text-1);
 }
@@ -4884,18 +4884,18 @@ const useLocalVariableCategories = () => {
 .websocket-messages {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--aitest-space-3);
   max-height: 400px;
   overflow: auto;
-  padding: 10px;
+  padding: var(--aitest-space-3);
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
 }
 
 .websocket-message-item {
-  padding: 12px;
-  border-radius: 6px;
+  padding: var(--aitest-space-3);
+  border-radius: var(--aitest-radius);
   border: 1px solid var(--aitest-border);
   background: var(--aitest-surface);
 }
@@ -4929,13 +4929,13 @@ const useLocalVariableCategories = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  font-size: 12px;
+  margin-bottom: var(--aitest-space-2);
+  font-size: var(--aitest-font-size-sm);
 }
 
 .message-type {
   font-weight: 500;
-  padding: 2px 8px;
+  padding: 2px var(--aitest-space-2);
   border-radius: 10px;
 }
 
@@ -4970,18 +4970,18 @@ const useLocalVariableCategories = () => {
 
 .message-content {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-all;
 }
 
 .uploaded-file {
-  margin-top: 12px;
-  padding: 8px 12px;
+  margin-top: var(--aitest-space-3);
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -5019,12 +5019,12 @@ const useLocalVariableCategories = () => {
 
   .form-label {
     width: 100%;
-    margin-bottom: 8px;
+    margin-bottom: var(--aitest-space-2);
   }
 
   .script-buttons {
     position: static;
-    margin-top: 12px;
+    margin-top: var(--aitest-space-3);
     justify-content: flex-end;
   }
 
@@ -5047,8 +5047,8 @@ const useLocalVariableCategories = () => {
   }
 
   .tab-button {
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: var(--aitest-space-2) var(--aitest-space-4);
+    font-size: var(--aitest-font-size-base);
   }
 
   .raw-options {
@@ -5073,12 +5073,12 @@ const useLocalVariableCategories = () => {
 
 ::-webkit-scrollbar-track {
   background: var(--aitest-surface-subtle);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--aitest-border-strong);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -5088,7 +5088,7 @@ const useLocalVariableCategories = () => {
 /* 覆盖方法标签样式 */
 .method-tag {
   font-size: 10px;
-  padding: 2px 8px;
+  padding: 2px var(--aitest-space-2);
   border-radius: 10px;
   color: white;
   font-weight: bold;
@@ -5101,94 +5101,94 @@ const useLocalVariableCategories = () => {
 }
 
 .method-tag.get {
-  background-color: #61affe !important;
+  background-color: var(--aitest-method-get) !important;
 }
 
 .method-tag.post {
-  background-color: #49cc90 !important;
+  background-color: var(--aitest-method-post) !important;
 }
 
 .method-tag.put {
-  background-color: #fca130 !important;
+  background-color: var(--aitest-method-put) !important;
 }
 
 .method-tag.delete {
-  background-color: #f93e3e !important;
+  background-color: var(--aitest-method-delete) !important;
 }
 
 .method-tag.patch {
-  background-color: #50e3c2 !important;
+  background-color: var(--aitest-method-patch) !important;
 }
 
 .method-tag.head {
-  background-color: #9013fe !important;
+  background-color: var(--aitest-method-head) !important;
 }
 
 .method-tag.options {
-  background-color: #0ebeff !important;
+  background-color: var(--aitest-method-options) !important;
 }
 
 .method-tag.connect {
-  background-color: #7f8c8d !important;
+  background-color: var(--aitest-method-options) !important;
 }
 
 .method-tag.trace {
-  background-color: #e67e22 !important;
+  background-color: var(--aitest-method-trace) !important;
 }
 
 /* 覆盖方法选择器样式 */
 .method-select.get :deep(.el-select .el-input__wrapper) {
-  background-color: #61affe !important;
+  background-color: var(--aitest-method-get) !important;
   color: white !important;
-  border-color: #61affe !important;
+  border-color: var(--aitest-method-get) !important;
 }
 
 .method-select.post :deep(.el-select .el-input__wrapper) {
-  background-color: #49cc90 !important;
+  background-color: var(--aitest-method-post) !important;
   color: white !important;
-  border-color: #49cc90 !important;
+  border-color: var(--aitest-method-post) !important;
 }
 
 .method-select.put :deep(.el-select .el-input__wrapper) {
-  background-color: #fca130 !important;
+  background-color: var(--aitest-method-put) !important;
   color: white !important;
-  border-color: #fca130 !important;
+  border-color: var(--aitest-method-put) !important;
 }
 
 .method-select.delete :deep(.el-select .el-input__wrapper) {
-  background-color: #f93e3e !important;
+  background-color: var(--aitest-method-delete) !important;
   color: white !important;
-  border-color: #f93e3e !important;
+  border-color: var(--aitest-method-delete) !important;
 }
 
 .method-select.patch :deep(.el-select .el-input__wrapper) {
-  background-color: #50e3c2 !important;
+  background-color: var(--aitest-method-patch) !important;
   color: white !important;
-  border-color: #50e3c2 !important;
+  border-color: var(--aitest-method-patch) !important;
 }
 
 .method-select.head :deep(.el-select .el-input__wrapper) {
-  background-color: #9013fe !important;
+  background-color: var(--aitest-method-head) !important;
   color: white !important;
-  border-color: #9013fe !important;
+  border-color: var(--aitest-method-head) !important;
 }
 
 .method-select.options :deep(.el-select .el-input__wrapper) {
-  background-color: #0ebeff !important;
+  background-color: var(--aitest-method-options) !important;
   color: white !important;
-  border-color: #0ebeff !important;
+  border-color: var(--aitest-method-options) !important;
 }
 
 .method-select.connect :deep(.el-select .el-input__wrapper) {
-  background-color: #7f8c8d !important;
+  background-color: var(--aitest-method-options) !important;
   color: white !important;
-  border-color: #7f8c8d !important;
+  border-color: var(--aitest-method-options) !important;
 }
 
 .method-select.trace :deep(.el-select .el-input__wrapper) {
-  background-color: #e67e22 !important;
+  background-color: var(--aitest-method-trace) !important;
   color: white !important;
-  border-color: #e67e22 !important;
+  border-color: var(--aitest-method-trace) !important;
 }
 
 /* 覆盖方法选择器通用样式 */
@@ -5227,18 +5227,18 @@ const useLocalVariableCategories = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--aitest-space-2);
 }
 .response-example-json {
-  margin: 4px 0 0;
-  padding: 10px 12px;
+  margin: var(--aitest-space-1) 0 0;
+  padding: var(--aitest-space-3) var(--aitest-space-3);
   max-height: 320px;
   overflow: auto;
   background: var(--aitest-fill-2, #f5f7fa);
   border: 1px solid var(--aitest-border, #e4e7ed);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
   font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   line-height: 1.6;
   color: var(--aitest-text-1, #303133);
   white-space: pre;
@@ -5255,36 +5255,36 @@ const useLocalVariableCategories = () => {
 
 /* Deprecated tree node styles */
 .deprecated-node .node-label {
-  color: #c0c4cc;
+  color: var(--aitest-text-3);
   text-decoration: line-through;
 }
 
 .batch-actions-bar {
-  padding: 10px 8px 8px;
+  padding: var(--aitest-space-3) var(--aitest-space-2) var(--aitest-space-2);
   border-bottom: 1px solid var(--el-border-color-lighter);
-  margin-bottom: 4px;
+  margin-bottom: var(--aitest-space-1);
 }
 .batch-bar-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: var(--aitest-space-2);
 }
 .batch-count {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
 .batch-bar-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: var(--aitest-space-2);
 }
 .batch-bar-actions .el-button {
   width: 100%;
   margin-left: 0;
-  padding-inline: 4px;
-  font-size: 12px;
+  padding-inline: var(--aitest-space-1);
+  font-size: var(--aitest-font-size-sm);
 }
 
 </style>

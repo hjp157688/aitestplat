@@ -305,7 +305,7 @@ onMounted(() => {
 }
 
 .stats-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--aitest-space-10);
 }
 
 .stat-card {
@@ -325,7 +325,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20px;
+  margin-right: var(--aitest-space-5);
   color: white;
   font-size: 24px;
 }
@@ -367,16 +367,16 @@ onMounted(() => {
   font-size: 28px;
   font-weight: bold;
   color: var(--aitest-text-1);
-  margin-bottom: 5px;
+  margin-bottom: var(--aitest-space-1);
 }
 
 .stat-label {
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-2);
 }
 
 .content-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--aitest-space-10);
 }
 
 .recent-activities {
@@ -395,13 +395,13 @@ onMounted(() => {
 .actions-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
+  gap: var(--aitest-space-4);
 }
 
 .action-item {
   text-align: center;
-  padding: 15px 10px;
-  border-radius: 8px;
+  padding: var(--aitest-space-4) var(--aitest-space-3);
+  border-radius: var(--aitest-radius-lg);
   background-color: var(--aitest-surface-subtle);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -414,7 +414,7 @@ onMounted(() => {
 }
 
 .action-item .action-icon {
-  margin: 0 auto 15px;
+  margin: 0 auto var(--aitest-space-4);
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -463,19 +463,19 @@ onMounted(() => {
 }
 
 .action-label {
-  font-size: 16px;
+  font-size: var(--aitest-font-size-lg);
   color: var(--aitest-text-1);
   font-weight: 500;
 }
 
 .features-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--aitest-space-10);
 }
 
 .section-title {
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
   color: var(--aitest-text-1);
 }
 
@@ -493,7 +493,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  margin: 0 auto var(--aitest-space-5);
   font-size: 36px;
   color: var(--aitest-primary);
 }
@@ -514,24 +514,24 @@ onMounted(() => {
 .feature-title {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
   color: var(--aitest-text-1);
 }
 
 .feature-description {
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-2);
   line-height: 1.6;
 }
 
 .loading-container {
-  padding: 40px 0;
+  padding: var(--aitest-space-10) 0;
 }
 
 .activity-item {
   display: flex;
   align-items: flex-start;
-  padding: 12px 0;
+  padding: var(--aitest-space-3) 0;
   border-bottom: 1px solid var(--aitest-border);
 }
 
@@ -547,7 +547,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+  margin-right: var(--aitest-space-3);
   flex-shrink: 0;
 }
 
@@ -570,21 +570,21 @@ onMounted(() => {
 }
 
 .activity-description {
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-1);
-  margin-bottom: 4px;
+  margin-bottom: var(--aitest-space-1);
   word-break: break-all;
 }
 
 .activity-meta {
   display: flex;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-3);
 }
 
 .activity-user {
-  margin-right: 12px;
+  margin-right: var(--aitest-space-3);
 }
 
 .activity-time {
@@ -621,7 +621,7 @@ onMounted(() => {
 
 @media screen and (max-width: 1600px) {
   .stats-section {
-    margin-bottom: 32px;
+    margin-bottom: var(--aitest-space-8);
   }
   
   .stat-content {
@@ -631,7 +631,7 @@ onMounted(() => {
   .stat-icon {
     width: 50px;
     height: 50px;
-    font-size: 20px;
+    font-size: var(--aitest-font-size-xl);
   }
   
   .stat-value {
@@ -639,11 +639,11 @@ onMounted(() => {
   }
   
   .content-section {
-    margin-bottom: 32px;
+    margin-bottom: var(--aitest-space-8);
   }
   
   .features-section {
-    margin-bottom: 32px;
+    margin-bottom: var(--aitest-space-8);
   }
   
   .section-title {
@@ -679,15 +679,15 @@ onMounted(() => {
   }
   
   .section-title {
-    font-size: 20px;
+    font-size: var(--aitest-font-size-xl);
   }
   
   .actions-grid {
-    gap: 12px;
+    gap: var(--aitest-space-3);
   }
   
   .action-item {
-    padding: 12px 8px;
+    padding: var(--aitest-space-3) var(--aitest-space-2);
   }
   
   .action-icon {
@@ -703,7 +703,7 @@ onMounted(() => {
 
 @media screen and (max-width: 1366px) {
   .stats-section {
-    margin-bottom: 24px;
+    margin-bottom: var(--aitest-space-6);
   }
   
   .stat-content {
@@ -717,19 +717,19 @@ onMounted(() => {
   }
   
   .stat-value {
-    font-size: 20px;
+    font-size: var(--aitest-font-size-xl);
   }
   
   .stat-label {
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
   }
   
   .content-section {
-    margin-bottom: 24px;
+    margin-bottom: var(--aitest-space-6);
   }
   
   .features-section {
-    margin-bottom: 24px;
+    margin-bottom: var(--aitest-space-6);
   }
   
   .section-title {
@@ -741,25 +741,25 @@ onMounted(() => {
   }
   
   .actions-grid {
-    gap: 10px;
+    gap: var(--aitest-space-3);
   }
   
   .action-item {
-    padding: 10px 6px;
+    padding: var(--aitest-space-3) var(--aitest-space-2);
   }
   
   .action-icon {
     width: 40px;
     height: 40px;
-    font-size: 20px;
+    font-size: var(--aitest-font-size-xl);
   }
   
   .action-label {
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
   }
   
   .feature-card {
-    padding: 20px;
+    padding: var(--aitest-space-5);
   }
   
   .feature-icon {
@@ -769,17 +769,17 @@ onMounted(() => {
   }
   
   .feature-title {
-    font-size: 16px;
+    font-size: var(--aitest-font-size-lg);
   }
   
   .feature-description {
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
   }
 }
 
 @media screen and (max-width: 1280px) {
   .stats-section {
-    margin-bottom: 20px;
+    margin-bottom: var(--aitest-space-5);
   }
   
   .stat-content {
@@ -789,7 +789,7 @@ onMounted(() => {
   .stat-icon {
     width: 42px;
     height: 42px;
-    font-size: 16px;
+    font-size: var(--aitest-font-size-lg);
   }
   
   .stat-value {
@@ -797,15 +797,15 @@ onMounted(() => {
   }
   
   .stat-label {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
   }
   
   .content-section {
-    margin-bottom: 20px;
+    margin-bottom: var(--aitest-space-5);
   }
   
   .features-section {
-    margin-bottom: 20px;
+    margin-bottom: var(--aitest-space-5);
   }
   
   .section-title {
@@ -817,7 +817,7 @@ onMounted(() => {
   }
   
   .action-item {
-    padding: 8px 5px;
+    padding: var(--aitest-space-2) var(--aitest-space-1);
   }
   
   .action-icon {
@@ -827,11 +827,11 @@ onMounted(() => {
   }
   
   .action-label {
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
   }
   
   .feature-card {
-    padding: 15px;
+    padding: var(--aitest-space-4);
   }
   
   .feature-icon {
@@ -843,7 +843,7 @@ onMounted(() => {
 
 @media screen and (max-width: 1024px) {
   .stats-section {
-    margin-bottom: 18px;
+    margin-bottom: var(--aitest-space-5);
   }
   
   .stat-content {
@@ -853,27 +853,27 @@ onMounted(() => {
   .stat-icon {
     width: 40px;
     height: 40px;
-    font-size: 16px;
+    font-size: var(--aitest-font-size-lg);
   }
   
   .stat-value {
-    font-size: 16px;
+    font-size: var(--aitest-font-size-lg);
   }
   
   .stat-label {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
   }
   
   .content-section {
-    margin-bottom: 18px;
+    margin-bottom: var(--aitest-space-5);
   }
   
   .features-section {
-    margin-bottom: 18px;
+    margin-bottom: var(--aitest-space-5);
   }
   
   .section-title {
-    font-size: 16px;
+    font-size: var(--aitest-font-size-lg);
   }
   
   .activities-list {
@@ -882,19 +882,19 @@ onMounted(() => {
   
   .actions-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: var(--aitest-space-3);
   }
   
   .action-item {
-    padding: 10px 8px;
+    padding: var(--aitest-space-3) var(--aitest-space-2);
   }
   
   .action-label {
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
   }
   
   .feature-card {
-    padding: 12px;
+    padding: var(--aitest-space-3);
   }
   
   .feature-icon {
@@ -904,17 +904,17 @@ onMounted(() => {
   }
   
   .feature-title {
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
   }
   
   .feature-description {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
   }
 }
 
 @media screen and (max-width: 768px) {
   .stats-section {
-    margin-bottom: 15px;
+    margin-bottom: var(--aitest-space-4);
   }
   
   .stat-content {
@@ -924,28 +924,28 @@ onMounted(() => {
   .stat-icon {
     width: 35px;
     height: 35px;
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
   }
   
   .stat-value {
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
   }
   
   .stat-label {
-    font-size: 11px;
+    font-size: var(--aitest-font-size-xs);
   }
   
   .content-section {
-    margin-bottom: 15px;
+    margin-bottom: var(--aitest-space-4);
   }
   
   .features-section {
-    margin-bottom: 15px;
+    margin-bottom: var(--aitest-space-4);
   }
   
   .section-title {
-    font-size: 16px;
-    margin-bottom: 15px;
+    font-size: var(--aitest-font-size-lg);
+    margin-bottom: var(--aitest-space-4);
   }
   
   .activities-list {
@@ -953,7 +953,7 @@ onMounted(() => {
   }
   
   .activity-item {
-    padding: 10px 0;
+    padding: var(--aitest-space-3) 0;
   }
   
   .activity-icon {
@@ -962,50 +962,50 @@ onMounted(() => {
   }
   
   .activity-description {
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
   }
   
   .actions-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: var(--aitest-space-2);
   }
   
   .action-item {
-    padding: 8px 5px;
+    padding: var(--aitest-space-2) var(--aitest-space-1);
   }
   
   .action-icon {
     width: 35px;
     height: 35px;
-    font-size: 16px;
+    font-size: var(--aitest-font-size-lg);
   }
   
   .action-label {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
   }
   
   .feature-card {
-    padding: 10px;
+    padding: var(--aitest-space-3);
   }
   
   .feature-icon {
     width: 45px;
     height: 45px;
-    font-size: 20px;
+    font-size: var(--aitest-font-size-xl);
   }
   
   .feature-title {
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
   }
   
   .feature-description {
-    font-size: 11px;
+    font-size: var(--aitest-font-size-xs);
   }
 }
 
 @media screen and (max-width: 480px) {
   .stats-section {
-    margin-bottom: 12px;
+    margin-bottom: var(--aitest-space-3);
   }
   
   .stat-content {
@@ -1015,11 +1015,11 @@ onMounted(() => {
   .stat-icon {
     width: 30px;
     height: 30px;
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
   }
   
   .stat-value {
-    font-size: 13px;
+    font-size: var(--aitest-font-size-base);
   }
   
   .stat-label {
@@ -1027,16 +1027,16 @@ onMounted(() => {
   }
   
   .content-section {
-    margin-bottom: 12px;
+    margin-bottom: var(--aitest-space-3);
   }
   
   .features-section {
-    margin-bottom: 12px;
+    margin-bottom: var(--aitest-space-3);
   }
   
   .section-title {
-    font-size: 14px;
-    margin-bottom: 12px;
+    font-size: var(--aitest-font-size-md);
+    margin-bottom: var(--aitest-space-3);
   }
   
   .activities-list {
@@ -1044,7 +1044,7 @@ onMounted(() => {
   }
   
   .activity-item {
-    padding: 8px 0;
+    padding: var(--aitest-space-2) 0;
   }
   
   .activity-icon {
@@ -1053,34 +1053,34 @@ onMounted(() => {
   }
   
   .activity-description {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
   }
   
   .activity-meta {
-    font-size: 11px;
+    font-size: var(--aitest-font-size-xs);
   }
   
   .actions-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    gap: var(--aitest-space-2);
   }
   
   .action-item {
-    padding: 6px 3px;
+    padding: var(--aitest-space-2) 3px;
   }
   
   .action-icon {
     width: 30px;
     height: 30px;
-    font-size: 14px;
+    font-size: var(--aitest-font-size-md);
   }
   
   .action-label {
-    font-size: 11px;
+    font-size: var(--aitest-font-size-xs);
   }
   
   .feature-card {
-    padding: 8px;
+    padding: var(--aitest-space-2);
   }
   
   .feature-icon {
@@ -1090,7 +1090,7 @@ onMounted(() => {
   }
   
   .feature-title {
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
   }
   
   .feature-description {

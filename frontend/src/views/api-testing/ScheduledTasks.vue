@@ -697,17 +697,17 @@ const deleteTask = async (task) => {
 
 <style scoped>
 .scheduled-tasks {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .filters {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
   background: var(--aitest-surface-subtle);
-  padding: 20px;
-  border-radius: 8px;
+  padding: var(--aitest-space-5);
+  border-radius: var(--aitest-radius-lg);
 }
 
 .task-list {
@@ -716,18 +716,18 @@ const deleteTask = async (task) => {
 }
 
 .pagination {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: flex-end;
 }
 
 .cron-help {
-  margin-top: 8px;
-  font-size: 12px;
+  margin-top: var(--aitest-space-2);
+  font-size: var(--aitest-font-size-sm);
 }
 
 .unit {
-  margin-left: 8px;
+  margin-left: var(--aitest-space-2);
   color: var(--el-text-color-regular);
 }
 </style>

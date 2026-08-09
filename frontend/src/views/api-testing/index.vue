@@ -65,8 +65,8 @@ const handleMenuSelect = (index) => {
 
 .top-nav {
   border-bottom: 1px solid var(--aitest-border);
-  background: white;
-  padding: 0 20px;
+  background: var(--aitest-surface);
+  padding: 0 var(--aitest-space-5);
   display: flex;
   align-items: center;
   gap: 30px;

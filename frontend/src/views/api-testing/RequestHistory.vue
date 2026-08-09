@@ -388,7 +388,7 @@ onMounted(() => {
 
 <style scoped>
 .request-history {
-  padding: 20px;
+  padding: var(--aitest-space-5);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -396,13 +396,13 @@ onMounted(() => {
 
 .filters {
   display: flex;
-  gap: 10px;
+  gap: var(--aitest-space-3);
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-5);
 }
 
 .pagination {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
   display: flex;
   justify-content: center;
 }
@@ -413,26 +413,26 @@ onMounted(() => {
 }
 
 .detail-tabs {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-5);
 }
 
 .detail-section {
-  padding: 10px 0;
+  padding: var(--aitest-space-3) 0;
 }
 
 .detail-section h4 {
-  margin: 20px 0 10px 0;
+  margin: var(--aitest-space-5) 0 var(--aitest-space-3) 0;
   color: var(--aitest-text-1);
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   font-weight: 600;
 }
 
 .json-content {
   background: var(--aitest-surface-subtle);
-  padding: 15px;
-  border-radius: 4px;
+  padding: var(--aitest-space-4);
+  border-radius: var(--aitest-radius-sm);
   font-family: 'Courier New', monospace;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   max-height: 400px;
   overflow: auto;
   white-space: pre-wrap;
@@ -441,15 +441,15 @@ onMounted(() => {
 }
 
 .response-actions {
-  margin-bottom: 10px;
+  margin-bottom: var(--aitest-space-3);
 }
 
 .error-section {
-  padding: 20px 0;
+  padding: var(--aitest-space-5) 0;
 }
 
 .empty-response {
-  padding: 40px 0;
+  padding: var(--aitest-space-10) 0;
   text-align: center;
 }
 </style>
