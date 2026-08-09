@@ -448,8 +448,9 @@ export default {
 
 .notification-tabs :deep(.el-tabs__item) {
   flex: 1;
-  display: block;
-  text-align: center;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   padding: var(--aitest-space-4) var(--aitest-space-8);
   font-size: var(--aitest-font-size-md);
   font-weight: 500;
