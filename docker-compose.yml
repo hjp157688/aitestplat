@@ -1,0 +1,136 @@
+# AITestPlat 全栈编排:mysql + redis + backend + scheduler + frontend
+# 用法:
+#   cp .docker_env.example .docker_env   # 填写密钥
+#   docker compose --env-file .docker_env up -d --build
+#
+# 访问:前端 http://localhost:18081  后端直连 http://localhost:18181/api/docs/
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: aitestplat_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .docker_env 设置 MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-aitestplat}
+      MYSQL_USER: ${DB_USER:-aitestplat}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-aitestplat}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [aitestplat_network]
+
+  redis:
+    image: redis:7-alpine
+    container_name: aitestplat_redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [aitestplat_network]
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: ${DOCKER_NAMESPACE:-aitestplat}/backend:${IMAGE_VERSION:-latest}
+    container_name: aitestplat_backend
+    restart: always
+    env_file: .docker_env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-aitestplat}
+      DB_USER: ${DB_USER:-aitestplat}
+      DB_PASSWORD: ${DB_PASSWORD:-aitestplat}
+      REDIS_URL: redis://redis:6379/0
+    command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "backend.asgi:application"]
+    ports:
+      - "${BACKEND_PORT:-18181}:8000"
+    volumes:
+      - static_data:/app/static_files
+      - media_data:/app/media
+      - chroma_data:/app/chroma_data
+      - logs_data:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check", "--database", "default"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks: [aitestplat_network]
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: ${DOCKER_NAMESPACE:-aitestplat}/backend:${IMAGE_VERSION:-latest}
+    container_name: aitestplat_scheduler
+    restart: always
+    env_file: .docker_env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-aitestplat}
+      DB_USER: ${DB_USER:-aitestplat}
+      DB_PASSWORD: ${DB_PASSWORD:-aitestplat}
+      REDIS_URL: redis://redis:6379/0
+    command: ["/scheduler-loop.sh"]
+    volumes:
+      - media_data:/app/media
+      - chroma_data:/app/chroma_data
+      - logs_data:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [aitestplat_network]
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    image: ${DOCKER_NAMESPACE:-aitestplat}/frontend:${IMAGE_VERSION:-latest}
+    container_name: aitestplat_frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-18081}:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_data:/srv/static:ro
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [aitestplat_network]
+
+volumes:
+  mysql_data:
+  redis_data:
+  static_data:
+  media_data:
+  chroma_data:
+  logs_data:
+
+networks:
+  aitestplat_network:
+    driver: bridge
