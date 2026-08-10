@@ -10,32 +10,53 @@
           <el-icon><Delete /></el-icon>
           {{ $t('testcase.batchDelete') }} ({{ selectedTestCases.length }})
         </el-button>
-        <el-button type="success" @click="exportToExcel">
-          <el-icon><Download /></el-icon>
-          {{ $t('testcase.exportExcel') }}
-        </el-button>
-        <el-button
-          type="warning"
-          :disabled="selectedTestCases.length === 0"
-          @click="openZentaoExportDialog">
-          <el-icon><Position /></el-icon>
-          {{ $t('testcase.exportZentao') }}
-        </el-button>
-        <el-button type="danger" plain @click="openZentaoImportDialog">
-          <el-icon><Connection /></el-icon>
-          {{ $t('testcase.importZentao') }}
-        </el-button>
-        <el-button @click="downloadImportTemplate">
-          <el-icon><Download /></el-icon>
-          {{ $t('testcase.downloadImportTemplate') }}
-        </el-button>
-        <el-button type="warning" @click="openImportDialog">
-          <el-icon><Upload /></el-icon>
-          {{ $t('testcase.importCases') }}
-        </el-button>
-        <el-button @click="goToImportRecords">
-          {{ $t('testcase.importRecords') }}
-        </el-button>
+        <el-dropdown @command="handleImportCommand">
+          <el-button>
+            <el-icon><Upload /></el-icon>
+            {{ $t('testcase.importActions') }}
+            <el-icon><ArrowDown /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="import-cases">
+                <el-icon><Upload /></el-icon>
+                {{ $t('testcase.importCases') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="import-zentao">
+                <el-icon><Connection /></el-icon>
+                {{ $t('testcase.importZentao') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="download-template" divided>
+                <el-icon><Download /></el-icon>
+                {{ $t('testcase.downloadImportTemplate') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="import-records">
+                <el-icon><Tickets /></el-icon>
+                {{ $t('testcase.importRecords') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+
+        <el-dropdown @command="handleExportCommand">
+          <el-button>
+            <el-icon><Download /></el-icon>
+            {{ $t('testcase.exportActions') }}
+            <el-icon><ArrowDown /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="export-excel">
+                <el-icon><Download /></el-icon>
+                {{ $t('testcase.exportExcel') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="export-zentao" :disabled="selectedTestCases.length === 0">
+                <el-icon><Position /></el-icon>
+                {{ $t('testcase.exportZentao') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <el-button type="primary" @click="$router.push('/ai-generation/testcases/create')">
           <el-icon><Plus /></el-icon>
           {{ $t('testcase.newCase') }}
@@ -327,7 +348,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search, Download, Delete, Upload, Position, Connection } from '@element-plus/icons-vue'
+import { Plus, Search, Download, Delete, Upload, Position, Connection, ArrowDown, Tickets } from '@element-plus/icons-vue'
 import api from '@/utils/api'
 import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getRequirements } from '@/api/requirement'
 import dayjs from 'dayjs'
@@ -372,6 +393,18 @@ const zentaoImporting = ref(false)
 const zentaoProjects = ref([])
 const scopeStories = ref([])
 const zentaoImportForm = ref({ scopeType: 'product', scopeId: '', storyIds: [], projectId: '' })
+
+const handleImportCommand = (command) => {
+  if (command === 'import-cases') openImportDialog()
+  else if (command === 'import-zentao') openZentaoImportDialog()
+  else if (command === 'download-template') downloadImportTemplate()
+  else if (command === 'import-records') goToImportRecords()
+}
+
+const handleExportCommand = (command) => {
+  if (command === 'export-excel') exportToExcel()
+  else if (command === 'export-zentao') openZentaoExportDialog()
+}
 
 const openZentaoExportDialog = async () => {
   if (selectedTestCases.value.length === 0) return

@@ -7,6 +7,8 @@ export default {
     create: 'Create Test Case',
 
     // Actions
+    importActions: 'Import',
+    exportActions: 'Export',
     newCase: 'New Case',
     batchDelete: 'Batch Delete',
     exportExcel: 'Export Excel',

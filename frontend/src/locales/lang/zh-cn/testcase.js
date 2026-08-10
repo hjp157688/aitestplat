@@ -7,6 +7,8 @@ export default {
     create: '创建测试用例',
 
     // Actions
+    importActions: '导入',
+    exportActions: '导出',
     newCase: '新建用例',
     batchDelete: '批量删除',
     exportExcel: '导出Excel',
