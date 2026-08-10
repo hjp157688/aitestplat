@@ -2,11 +2,17 @@
 
 ## 📋 目录
 
+- [两种部署模式](#两种部署模式)
 - [快速开始](#快速开始)
 - [部署模式](#部署模式)
 - [配置说明](#配置说明)
 - [常用命令](#常用命令)
 - [故障排查](#故障排查)
+
+## 两种部署模式
+
+1. **全栈（推荐）**：使用仓库根目录 `docker-compose.yml`，一条命令启动前端 + 后端 + MySQL + Redis + scheduler。Nginx 配置用 `deploy/nginx.conf`（经卷挂载注入）。见根目录 CLAUDE.md 的 Docker 章节。
+2. **仅前端**：本目录的 `frontend/docker-compose.yml`，Nginx 用 `frontend/nginx.conf` 反代到宿主机后端（`host.docker.internal:8000`），后端由本机或外部提供。
 
 ## 快速开始
 

@@ -239,6 +239,20 @@ npm run lint       # 代码检查
 | API 文档（ReDoc） | http://localhost:8000/api/redoc/ |
 | Django Admin | http://localhost:8000/admin/ |
 
+### Docker 部署（全栈一键）
+
+```bash
+cp .docker_env.example .docker_env   # 填写 SECRET_KEY / 数据库密码等
+docker compose --env-file .docker_env up -d --build
+```
+
+- 服务：mysql / redis / backend（daphne） / scheduler / frontend（nginx）
+- 访问：前端 http://localhost:18081，后端直连 http://localhost:18181/api/docs/
+- 配置模板见 `.docker_env.example`；全栈 nginx 配置见 `deploy/nginx.conf`
+- 后端镜像：`backend/Dockerfile` + `backend/entrypoint.sh` + `backend/scheduler-loop.sh`
+- 镜像构建/推送：`./build-and-push.sh [--push]`
+- 前端"仅前端"模式：`frontend/Dockerfile` + `frontend/docker-compose.yml`（反向代理到宿主机后端）
+
 ## API 结构
 
 所有 API 均以 `/api/` 为前缀：
