@@ -1,0 +1,31 @@
+# 根 .dockerignore:控制后端镜像构建上下文
+# 后端镜像镜像内只需要 manage.py / backend/ / apps/ / requirements.txt
+.git/
+.gitignore
+.worktrees/
+.venv/
+venv/
+env/
+aitestplat/
+docs/
+CLAUDE.md
+AGENTS.md
+*.pyc
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+allure/
+chroma_data/
+static_files/
+media/
+logs/
+frontend/
+.env
+.env.*
+!.env.example
+.docker_env
+*.log
+*.sql
+.DS_Store

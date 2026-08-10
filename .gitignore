@@ -122,3 +122,6 @@ static_files/img/
 
 # ----- superpowers 本地 worktree (不入库) -----
 .worktrees/
+
+# ----- Docker 部署密钥(不入库;模板 .docker_env.example 入库) -----
+.docker_env
