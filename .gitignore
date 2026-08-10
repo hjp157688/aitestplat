@@ -125,3 +125,6 @@ static_files/img/
 
 # ----- Docker 部署密钥(不入库;模板 .docker_env.example 入库) -----
 .docker_env
+
+# ----- 离线部署包临时组装目录(不入库) -----
+dist-offline/
