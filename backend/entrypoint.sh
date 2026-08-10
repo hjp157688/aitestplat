@@ -3,9 +3,15 @@
 set -e
 
 echo "[entrypoint] waiting for MySQL..."
+MAX_DB_WAIT="${MAX_DB_WAIT:-60}"
+n=0
 until python manage.py check --database default >/dev/null 2>&1; do
+    n=$((n + 1))
+    if [ "$n" -ge "$MAX_DB_WAIT" ]; then
+        echo "[entrypoint] DB not reachable after ${MAX_DB_WAIT} tries, giving up"
+        exit 1
+    fi
     sleep 2
-    echo "[entrypoint] DB not ready, retrying..."
 done
 echo "[entrypoint] DB ready"
 

@@ -7,6 +7,7 @@ INTERVAL="${SCHEDULER_INTERVAL:-300}"
 
 echo "[scheduler] run_all_scheduled_tasks every ${INTERVAL}s"
 while true; do
-    python manage.py run_all_scheduled_tasks
+    # 单个任务失败不中断循环(否则 set -e 使容器崩溃重启,触发整轮迁移/静态重建)
+    python manage.py run_all_scheduled_tasks || echo "[scheduler] run_all_scheduled_tasks failed, continuing in ${INTERVAL}s"
     sleep "$INTERVAL"
 done

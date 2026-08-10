@@ -23,7 +23,9 @@ frontend_tag="${NAMESPACE}/frontend:${VERSION}"
 
 # DOCKER_REGISTRY=https://hub.docker.com/ 表示公有 Hub,不打前缀;其余作为前缀
 if [ -n "$REGISTRY" ] && [ "$REGISTRY" != "https://hub.docker.com/" ]; then
-  prefix="${REGISTRY%%/}"
+  prefix="${REGISTRY#https://}"
+  prefix="${prefix#http://}"
+  prefix="${prefix%%/}"
   backend_tag="${prefix}/${backend_tag}"
   frontend_tag="${prefix}/${frontend_tag}"
 fi
