@@ -33,7 +33,7 @@ FRONTEND_PORT=18081
 # 后端对外端口
 BACKEND_PORT=18181
 
-# ---- 镜像标签(build-and-push.sh 用)----
+# ---- 镜像标签(build-offline.sh 用)----
 # DOCKER_REGISTRY=https://hub.docker.com/
 DOCKER_NAMESPACE=aitestplat
 IMAGE_VERSION=latest
