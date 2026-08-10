@@ -12,10 +12,14 @@ export default {
   loginFailed: '登录失败',
 
   // Register page
-  registerTitle: '注册 AITestPlat',
+  appTagline: 'AI · 测试管理平台',
+  welcomeRegister: '创建您的账号',
   registerSubtitle: '创建您的测试管理账号',
   username: '用户名',
   email: '邮箱',
+  phone: '手机号',
+  phonePlaceholder: '请输入手机号（可选）',
+  phoneFormat: '手机号格式不正确',
   firstName: '姓',
   lastName: '名',
   password: '密码',
@@ -50,7 +54,7 @@ export default {
   passwordMismatch: '两次输入的密码不一致',
 
   // Copyright
-  copyright: '© 2024 AITestPlat. All rights reserved.',
+  copyright: '© 2026 AITestPlat. All rights reserved.',
 
   // Language switcher
   languageZhCN: '简体中文',

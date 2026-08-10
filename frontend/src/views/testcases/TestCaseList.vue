@@ -10,6 +10,7 @@
           <el-icon><Delete /></el-icon>
           {{ $t('testcase.batchDelete') }} ({{ selectedTestCases.length }})
         </el-button>
+
         <el-dropdown @command="handleImportCommand">
           <el-button>
             <el-icon><Upload /></el-icon>
@@ -57,6 +58,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+
         <el-button type="primary" @click="$router.push('/ai-generation/testcases/create')">
           <el-icon><Plus /></el-icon>
           {{ $t('testcase.newCase') }}
@@ -80,7 +82,7 @@
             </el-input>
           </el-col>
           <el-col :span="4">
-            <el-select v-model="projectFilter" :placeholder="$t('testcase.relatedProject')" clearable @change="handleFilter">
+            <el-select v-model="projectFilter" :placeholder="$t('testcase.relatedProject')" clearable @change="handleProjectChange">
               <el-option
                 v-for="project in projects"
                 :key="project.id"
@@ -92,9 +94,10 @@
           <el-col :span="4">
             <el-select
               v-model="requirementFilter"
-              :placeholder="$t('testcase.requirementFilter')"
+              :placeholder="projectFilter ? $t('testcase.requirementFilter') : $t('testcase.selectProjectFirst')"
               filterable
               clearable
+              :disabled="!projectFilter"
               @change="handleFilter"
             >
               <el-option
@@ -270,26 +273,36 @@
       v-model="zentaoExportVisible"
       :title="$t('testcase.exportZentao')"
       width="520px"
+      :close-on-click-modal="!zentaoExporting"
+      :close-on-press-escape="!zentaoExporting"
     >
-      <el-alert v-if="!exportNeedsManual" type="success" :closable="false" show-icon>
-        {{ $t('testcase.exportZentaoAutoHint', { count: selectedTestCases.length }) }}
-      </el-alert>
-      <el-form v-else label-width="100px">
-        <el-form-item :label="$t('testcase.zentaoProduct')" required>
-          <el-select v-model="zentaoExportForm.productId" filterable style="width: 100%"
-            :placeholder="$t('testcase.selectZentaoProduct')" @change="onExportProductChange">
-            <el-option v-for="p in zentaoProducts" :key="p.id" :label="p.name" :value="p.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('testcase.zentaoStory')">
-          <el-select v-model="zentaoExportForm.storyId" filterable clearable style="width: 100%"
-            :placeholder="$t('testcase.selectZentaoStory')">
-            <el-option v-for="s in zentaoExportStories" :key="s.id" :label="s.title" :value="s.id" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+      <div v-if="zentaoExporting" class="zentao-progress">
+        <el-progress :percentage="zentaoExportProgress" :stroke-width="18" text-inside />
+        <p class="zentao-progress-text">
+          {{ $t('testcase.exportZentaoProgress', { done: zentaoExportDone, total: zentaoExportTotal }) }}
+        </p>
+      </div>
+      <template v-else>
+        <el-alert v-if="!exportNeedsManual" type="success" :closable="false" show-icon>
+          {{ $t('testcase.exportZentaoAutoHint', { count: selectedTestCases.length }) }}
+        </el-alert>
+        <el-form v-else label-width="100px">
+          <el-form-item :label="$t('testcase.zentaoProduct')" required>
+            <el-select v-model="zentaoExportForm.productId" filterable style="width: 100%"
+              :placeholder="$t('testcase.selectZentaoProduct')" @change="onExportProductChange">
+              <el-option v-for="p in zentaoProducts" :key="p.id" :label="p.name" :value="p.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="$t('testcase.zentaoStory')">
+            <el-select v-model="zentaoExportForm.storyId" filterable clearable style="width: 100%"
+              :placeholder="$t('testcase.selectZentaoStory')">
+              <el-option v-for="s in zentaoExportStories" :key="s.id" :label="s.title" :value="s.id" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </template>
       <template #footer>
-        <el-button @click="zentaoExportVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button @click="zentaoExportVisible = false" :disabled="zentaoExporting">{{ $t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="zentaoExporting" @click="submitZentaoExport">
           {{ $t('common.confirm') }}
         </el-button>
@@ -300,8 +313,16 @@
       v-model="zentaoImportVisible"
       :title="$t('testcase.importZentao')"
       width="620px"
+      :close-on-click-modal="!zentaoImporting"
+      :close-on-press-escape="!zentaoImporting"
     >
-      <el-form label-width="100px">
+      <div v-if="zentaoImporting" class="zentao-progress">
+        <el-progress :percentage="zentaoImportProgress" :stroke-width="18" text-inside />
+        <p class="zentao-progress-text">
+          {{ $t('testcase.importZentaoProgress', { done: zentaoImportDone, total: zentaoImportTotal }) }}
+        </p>
+      </div>
+      <el-form v-else label-width="100px">
         <el-form-item :label="$t('testcase.importScope')">
           <el-radio-group v-model="zentaoImportForm.scopeType">
             <el-radio value="product">{{ $t('testcase.byProduct') }}</el-radio>
@@ -334,7 +355,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="zentaoImportVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button @click="zentaoImportVisible = false" :disabled="zentaoImporting">{{ $t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="zentaoImporting" @click="submitZentaoImport">
           {{ $t('common.confirm') }}
         </el-button>
@@ -344,13 +365,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Download, Delete, Upload, Position, Connection, ArrowDown, Tickets } from '@element-plus/icons-vue'
 import api from '@/utils/api'
-import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getRequirements } from '@/api/requirement'
+import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getZentaoTask, getRequirements } from '@/api/requirement'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -386,6 +407,10 @@ const zentaoExportForm = ref({ productId: '', storyId: '' })
 const exportNeedsManual = computed(() =>
   selectedTestCases.value.some(tc => !tc.requirement || !tc.requirement.zentao_id)
 )
+const zentaoExportTimer = ref(null)
+const zentaoExportProgress = ref(0)
+const zentaoExportDone = ref(0)
+const zentaoExportTotal = ref(0)
 
 // Zentao 导入状态
 const zentaoImportVisible = ref(false)
@@ -393,6 +418,113 @@ const zentaoImporting = ref(false)
 const zentaoProjects = ref([])
 const scopeStories = ref([])
 const zentaoImportForm = ref({ scopeType: 'product', scopeId: '', storyIds: [], projectId: '' })
+const zentaoImportTimer = ref(null)
+const zentaoImportProgress = ref(0)
+const zentaoImportDone = ref(0)
+const zentaoImportTotal = ref(0)
+
+const stopZentaoExportPolling = () => {
+  if (zentaoExportTimer.value) {
+    clearInterval(zentaoExportTimer.value)
+    zentaoExportTimer.value = null
+  }
+}
+const stopZentaoImportPolling = () => {
+  if (zentaoImportTimer.value) {
+    clearInterval(zentaoImportTimer.value)
+    zentaoImportTimer.value = null
+  }
+}
+
+const startZentaoExportPolling = (taskId, total) => {
+  stopZentaoExportPolling()
+  zentaoExportTotal.value = total
+  zentaoExportDone.value = 0
+  zentaoExportProgress.value = 0
+
+  const poll = async () => {
+    try {
+      const res = await getZentaoTask(taskId)
+      const data = res.data
+      zentaoExportProgress.value = data.progress || 0
+      // 已处理条数：result 有明细时取 成功+失败，否则按百分比折算
+      if (data.result && data.result.success_count !== undefined) {
+        zentaoExportDone.value = (data.result.success_count || 0) + (data.result.failed_count || 0)
+      } else {
+        zentaoExportDone.value = Math.round((data.progress || 0) * total / 100)
+      }
+      if (data.status === 'succeeded') {
+        stopZentaoExportPolling()
+        zentaoExporting.value = false
+        const { success_count = 0, failed_count = 0, failures = [] } = data.result || {}
+        if (failed_count > 0) {
+          ElMessageBox.alert(
+            failures.map(f => `${f.title}: ${f.error}`).join('\n'),
+            `${t('testcase.exportZentaoResult')}: ${success_count} ${t('testcase.success')}, ${failed_count} ${t('testcase.failed')}`,
+            { type: 'warning', confirmButtonText: t('common.confirm') }
+          )
+        } else {
+          ElMessage.success(`${t('testcase.exportZentaoSuccess')}: ${success_count}`)
+        }
+        zentaoExportVisible.value = false
+        fetchTestCases()
+      } else if (data.status === 'failed') {
+        stopZentaoExportPolling()
+        zentaoExporting.value = false
+        ElMessage.error(data.error_message || t('testcase.exportZentaoFailed'))
+        zentaoExportVisible.value = false
+      }
+    } catch (e) {
+      // 轮询请求自身失败：不清轮询、不关面板，任务可能仍在服务端运行，下周期重试
+    }
+  }
+  poll()
+  zentaoExportTimer.value = setInterval(poll, 1500)
+}
+
+const startZentaoImportPolling = (taskId, total) => {
+  stopZentaoImportPolling()
+  zentaoImportTotal.value = total
+  zentaoImportDone.value = 0
+  zentaoImportProgress.value = 0
+
+  const poll = async () => {
+    try {
+      const res = await getZentaoTask(taskId)
+      const data = res.data
+      zentaoImportProgress.value = data.progress || 0
+      zentaoImportDone.value = Math.round((data.progress || 0) * total / 100)
+      if (data.status === 'succeeded') {
+        stopZentaoImportPolling()
+        zentaoImporting.value = false
+        const { created = 0, updated = 0, failed = 0, failures = [] } = data.result || {}
+        if (failed > 0) {
+          ElMessageBox.alert(
+            failures.map(f => {
+              const title = f.case_id !== undefined ? `case#${f.case_id}` : `story#${f.story_id}`
+              return `${title}: ${f.error}`
+            }).join('\n'),
+            `${t('testcase.importZentaoResult')}: ${created} ${t('testcase.created')}, ${updated} ${t('testcase.updated')}, ${failed} ${t('testcase.failed')}`,
+            { type: 'warning', confirmButtonText: t('common.confirm') }
+          )
+        } else {
+          ElMessage.success(`${t('testcase.importZentaoSuccess')}: ${created} ${t('testcase.created')}, ${updated} ${t('testcase.updated')}`)
+        }
+        zentaoImportVisible.value = false
+        fetchTestCases()
+      } else if (data.status === 'failed') {
+        stopZentaoImportPolling()
+        zentaoImporting.value = false
+        ElMessage.error(data.error_message || t('testcase.importZentaoFailed'))
+        zentaoImportVisible.value = false
+      }
+    } catch (e) {
+      // 同上：不因轮询自身失败中断任务
+    }
+  }
+  poll()
+  zentaoImportTimer.value = setInterval(poll, 1500)
+}
 
 const handleImportCommand = (command) => {
   if (command === 'import-cases') openImportDialog()
@@ -441,27 +573,16 @@ const submitZentaoExport = async () => {
     if (exportNeedsManual.value) {
       if (!zentaoExportForm.value.productId) {
         ElMessage.warning(t('testcase.selectZentaoProduct'))
+        zentaoExporting.value = false
         return
       }
       data.product_id = zentaoExportForm.value.productId
       data.story_id = zentaoExportForm.value.storyId || 0
     }
     const res = await exportCasesToZentao(data)
-    const { success_count, failed_count, failures } = res.data
-    if (failed_count > 0) {
-      ElMessageBox.alert(
-        failures.map(f => `${f.title}: ${f.error}`).join('\n'),
-        `${t('testcase.exportZentaoResult')}: ${success_count} ${t('testcase.success')}, ${failed_count} ${t('testcase.failed')}`,
-        { type: 'warning', confirmButtonText: t('common.confirm') }
-      )
-    } else {
-      ElMessage.success(`${t('testcase.exportZentaoSuccess')}: ${success_count}`)
-    }
-    zentaoExportVisible.value = false
-    fetchTestCases()
+    startZentaoExportPolling(res.data.task_id, selectedTestCases.value.length)
   } catch (e) {
     ElMessage.error(e.response?.data?.error || t('testcase.exportZentaoFailed'))
-  } finally {
     zentaoExporting.value = false
   }
 }
@@ -511,24 +632,9 @@ const submitZentaoImport = async () => {
       story_ids: zentaoImportForm.value.storyIds,
       project_id: zentaoImportForm.value.projectId
     })
-    const { created, updated, failed, failures } = res.data
-    if (failed > 0) {
-      ElMessageBox.alert(
-        failures.map(f => {
-          const title = f.case_id !== undefined ? `case#${f.case_id}` : `story#${f.story_id}`
-          return `${title}: ${f.error}`
-        }).join('\n'),
-        `${t('testcase.importZentaoResult')}: ${created} ${t('testcase.created')}, ${updated} ${t('testcase.updated')}, ${failed} ${t('testcase.failed')}`,
-        { type: 'warning', confirmButtonText: t('common.confirm') }
-      )
-    } else {
-      ElMessage.success(`${t('testcase.importZentaoSuccess')}: ${created} ${t('testcase.created')}, ${updated} ${t('testcase.updated')}`)
-    }
-    zentaoImportVisible.value = false
-    fetchTestCases()
+    startZentaoImportPolling(res.data.task_id, zentaoImportForm.value.storyIds.length)
   } catch (e) {
     ElMessage.error(e.response?.data?.error || t('testcase.importZentaoFailed'))
-  } finally {
     zentaoImporting.value = false
   }
 }
@@ -556,6 +662,14 @@ const fetchTestCases = async () => {
 
 const handleSearch = () => {
   currentPage.value = 1
+  fetchTestCases()
+}
+
+const handleProjectChange = () => {
+  // 需求筛选只在项目内部生效：项目变更后清除旧的跨项目需求筛选值，并重新加载该项目下的需求
+  requirementFilter.value = ''
+  currentPage.value = 1
+  fetchRequirements()
   fetchTestCases()
 }
 
@@ -941,7 +1055,12 @@ const fetchProjects = async () => {
 
 const fetchRequirements = async () => {
   try {
-    const res = await getRequirements({ page_size: 1000 })
+    // 需求下拉只展示当前所选项目下的需求，避免多项目需求混在一起
+    if (!projectFilter.value) {
+      requirements.value = []
+      return
+    }
+    const res = await getRequirements({ page_size: 1000, project_id: projectFilter.value })
     requirements.value = (res.data.results || [])
   } catch (e) {
     console.error('加载需求列表失败', e)
@@ -953,9 +1072,25 @@ onMounted(() => {
   fetchRequirements()
   fetchTestCases()
 })
+
+onBeforeUnmount(() => {
+  stopZentaoExportPolling()
+  stopZentaoImportPolling()
+})
 </script>
 
 <style lang="scss" scoped>
+.zentao-progress {
+  padding: 8px 4px;
+
+  .zentao-progress-text {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: #909399;
+    text-align: center;
+  }
+}
+
 .page-container {
   display: flex;
   flex-direction: column;

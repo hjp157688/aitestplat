@@ -536,7 +536,7 @@ export default {
     enabled: 'Enabled',
     disabled: 'Disabled',
     preview: 'Preview',
-    edit: '✏️ Edit',
+    edit: 'Edit',
     delete: 'Delete',
 
     // Config Details
@@ -649,7 +649,7 @@ export default {
     streamMode: 'Stream Output',
     completeMode: 'Complete Output',
     enable: 'Enable',
-    edit: '✏️ Edit',
+    edit: 'Edit',
     delete: 'Delete',
 
     // Sections

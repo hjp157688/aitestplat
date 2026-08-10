@@ -1004,7 +1004,9 @@ class PromptConfigViewSet(viewsets.ModelViewSet):
         try:
             from apps.ai import prompt_seeds
             defaults = {}
-            for prompt_type in ('writer', 'reviewer'):
+            # 需求分析（writer/reviewer）+ 接口测试用例生成（api_testcase_generator）
+            # 统一从 seed 读取，保证"加载默认提示词"时三类都有默认内容
+            for prompt_type in ('writer', 'reviewer', 'api_testcase_generator'):
                 try:
                     defaults[prompt_type] = prompt_seeds.content_for(prompt_type)
                 except KeyError:
@@ -1147,6 +1149,13 @@ def _execute_task(task, selected_knowledge):
 
         logger.info(
             f"任务 {task.task_id} 使用生成配置: auto_review={enable_auto_review}, review_timeout={review_timeout}s")
+
+        # 预加载关联对象（同步上下文、事件循环启动前）。
+        # 异步协程内的懒加载会触发 SynchronousOnlyOperation；此处把关联对象缓存到实例，
+        # 保证后续 writer/revise 阶段在异步上下文也能安全读取（与 serializer.data 的预取行为对齐）。
+        for _rel in ('writer_model_config', 'writer_prompt_config',
+                     'reviewer_model_config', 'reviewer_prompt_config'):
+            getattr(task, _rel, None)
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -1312,12 +1321,19 @@ def _execute_task(task, selected_knowledge):
                                     renumbered_cases = AIModelService.renumber_test_cases(
                                         sorted_cases)
                                     task.final_test_cases = renumbered_cases
+                                    # 权威最终用例在此立即直接落库（与评审反馈一致）。
+                                    # 不能只做内存赋值：任务完成时 refresh_from_db() 会用 DB 值覆盖内存值，
+                                    # 而流式回调的增量保存可能失败/不完整，会导致最终用例丢失（置空）。
+                                    task.save(update_fields=['final_test_cases'])
                                     logger.info(
                                         f"任务 {task.task_id} 测试用例改进完成 (revised_cases长度: {len(revised_cases)}, 最终保存长度: {len(task.final_test_cases)})")
                                 else:
                                     # 如果返回为空，保留流式回调保存的内容
                                     logger.warning(
                                         f"任务 {task.task_id} 改进返回为空，使用流式回调保存的内容 (长度: {len(task.final_test_cases) if task.final_test_cases else 0})")
+                                    # 回调增量保存可能未落库，补一次直接保存，避免最终用例为空
+                                    if task.final_test_cases:
+                                        task.save(update_fields=['final_test_cases'])
                             except Exception as revise_error:
                                 logger.warning(
                                     f"任务 {task.task_id} 改进测试用例失败: {revise_error}，使用原始用例")
@@ -1447,12 +1463,18 @@ def _execute_task(task, selected_knowledge):
                                     renumbered_cases = AIModelService.renumber_test_cases(
                                         sorted_cases)
                                     task.final_test_cases = renumbered_cases
+                                    # 权威最终用例在此立即直接落库（与评审反馈一致），
+                                    # 避免任务完成时 refresh_from_db() 用 DB 空值覆盖内存值。
+                                    task.save(update_fields=['final_test_cases'])
                                     logger.info(
                                         f"任务 {task.task_id} 测试用例改进完成 (revised_cases长度: {len(revised_cases)}, 最终保存长度: {len(task.final_test_cases)})")
                                 else:
                                     # 如果返回为空，保留流式回调保存的内容
                                     logger.warning(
                                         f"任务 {task.task_id} 改进返回为空，使用流式回调保存的内容 (长度: {len(task.final_test_cases) if task.final_test_cases else 0})")
+                                    # 回调增量保存可能未落库，补一次直接保存，避免最终用例为空
+                                    if task.final_test_cases:
+                                        task.save(update_fields=['final_test_cases'])
                             except Exception as revise_error:
                                 logger.warning(
                                     f"任务 {task.task_id} 改进测试用例失败: {revise_error}，使用原始用例")
@@ -2615,6 +2637,10 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                 continue
             try:
                 obj = json.loads(line)
+                if not isinstance(obj, dict):
+                    # JSONL 中偶发的非对象行（裸 null/数字/字符串）直接跳过，
+                    # 避免对 None 调用 .get() 抛 AttributeError
+                    continue
                 # 规整字段名：JSONL 用 title,precondition,steps,priority,test_type,module
                 # 返回 dict 供下游（采纳等）使用；清洗 Markdown/HTML 残留
                 case = {

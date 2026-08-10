@@ -103,6 +103,48 @@ class TestCaseComment(models.Model):
         ordering = ['-created_at']
 
 
+class ZentaoSyncTask(models.Model):
+    """禅道用例导入/导出后台任务（避免大批量同步请求撞前端超时）"""
+
+    TASK_TYPE_CHOICES = [
+        ('export', '导出到禅道'),
+        ('import', '从禅道导入'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', '等待中'),
+        ('running', '进行中'),
+        ('succeeded', '已完成'),
+        ('failed', '失败'),
+    ]
+
+    task_id = models.CharField(max_length=32, unique=True, verbose_name='任务ID')
+    task_type = models.CharField(max_length=20, choices=TASK_TYPE_CHOICES, verbose_name='任务类型')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='状态')
+    progress = models.IntegerField(default=0, verbose_name='进度百分比')
+    result = models.JSONField(null=True, blank=True, verbose_name='结果')
+    input_params = models.JSONField(null=True, blank=True, verbose_name='入参')
+    error_message = models.TextField(blank=True, verbose_name='错误信息')
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='zentao_sync_tasks',
+        verbose_name='创建者'
+    )
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name='完成时间')
+
+    class Meta:
+        db_table = 'zentao_sync_tasks'
+        verbose_name = '禅道同步任务'
+        verbose_name_plural = '禅道同步任务'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_task_type_display()}-{self.task_id}"
+
+
 class TestCaseImportRecord(models.Model):
     """测试用例 Excel 导入记录"""
 

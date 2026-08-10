@@ -315,7 +315,7 @@
               <!-- 用户信息 -->
               <el-dropdown @command="handleCommand" class="user-dropdown">
                 <span class="user-info">
-                  <el-avatar :size="32" :src="userStore.user?.avatar" />
+                  <el-avatar :size="32" :src="userStore.user?.avatar" :icon="UserFilled" />
                   <span class="username">{{ userStore.user?.username }}</span>
                   <el-icon><ArrowDown /></el-icon>
                 </span>
@@ -349,7 +349,7 @@ import { useI18n } from 'vue-i18n'
 import {
   Monitor, Folder, Document, Check, Collection, VideoPlay,
   DataAnalysis, DocumentCopy, Link, MagicStick,
-  Odometer, Timer, Setting, AlarmClock, Bell, Aim, Edit, Cpu, ArrowDown, Cellphone, Connection, FolderOpened, Tickets, Plus, Operation, DataLine
+  Odometer, Timer, Setting, AlarmClock, Bell, Aim, Edit, Cpu, ArrowDown, Cellphone, Connection, FolderOpened, Tickets, Plus, Operation, DataLine, UserFilled
 } from '@element-plus/icons-vue'
 import logoSvg from '@/assets/images/logo.svg'
 

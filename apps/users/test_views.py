@@ -30,32 +30,19 @@ def test_register(request):
                 'error': '用户名已存在'
             }, status=400)
 
-        # 手机号校验
+        # 手机号校验（可选）：填写时才校验格式与唯一性
         phone = data.get('phone', '').strip()
-        valid, error = _validate_phone(phone)
-        if not valid:
-            return JsonResponse({'success': False, 'error': error}, status=400)
+        if phone:
+            valid, error = _validate_phone(phone)
+            if not valid:
+                return JsonResponse({'success': False, 'error': error}, status=400)
 
-        # 检查手机号是否已被注册
-        if User.objects.filter(phone=phone).exists():
-            return JsonResponse({
-                'success': False,
-                'error': '该手机号已被注册'
-            }, status=400)
-
-        # 短信验证码校验
-        verify_code = data.get('verify_code', '').strip()
-        verify_code_token = data.get('verify_code_token', '').strip()
-        if not verify_code or not verify_code_token:
-            return JsonResponse({
-                'success': False,
-                'error': '请输入短信验证码'
-            }, status=400)
-
-        from .sms import validate_verify_code
-        valid, error = validate_verify_code(phone, verify_code_token, verify_code)
-        if not valid:
-            return JsonResponse({'success': False, 'error': error}, status=400)
+            # 检查手机号是否已被注册
+            if User.objects.filter(phone=phone).exists():
+                return JsonResponse({
+                    'success': False,
+                    'error': '该手机号已被注册'
+                }, status=400)
 
         # 创建用户
         user = User.objects.create_user(

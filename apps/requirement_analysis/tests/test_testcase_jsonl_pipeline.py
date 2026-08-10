@@ -10,6 +10,7 @@ import json
 from django.test import SimpleTestCase
 
 from apps.requirement_analysis.models import AIModelService
+from apps.requirement_analysis.views import TestCaseGenerationTaskViewSet
 
 
 def _jsonl(cases):
@@ -159,6 +160,18 @@ class RenumberTestCasesTests(SimpleTestCase):
     def test_empty_unchanged(self):
         self.assertEqual(AIModelService.renumber_test_cases(''), '')
 
+    def test_drops_non_object_json_lines(self):
+        """裸 null / 数字 / 字符串等非对象行应被丢弃，而不是原样保留。"""
+        content = _jsonl([
+            {'case_id': 'TC-001', 'title': 'A'},
+            {'case_id': 'TC-003', 'title': 'C'},
+        ]) + '\nnull\n42\n"裸字符串"'
+        result = AIModelService.renumber_test_cases(content)
+        lines = [l for l in result.split('\n') if l.strip()]
+        self.assertEqual(len(lines), 2)
+        ids = [json.loads(line)['case_id'] for line in lines]
+        self.assertEqual(ids, ['TC-001', 'TC-002'])
+
 
 class FullPipelineTests(SimpleTestCase):
     """fix → sort → renumber 全链路：混乱输出收敛为连续编号的 JSONL。"""
@@ -178,3 +191,24 @@ class FullPipelineTests(SimpleTestCase):
         titles = [json.loads(line)['title'] for line in renumbered.split('\n')]
         self.assertEqual(ids, ['TC-001', 'TC-002'])
         self.assertEqual(titles, ['A', 'C'])
+
+
+class ParseTestCasesContentTests(SimpleTestCase):
+    """save_to_records 的 JSONL 解析需免疫非对象行（回归：裸 null 行崩 .get）。"""
+
+    def setUp(self):
+        self.parser = TestCaseGenerationTaskViewSet()
+
+    def test_skips_non_object_json_lines(self):
+        content = ('{"case_id":"TC-001","title":"A","precondition":"","steps":[],"priority":"P1"}\n'
+                   'null\n'
+                   '42\n'
+                   '{"case_id":"TC-002","title":"B","precondition":"","steps":[],"priority":"P2"}\n')
+        cases = self.parser._parse_test_cases_content(content)
+        self.assertEqual(len(cases), 2)
+        self.assertEqual([c['caseId'] for c in cases], ['TC-001', 'TC-002'])
+
+    def test_blank_and_invalid_lines_ignored(self):
+        content = '{"case_id":"TC-001","title":"A"}\n\n{bad json\n'
+        cases = self.parser._parse_test_cases_content(content)
+        self.assertEqual(len(cases), 1)

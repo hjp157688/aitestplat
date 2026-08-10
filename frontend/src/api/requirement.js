@@ -180,7 +180,7 @@ export function getZentaoStatus() {
 }
 
 /**
- * 导出测试用例到禅道
+ * 导出测试用例到禅道（异步：返回 task_id，用 getZentaoTask 轮询进度）
  */
 export function exportCasesToZentao(data) {
   return request({
@@ -191,13 +191,23 @@ export function exportCasesToZentao(data) {
 }
 
 /**
- * 从禅道导入测试用例
+ * 从禅道导入测试用例（异步：返回 task_id，用 getZentaoTask 轮询进度）
  */
 export function importCasesFromZentao(data) {
   return request({
     url: '/testcases/zentao-import/',
     method: 'post',
     data
+  })
+}
+
+/**
+ * 查询禅道同步任务进度（导入/导出通用）
+ */
+export function getZentaoTask(taskId) {
+  return request({
+    url: `/testcases/zentao-task/${taskId}/`,
+    method: 'get'
   })
 }
 

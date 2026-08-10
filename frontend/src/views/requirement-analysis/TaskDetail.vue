@@ -44,9 +44,7 @@
             </div>
           </template>
           <div class="requirement-content">
-            <div class="requirement-text">
-              {{ task.requirement_text }}
-            </div>
+            <div class="requirement-text" v-html="task.requirement_text"></div>
             <div class="requirement-actions">
               <el-button size="small" @click="copyRequirementText">
                 <el-icon><DocumentCopy /></el-icon>
@@ -1254,6 +1252,12 @@ export default {
   font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
   font-size: var(--aitest-font-size-base);
   border-left: 3px solid var(--aitest-primary);
+}
+
+.requirement-text :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--aitest-radius-sm);
 }
 
 .requirement-actions {

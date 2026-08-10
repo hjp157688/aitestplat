@@ -1,8 +1,35 @@
 <template>
   <div class="register-container">
-    <div class="register-form">
+    <!-- 语言切换 -->
+    <div class="lang-switcher">
+      <el-dropdown @command="handleLanguageChange" class="language-dropdown">
+        <span class="el-dropdown-link">
+          <span class="lang-icon">{{ currentLanguage === 'zh-cn' ? '🇨🇳' : '🇺🇸' }}</span>
+          <span class="lang-text">{{ currentLanguage === 'zh-cn' ? $t('auth.languageZhCN') : $t('auth.languageEn') }}</span>
+          <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="zh-cn" :disabled="currentLanguage === 'zh-cn'">
+              🇨🇳 {{ $t('auth.languageZhCN') }}
+            </el-dropdown-item>
+            <el-dropdown-item command="en" :disabled="currentLanguage === 'en'">
+              🇺🇸 English
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+    </div>
+
+    <div class="register-card">
+      <!-- 品牌锁 -->
+      <div class="brand-lockup">
+        <img :src="logoSvg" alt="AITestPlat" class="brand-logo-img" />
+        <div class="brand-eyebrow">{{ $t('auth.appTagline') }}</div>
+      </div>
+
       <div class="form-header">
-        <h2>{{ $t('auth.registerTitle') }}</h2>
+        <h2>{{ $t('auth.welcomeRegister') }}</h2>
         <p>{{ $t('auth.registerSubtitle') }}</p>
       </div>
 
@@ -10,136 +37,93 @@
         ref="formRef"
         :model="form"
         :rules="rules"
+        label-position="top"
+        class="register-form"
         @submit.prevent="handleRegister"
       >
-        <el-form-item prop="username">
-          <el-input
-            v-model="form.username"
-            :placeholder="$t('auth.username')"
-            size="large"
-            :prefix-icon="User"
-          />
-        </el-form-item>
-
-        <el-form-item prop="phone">
-          <el-input
-            v-model="form.phone"
-            placeholder="请输入手机号"
-            size="large"
-            :prefix-icon="Phone"
-            maxlength="11"
-          />
-        </el-form-item>
-
-        <!-- 图形验证码 -->
-        <el-row :gutter="12">
-          <el-col :span="14">
-            <el-form-item prop="captcha_code">
+        <el-row :gutter="24">
+          <!-- 账号信息 -->
+          <el-col :xs="24" :sm="12">
+            <el-form-item prop="username" :label="$t('auth.username')">
               <el-input
-                v-model="form.captcha_code"
-                placeholder="图形验证码"
+                v-model="form.username"
+                :placeholder="$t('auth.username')"
                 size="large"
-                maxlength="4"
+                :prefix-icon="User"
+              />
+            </el-form-item>
+
+            <el-form-item prop="email" :label="$t('auth.email')">
+              <el-input
+                v-model="form.email"
+                type="email"
+                :placeholder="$t('auth.email')"
+                size="large"
+                :prefix-icon="Message"
+              />
+            </el-form-item>
+
+            <el-form-item prop="phone" :label="$t('auth.phone')">
+              <el-input
+                v-model="form.phone"
+                :placeholder="$t('auth.phonePlaceholder')"
+                size="large"
+                :prefix-icon="Phone"
+                maxlength="11"
+              />
+            </el-form-item>
+
+            <el-form-item prop="password" :label="$t('auth.password')">
+              <el-input
+                v-model="form.password"
+                type="password"
+                :placeholder="$t('auth.password')"
+                size="large"
+                :prefix-icon="Lock"
+                show-password
+              />
+            </el-form-item>
+
+            <el-form-item prop="password_confirm" :label="$t('auth.confirmPassword')">
+              <el-input
+                v-model="form.password_confirm"
+                type="password"
+                :placeholder="$t('auth.confirmPassword')"
+                size="large"
+                :prefix-icon="Lock"
+                show-password
+                @keyup.enter="handleRegister"
               />
             </el-form-item>
           </el-col>
-          <el-col :span="10">
-            <img
-              :src="captchaImage"
-              alt="验证码"
-              class="captcha-img"
-              @click="refreshCaptcha"
-              title="点击刷新验证码"
-            />
-          </el-col>
-        </el-row>
 
-        <!-- 短信验证码 -->
-        <el-form-item prop="verify_code">
-          <el-input
-            v-model="form.verify_code"
-            placeholder="短信验证码"
-            size="large"
-            maxlength="6"
-          >
-            <template #append>
-              <el-button
-                :disabled="smsCountdown > 0 || !form.phone || !form.captcha_code"
-                :loading="sendingSms"
-                @click="sendVerifyCode"
-                style="min-width: 110px"
-              >
-                {{ smsCountdown > 0 ? `${smsCountdown}s后重试` : '发送验证码' }}
-              </el-button>
-            </template>
-          </el-input>
-        </el-form-item>
-
-        <el-form-item prop="email">
-          <el-input
-            v-model="form.email"
-            type="email"
-            :placeholder="$t('auth.email')"
-            size="large"
-            :prefix-icon="Message"
-          />
-        </el-form-item>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item prop="first_name">
+          <!-- 个人信息 -->
+          <el-col :xs="24" :sm="12">
+            <el-form-item prop="first_name" :label="$t('auth.firstName')">
               <el-input
                 v-model="form.first_name"
                 :placeholder="$t('auth.firstName')"
                 size="large"
               />
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item prop="last_name">
+
+            <el-form-item prop="last_name" :label="$t('auth.lastName')">
               <el-input
                 v-model="form.last_name"
                 :placeholder="$t('auth.lastName')"
                 size="large"
               />
             </el-form-item>
-          </el-col>
-        </el-row>
 
-        <el-form-item prop="password">
-          <el-input
-            v-model="form.password"
-            type="password"
-            :placeholder="$t('auth.password')"
-            size="large"
-            :prefix-icon="Lock"
-            show-password
-          />
-        </el-form-item>
-
-        <el-form-item prop="password_confirm">
-          <el-input
-            v-model="form.password_confirm"
-            type="password"
-            :placeholder="$t('auth.confirmPassword')"
-            size="large"
-            :prefix-icon="Lock"
-            show-password
-          />
-        </el-form-item>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item prop="department">
+            <el-form-item prop="department" :label="$t('auth.department')">
               <el-input
                 v-model="form.department"
                 :placeholder="$t('auth.department')"
                 size="large"
               />
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item prop="position">
+
+            <el-form-item prop="position" :label="$t('auth.position')">
               <el-input
                 v-model="form.position"
                 :placeholder="$t('auth.position')"
@@ -149,22 +133,27 @@
           </el-col>
         </el-row>
 
-        <el-form-item>
+        <el-form-item class="submit-item">
           <el-button
             type="primary"
             size="large"
             :loading="loading"
             @click="handleRegister"
-            style="width: 100%"
+            class="submit-button"
           >
             {{ $t('auth.register') }}
           </el-button>
         </el-form-item>
 
         <div class="form-footer">
-          <router-link to="/login">{{ $t('auth.hasAccount') }}</router-link>
+          <span>{{ $t('auth.hasAccount') }}</span>
+          <router-link to="/login" class="toggle-link">{{ $t('auth.login') }}</router-link>
         </div>
       </el-form>
+    </div>
+
+    <div class="bottom-info">
+      <p>{{ $t('auth.copyright') }}</p>
     </div>
   </div>
 </template>
@@ -174,27 +163,29 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Message, Phone } from '@element-plus/icons-vue'
+import { User, Lock, Message, Phone, ArrowDown } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import api from '@/utils/api'
+import { useAppStore } from '@/stores/app'
+import logoSvg from '@/assets/images/logo.svg'
 
 const router = useRouter()
 const userStore = useUserStore()
+const appStore = useAppStore()
 const { t } = useI18n()
+
+const currentLanguage = computed(() => appStore.language)
+
+// 语言切换（无刷新）
+const handleLanguageChange = (lang) => {
+  appStore.setLanguage(lang)
+}
+
 const formRef = ref()
 const loading = ref(false)
-const sendingSms = ref(false)
-const smsCountdown = ref(0)
-const captchaImage = ref('')
-const captchaToken = ref('')
-let countdownTimer = null
 
 const form = reactive({
   username: '',
   phone: '',
-  captcha_code: '',
-  verify_code: '',
-  verify_code_token: '',
   email: '',
   first_name: '',
   last_name: '',
@@ -204,11 +195,12 @@ const form = reactive({
   position: ''
 })
 
+// 手机号可选：填写时才校验格式
 const validatePhone = (rule, value, callback) => {
   if (!value) {
-    callback(new Error('请输入手机号'))
+    callback()
   } else if (!/^1[3-9]\d{9}$/.test(value)) {
-    callback(new Error('手机号格式不正确'))
+    callback(new Error(t('auth.phoneFormat')))
   } else {
     callback()
   }
@@ -219,18 +211,12 @@ const rules = {
     { required: true, message: computed(() => t('auth.usernameRequired')), trigger: 'blur' },
     { min: 3, max: 20, message: computed(() => t('auth.usernameLength')), trigger: 'blur' }
   ],
-  phone: [
-    { required: true, validator: validatePhone, trigger: 'blur' }
-  ],
-  captcha_code: [
-    { required: true, message: '请输入图形验证码', trigger: 'blur' }
-  ],
-  verify_code: [
-    { required: true, message: '请输入短信验证码', trigger: 'blur' }
-  ],
   email: [
     { required: true, message: computed(() => t('auth.emailRequired')), trigger: 'blur' },
     { type: 'email', message: computed(() => t('auth.emailFormat')), trigger: 'blur' }
+  ],
+  phone: [
+    { validator: validatePhone, trigger: 'blur' }
   ],
   password: [
     { required: true, message: computed(() => t('auth.passwordRequired')), trigger: 'blur' },
@@ -251,58 +237,6 @@ const rules = {
   ]
 }
 
-// 获取图形验证码
-const refreshCaptcha = async () => {
-  try {
-    const response = await api.get('/auth/captcha/')
-    captchaImage.value = response.data.image
-    captchaToken.value = response.data.token
-    form.captcha_code = ''
-  } catch (error) {
-    ElMessage.error('获取验证码失败，请刷新重试')
-  }
-}
-
-// 发送短信验证码
-const sendVerifyCode = async () => {
-  if (!form.phone) {
-    ElMessage.warning('请先输入手机号')
-    return
-  }
-  if (!form.captcha_code) {
-    ElMessage.warning('请先输入图形验证码')
-    return
-  }
-
-  sendingSms.value = true
-  try {
-    const response = await api.post('/auth/send-register-code/', {
-      phone: form.phone,
-      captcha_token: captchaToken.value,
-      captcha_code: form.captcha_code,
-      mode: 'register'
-    })
-    ElMessage.success('验证码已发送')
-    form.verify_code_token = response.data.verify_code_token
-    // 开始 60 秒倒计时
-    smsCountdown.value = 60
-    countdownTimer = setInterval(() => {
-      smsCountdown.value--
-      if (smsCountdown.value <= 0) {
-        clearInterval(countdownTimer)
-        countdownTimer = null
-      }
-    }, 1000)
-  } catch (error) {
-    const errMsg = error.response?.data?.error || '验证码发送失败'
-    ElMessage.error(errMsg)
-    // 刷新图形验证码
-    refreshCaptcha()
-  } finally {
-    sendingSms.value = false
-  }
-}
-
 const handleRegister = async () => {
   if (!formRef.value) return
 
@@ -315,71 +249,257 @@ const handleRegister = async () => {
         router.replace('/home')
       } catch (error) {
         ElMessage.error(error.response?.data?.error || t('auth.registerFailed'))
-        refreshCaptcha()
       } finally {
         loading.value = false
       }
     }
   })
 }
-
-// 页面加载时获取图形验证码
-refreshCaptcha()
 </script>
 
 <style lang="scss" scoped>
 .register-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--aitest-primary) 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 48px 24px;
+  background-color: var(--aitest-canvas);
+
+  // 靛蓝氛围光斑
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(80px);
+  }
+
+  &::before {
+    width: 520px;
+    height: 520px;
+    top: -160px;
+    left: -120px;
+    background: radial-gradient(circle, var(--aitest-primary-subtle) 0%, transparent 70%);
+    animation: drift 18s ease-in-out infinite;
+  }
+
+  &::after {
+    width: 460px;
+    height: 460px;
+    bottom: -140px;
+    right: -100px;
+    background: radial-gradient(circle, var(--aitest-prim-indigo-100) 0%, transparent 70%);
+    animation: drift 22s ease-in-out infinite reverse;
+  }
 }
 
-.register-form {
-  width: 520px;
-  padding: 40px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+/* 语言切换 */
+.lang-switcher {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  z-index: 2;
+
+  .el-dropdown-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: var(--aitest-text-2);
+    background: var(--aitest-surface);
+    border: 1px solid var(--aitest-card-border);
+    box-shadow: var(--aitest-shadow-xs);
+    padding: 8px 14px;
+    border-radius: var(--aitest-radius-full);
+    font-size: var(--aitest-font-size-md);
+    transition: all 0.2s ease;
+    outline: none;
+
+    &:hover {
+      border-color: var(--aitest-border-strong);
+      color: var(--aitest-text-1);
+    }
+
+    .lang-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+  }
+}
+
+/* 注册卡片 */
+.register-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 640px;
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-card-border);
+  border-radius: var(--aitest-radius-lg);
+  box-shadow: var(--aitest-card-shadow);
+  padding: 40px 40px 28px;
+  animation: fadeInUp 0.5s ease-out;
+
+  .brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+
+    .brand-logo-img {
+      height: 34px;
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    .brand-eyebrow {
+      margin-left: auto;
+      font-size: var(--aitest-font-size-sm);
+      font-weight: 500;
+      color: var(--aitest-text-3);
+      letter-spacing: 0.5px;
+    }
+  }
 
   .form-header {
-    text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 28px;
 
     h2 {
+      font-size: 24px;
+      font-weight: 700;
       color: var(--aitest-text-1);
-      font-size: 28px;
-      font-weight: 600;
-      margin: 0 0 10px 0;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.3px;
     }
 
     p {
-      color: var(--el-text-color-secondary);
+      font-size: var(--aitest-font-size-md);
+      color: var(--aitest-text-2);
       margin: 0;
+      line-height: 1.6;
     }
   }
 
-  .captcha-img {
-    width: 100%;
-    height: 40px;
-    border-radius: 4px;
-    cursor: pointer;
-    border: 1px solid var(--el-border-color-lighter);
-  }
+  .register-form {
+    :deep(.el-form-item) {
+      margin-bottom: 20px;
 
-  .form-footer {
-    text-align: center;
-    margin-top: 20px;
-
-    a {
-      color: var(--el-color-primary);
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
+      .el-form-item__label {
+        font-size: var(--aitest-font-size-sm);
+        font-weight: 500;
+        color: var(--aitest-text-2);
+        line-height: 1.4;
+        padding-bottom: 6px;
       }
     }
+
+    .submit-item {
+      margin-top: 28px;
+      margin-bottom: 16px;
+    }
+
+    .submit-button {
+      width: 100%;
+      height: 48px;
+      font-size: var(--aitest-font-size-lg);
+      font-weight: 600;
+      background: var(--aitest-primary);
+      border: none;
+
+      &:hover {
+        background: var(--aitest-primary-hover);
+      }
+
+      &:active {
+        background: var(--aitest-primary-active);
+      }
+
+      &.is-loading {
+        background: var(--aitest-primary);
+      }
+    }
+
+    .form-footer {
+      text-align: center;
+      font-size: var(--aitest-font-size-md);
+      color: var(--aitest-text-2);
+
+      .toggle-link {
+        color: var(--aitest-primary);
+        font-weight: 600;
+        text-decoration: none;
+        margin-left: 6px;
+
+        &:hover {
+          color: var(--aitest-primary-hover);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+.bottom-info {
+  position: relative;
+  z-index: 1;
+  margin-top: 24px;
+  text-align: center;
+
+  p {
+    font-size: var(--aitest-font-size-sm);
+    color: var(--aitest-text-3);
+    margin: 0;
+  }
+}
+
+/* 动效 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(20px, -20px) scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .register-card,
+  .register-container::before,
+  .register-container::after {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .register-container {
+    padding: 32px 16px;
+    justify-content: flex-start;
+  }
+
+  .lang-switcher {
+    top: 16px;
+    right: 16px;
+  }
+
+  .register-card {
+    padding: 28px 20px 20px;
   }
 }
 </style>

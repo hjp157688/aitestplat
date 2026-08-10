@@ -339,7 +339,7 @@ export default {
     async loadConfigs() {
       try {
         console.log('Loading prompt configs...')
-        // 加载需求分析模块的提示词
+        // 统一从需求分析提示词接口加载三类配置（writer/reviewer/api_testcase_generator）
         const response = await api.get('/requirement-analysis/prompts/')
         console.log('Prompts API response:', response.data)
 
@@ -348,15 +348,6 @@ export default {
           configs = response.data.results
         } else if (response.data && Array.isArray(response.data)) {
           configs = response.data
-        }
-
-        // 加载接口测试模块的提示词
-        try {
-          const apiResponse = await api.get('/api-testing/prompt-configs/')
-          const apiConfigs = apiResponse.data?.results || apiResponse.data || []
-          configs = [...configs, ...apiConfigs]
-        } catch (e) {
-          console.warn('Failed to load API testing prompt configs:', e)
         }
 
         this.configs = configs
@@ -383,20 +374,10 @@ export default {
       }
 
       try {
-        // 加载需求分析默认提示词
+        // 统一从需求分析 load_defaults 加载三类默认提示词（writer/reviewer/api_testcase_generator）
         const response = await api.get('/requirement-analysis/prompts/load_defaults/')
         console.log('Default prompts response:', response.data)
-        this.defaultPrompts = response.data.defaults
-
-        // 加载接口测试默认提示词
-        try {
-          const apiResponse = await api.get('/api-testing/prompt-configs/load-defaults/', {
-            params: { prompt_type: 'api_testcase_generator' }
-          })
-          this.defaultPrompts.api_testcase_generator = apiResponse.data.content
-        } catch (e) {
-          console.warn('Failed to load API testing default prompt:', e)
-        }
+        this.defaultPrompts = response.data.defaults || {}
 
         this.showDefaultsModal = true
         console.log('showDefaultsModal set to:', this.showDefaultsModal)
@@ -438,9 +419,9 @@ export default {
           })
         }
 
-        // 创建接口测试用例生成提示词配置
+        // 创建接口测试用例生成提示词配置（统一写到同一张 PromptConfig 表）
         if (missingTypes.includes('api_testcase_generator') && this.defaultPrompts.api_testcase_generator) {
-          await api.post('/api-testing/prompt-configs/', {
+          await api.post('/requirement-analysis/prompts/', {
             name: this.$t('promptConfig.defaultApiTestCaseName'),
             prompt_type: 'api_testcase_generator',
             content: this.defaultPrompts.api_testcase_generator,
@@ -503,9 +484,8 @@ export default {
           return
         }
 
-        // 根据 prompt_type 选择 API 端点
-        const isApiTesting = this.configForm.prompt_type === 'api_testcase_generator'
-        const baseUrl = isApiTesting ? '/api-testing/prompt-configs' : '/requirement-analysis/prompts'
+        // 提示词配置统一存于同一个接口（writer/reviewer/api_testcase_generator）
+        const baseUrl = '/requirement-analysis/prompts'
 
         if (this.isEditing) {
           await api.patch(`${baseUrl}/${this.editingConfigId}/`, this.configForm)
@@ -531,10 +511,8 @@ export default {
       }
 
       try {
-        // 查找配置以确定正确的 API 端点
-        const config = this.configs.find(c => c.id === configId)
-        const isApiTesting = config && config.prompt_type === 'api_testcase_generator'
-        const baseUrl = isApiTesting ? '/api-testing/prompt-configs' : '/requirement-analysis/prompts'
+        // 提示词配置统一存于同一个接口
+        const baseUrl = '/requirement-analysis/prompts'
 
         await api.delete(`${baseUrl}/${configId}/`)
         ElMessage.success(this.$t('promptConfig.deleteSuccess'))

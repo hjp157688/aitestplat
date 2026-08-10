@@ -30,6 +30,15 @@ def _resp(status_code=201, payload=None, text=''):
 
 class ZentaoGetTokenTests(SimpleTestCase):
 
+    def setUp(self):
+        # _get_token 带进程内 token 缓存，各用例用相同 _cfg() 会互相污染，先清掉
+        from apps.requirement_analysis.services import _token_cache
+        self._cache = _token_cache
+        self._cache.clear()
+
+    def tearDown(self):
+        self._cache.clear()
+
     @mock.patch('apps.requirement_analysis.services.requests.post')
     def test_returns_token_on_201(self, mock_post):
         mock_post.return_value = _resp(201, {'token': 'abc123'})
@@ -310,3 +319,47 @@ class ZentaoTestCaseMethodsTests(SimpleTestCase):
         self.assertEqual(args[0], 'https://zentao.example.com/api.php/v1/testcases/1')
         self.assertEqual(kwargs['json'], {'keywords': 'x'})
         self.assertEqual(kwargs['headers'], {'Token': 'tok'})
+
+
+class ZentaoTokenCacheTests(SimpleTestCase):
+    """token 进程内缓存：避免大批量导入/导出逐用例重新登录"""
+
+    def setUp(self):
+        from apps.requirement_analysis.services import _token_cache
+        self._cache = _token_cache
+        self._cache.clear()
+
+    def tearDown(self):
+        self._cache.clear()
+
+    @mock.patch('apps.requirement_analysis.services.requests.post')
+    def test_second_call_hits_cache(self, mock_post):
+        """连续两次取 token 只触发一次登录"""
+        mock_post.return_value = _resp(201, {'token': 'abc123'})
+        cfg = _cfg()
+        self.assertEqual(ZentaoService._get_token(cfg), 'abc123')
+        self.assertEqual(ZentaoService._get_token(cfg), 'abc123')
+        self.assertEqual(mock_post.call_count, 1)
+
+    @mock.patch('apps.requirement_analysis.services.requests.post')
+    def test_clear_token_cache_forces_refetch(self, mock_post):
+        mock_post.return_value = _resp(201, {'token': 'abc123'})
+        cfg = _cfg()
+        ZentaoService._get_token(cfg)
+        ZentaoService._clear_token_cache(cfg)
+        ZentaoService._get_token(cfg)
+        self.assertEqual(mock_post.call_count, 2)
+
+    @mock.patch('apps.requirement_analysis.services.requests.get')
+    @mock.patch('apps.requirement_analysis.services.requests.post')
+    def test_call_api_invalidates_cache_on_401(self, mock_post, mock_get):
+        """_call_api 遇 401 清除 token 缓存，下次调用重新登录"""
+        mock_post.return_value = _resp(201, {'token': 'tok-1'})
+        mock_get.return_value = _resp(401, text='Unauthorized')
+        cfg = _cfg()
+        with self.assertRaisesRegex(Exception, 'HTTP 401'):
+            ZentaoService._call_api(cfg, '/api.php/v1/products')
+        # 缓存已清：再次 _get_token 会重新登录
+        mock_post.return_value = _resp(201, {'token': 'tok-2'})
+        self.assertEqual(ZentaoService._get_token(cfg), 'tok-2')
+        self.assertEqual(mock_post.call_count, 2)

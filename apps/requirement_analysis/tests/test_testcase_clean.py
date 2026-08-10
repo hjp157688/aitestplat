@@ -66,6 +66,64 @@ class NormalizeStepsTests(SimpleTestCase):
         self.assertEqual(normalize_steps([]), [])
         self.assertEqual(normalize_steps(''), [])
 
+    def test_expected_prefix_steps_merged_into_previous(self):
+        """AI 偶发把每条期望输出成独立「预期:」步骤：应并入上一步 expect，而不是挤在步骤里。"""
+        out = normalize_steps([
+            {'desc': '打开登录页', 'expect': ''},
+            {'desc': '预期: 登录页正常显示，文字和背景对比度清晰', 'expect': ''},
+            {'desc': '检查输入框和按钮', 'expect': ''},
+            {'desc': '预期: 输入框和按钮在深色模式下无颜色冲突，可正常操作', 'expect': ''},
+        ])
+        self.assertEqual(out, [
+            {'desc': '打开登录页', 'expect': '登录页正常显示，文字和背景对比度清晰'},
+            {'desc': '检查输入框和按钮', 'expect': '输入框和按钮在深色模式下无颜色冲突，可正常操作'},
+        ])
+
+    def test_expected_prefix_in_newline_merged(self):
+        """desc 内换行夹带「预期:」：拆分后仍应合并回上一步 expect。"""
+        out = normalize_steps([
+            {'desc': '打开登录页\n预期: 登录页正常显示', 'expect': ''},
+            {'desc': '输入手机号', 'expect': ''},
+        ])
+        self.assertEqual(out, [
+            {'desc': '打开登录页', 'expect': '登录页正常显示'},
+            {'desc': '输入手机号', 'expect': ''},
+        ])
+
+    def test_expect_field_prefixed_label_stripped(self):
+        """expect 字段本身带「预期:」前缀也应清理，避免展示时重复标签。"""
+        out = normalize_steps([{'desc': '点击登录', 'expect': '预期: 跳转主页'}])
+        self.assertEqual(out[0]['desc'], '点击登录')
+        self.assertEqual(out[0]['expect'], '跳转主页')
+
+    def test_expected_prefix_accumulates_on_multi_step(self):
+        """同一动作后跟多个「预期:」步骤：追加合并，不互相覆盖。"""
+        out = normalize_steps([
+            {'desc': '点击登录', 'expect': ''},
+            {'desc': '预期: 按钮进入加载状态', 'expect': ''},
+            {'desc': '预期: 登录成功后跳转主页', 'expect': ''},
+        ])
+        self.assertEqual(out, [{
+            'desc': '点击登录',
+            'expect': '按钮进入加载状态\n登录成功后跳转主页',
+        }])
+
+    def test_expected_prefix_first_step_kept_without_merge(self):
+        """首步即是「预期:」时无可并入上一步，保留为独立步骤（仅去掉标签前缀）。"""
+        out = normalize_steps([
+            {'desc': '预期: 输入框正常显示', 'expect': ''},
+            {'desc': '输入手机号', 'expect': ''},
+        ])
+        self.assertEqual(out[0]['desc'], '输入框正常显示')
+        self.assertEqual(out[1]['desc'], '输入手机号')
+
+    def test_action_step_containing_label_word_not_mangled(self):
+        """动作行以「预期」起头但无冒号/无标签语义（如「预期测试某功能」）不应被误合并。"""
+        out = normalize_steps([{'desc': '预期测试某功能的展示', 'expect': ''}])
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out[0]['desc'], '预期测试某功能的展示')
+        self.assertEqual(out[0]['expect'], '')
+
 
 class ParseTestCasesContentTests(SimpleTestCase):
     """_parse_test_cases_content 对 JSONL 与旧表格两种输入的清洗行为"""

@@ -523,13 +523,34 @@ warnings.filterwarnings(
     category=requests.packages.urllib3.exceptions.InsecureRequestWarning,
 )
 
+# 禅道 token 缓存：大批量导入/导出时避免每个用例都重新登录一次
+import threading
+TOKEN_CACHE_TTL_SECONDS = 600  # 10 分钟
+_token_cache = {}  # (zentao_url, account) -> (token, fetched_at)
+_token_cache_lock = threading.Lock()
+
+
+def _token_cache_key(config):
+    return (config.zentao_url, config.zentao_account)
+
 
 class ZentaoService:
     """禅道 API 集成服务"""
 
     @staticmethod
+    def _clear_token_cache(config):
+        """token 失效/异常时清除缓存项"""
+        with _token_cache_lock:
+            _token_cache.pop(_token_cache_key(config), None)
+
+    @staticmethod
     def _get_token(config) -> str:
-        """获取禅道API Token"""
+        """获取禅道API Token（带进程内缓存，避免逐用例重新登录）"""
+        from time import time as _now
+        with _token_cache_lock:
+            cached = _token_cache.get(_token_cache_key(config))
+            if cached and (_now() - cached[1]) < TOKEN_CACHE_TTL_SECONDS:
+                return cached[0]
         url = config.zentao_url.rstrip('/') + '/api.php/v1/tokens'
 
         try:
@@ -545,6 +566,8 @@ class ZentaoService:
                 token = data.get('token', '')
                 if not token:
                     raise Exception(f"返回数据中无token字段，响应: {resp.text[:200]}")
+                with _token_cache_lock:
+                    _token_cache[_token_cache_key(config)] = (token, _now())
                 return token
             else:
                 raise Exception(f"HTTP {resp.status_code}: {resp.text[:500]}")
@@ -585,6 +608,9 @@ class ZentaoService:
                     raise Exception(f"禅道API返回错误: {data.get('error')}")
                 return data
             else:
+                if resp.status_code == 401:
+                    # token 失效，清缓存避免长期持有无效 token
+                    ZentaoService._clear_token_cache(config)
                 raise Exception(f"HTTP {resp.status_code} ({endpoint}): {resp.text[:300]}")
         except requests.exceptions.SSLError:
             raise Exception(

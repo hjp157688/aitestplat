@@ -12,10 +12,14 @@ export default {
   loginFailed: 'Login failed',
 
   // Register page
-  registerTitle: 'Register AITestPlat',
+  appTagline: 'AI · Testing Platform',
+  welcomeRegister: 'Create your account',
   registerSubtitle: 'Create your test management account',
   username: 'Username',
   email: 'Email',
+  phone: 'Phone',
+  phonePlaceholder: 'Enter phone (optional)',
+  phoneFormat: 'Invalid phone number format',
   firstName: 'First Name',
   lastName: 'Last Name',
   password: 'Password',
@@ -50,7 +54,7 @@ export default {
   passwordMismatch: 'Passwords do not match',
 
   // Copyright
-  copyright: '© 2024 AITestPlat. All rights reserved.',
+  copyright: '© 2026 AITestPlat. All rights reserved.',
 
   // Language switcher
   languageZhCN: '简体中文',

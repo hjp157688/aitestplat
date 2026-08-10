@@ -24,6 +24,10 @@ _HEADING_RE = re.compile(r'^#{1,6}\s*')
 # 步骤行首序号/符号：1. 1、 -  • *
 _STEP_PREFIX_RE = re.compile(r'^\s*(?:\d+[\.\、\)]|[-*•])\s*')
 
+# 期望标签：AI 偶发把期望输出成独立「预期: xxx」步骤，或把「预期:」写进 expect 字段。
+# 需要「预期」后跟冒号/空白/结尾，避免误伤「预期测试某功能」这类动作描述。
+_EXPECT_LABEL_RE = re.compile(r'^\s*(?:预期结果|预期|期望结果|期望)(?:\s*[:：]|\s+|$)(.*)$', re.S)
+
 _ENTITY_MAP = {
     '&#124;': '|',
     '&#x7c;': '|',
@@ -84,12 +88,62 @@ def _split_step_lines(desc: str, expect: str = '') -> list:
     return steps
 
 
+def _strip_expect_label(text: str) -> str:
+    """去掉行首的「预期/预期结果[:： 空间]」标签，返回剩余内容。"""
+    m = _EXPECT_LABEL_RE.match(str(text).strip())
+    if m:
+        return m.group(1).strip()
+    return str(text).strip()
+
+
+def _merge_expected_steps(steps: list) -> list:
+    """把「预期: xxx」形式的独立步骤并入上一步的 expect。
+
+    AI 偶发把每条期望输出成独立步骤（desc 以「预期/预期结果」开头、expect 为空），
+    而不是挂在对应步骤的 expect 字段。desc 内换行夹带「预期: ...」在 _split_step_lines
+    拆分后同样是「预期:」独立步。若直接透传，会出现用户反馈的
+    「步骤和预期没有对应、预期挤在步骤里、每步预期为空」。故在此合并：
+    - 「预期:」开头的步骤 → 并入上一步 expect（多行追加，不互相覆盖）
+    - 首步即是「预期:」时无可并入，保留为独立步骤并去掉标签前缀
+    - expect 字段自带「预期:」前缀时，也清理掉前缀
+    """
+    merged = []
+    for step in steps:
+        raw = dict(step or {})
+        desc = (raw.get('desc') or '').strip()
+        expect = (raw.get('expect') or '').strip()
+
+        # 期望标签步：并入上一步的 expect；无上一步时保留为独立步骤（去掉标签前缀）
+        if desc and _EXPECT_LABEL_RE.match(desc):
+            content = _strip_expect_label(desc)
+            if expect:
+                content = f"{content}\n{expect}" if content else expect
+            if merged:
+                prev = merged[-1]
+                if prev.get('expect'):
+                    prev['expect'] = f"{prev['expect']}\n{content}"
+                else:
+                    prev['expect'] = content
+                continue
+            raw['desc'] = content
+            raw['expect'] = ''
+            merged.append(raw)
+            continue
+
+        # 即使 expect 字段本身带了「预期:」前缀也清理掉，避免展示重复标签
+        if expect:
+            raw['expect'] = _strip_expect_label(expect)
+        merged.append(raw)
+    return merged
+
+
 def normalize_steps(raw) -> list:
     """规整 steps 为 [{desc, expect}] 列表。
 
     - raw 为 list：逐项清洗；若某项 desc 含换行（如 "**1…**<br>**2…**"），
       拆成多步并把该项 expect 挂到最后一步。
     - raw 为 str：先 clean_text，再按行拆成多步（去掉行首序号）。
+    - 统一做「预期:」独立步合并，保证步骤与预期一一对应。
     """
     if not raw:
         return []
@@ -102,10 +156,10 @@ def normalize_steps(raw) -> list:
                 result.extend(_split_step_lines(desc, exp))
             elif isinstance(item, str):
                 result.extend(normalize_steps(item))
-        return result
+        return _merge_expected_steps(result)
 
     if isinstance(raw, str):
         text = clean_text(raw)
-        return _split_step_lines(text, '')
+        return _merge_expected_steps(_split_step_lines(text, ''))
 
     return []

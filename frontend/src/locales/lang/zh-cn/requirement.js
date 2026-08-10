@@ -536,7 +536,7 @@ export default {
     enabled: '启用',
     disabled: '禁用',
     preview: '预览',
-    edit: '✏️ 编辑',
+    edit: '编辑',
     delete: '删除',
 
     // Config Details
@@ -648,7 +648,7 @@ export default {
     streamMode: '流式输出',
     completeMode: '完整输出',
     enable: '启用',
-    edit: '✏️ 编辑',
+    edit: '编辑',
     delete: '删除',
 
     // Sections

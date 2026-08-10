@@ -1277,7 +1277,11 @@ class AIModelService:
         out_lines = []
         for obj in entries:
             if not isinstance(obj, dict):
-                out_lines.append(json.dumps(obj, ensure_ascii=False))
+                # 丢弃非对象 JSON 行（如裸 null/数字/字符串），避免污染最终用例，
+                # 否则保存/解析用例时会对 None 调用 .get() 而崩溃。
+                logger.warning(
+                    f"renumber_test_cases: 丢弃非对象 JSON 行: "
+                    f"{json.dumps(obj, ensure_ascii=False)[:60]!r}")
                 continue
             case_id = obj.get('case_id')
             m = _CASE_ID_PATTERN.match(str(case_id).strip()) if isinstance(case_id, str) else None
