@@ -245,6 +245,8 @@ export default {
     noRequestBody: 'No request body',
     // Assertions
     assertions: 'Assertions',
+    // Case Variables
+    caseVariables: 'Case Variables',
     addAssertion: 'Add Assertion',
     assertionName: 'Assertion Name',
     selectAssertionType: 'Select Assertion Type',

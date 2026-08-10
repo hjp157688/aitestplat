@@ -516,6 +516,17 @@
                 </div>
               </el-tab-pane>
 
+              <el-tab-pane :label="$t('apiTesting.interface.caseVariables')" name="case-variables">
+                <div class="case-variables-tab">
+                  <KeyValueEditor
+                    v-model="caseVariablesRows"
+                    :placeholder-key="$t('apiTesting.interface.paramName')"
+                    :placeholder-value="$t('apiTesting.interface.paramValue')"
+                  />
+                  <p class="variables-hint">启用状态且有变量名的行会作为本接口的用例级变量，执行时替换请求里的 &#123;&#123;变量名&#125;&#125;，且覆盖环境变量中的同名变量。</p>
+                </div>
+              </el-tab-pane>
+
               <el-tab-pane :label="$t('apiTesting.interface.assertions')" name="assertions">
                 <div class="assertions-editor">
                   <div class="assertions-header">
@@ -819,21 +830,19 @@
                   </div>
                 </div>
               </el-tab-pane>
+
+              <el-tab-pane :label="$t('apiTesting.interface.caseVariables')" name="case-variables">
+                <div class="case-variables-tab">
+                  <KeyValueEditor
+                    v-model="caseVariablesRows"
+                    :placeholder-key="$t('apiTesting.interface.paramName')"
+                    :placeholder-value="$t('apiTesting.interface.paramValue')"
+                  />
+                  <p class="variables-hint">启用状态且有变量名的行会作为本接口的用例级变量，执行时替换请求里的 &#123;&#123;变量名&#125;&#125;，且覆盖环境变量中的同名变量。</p>
+                </div>
+              </el-tab-pane>
             </template>
           </el-tabs>
-
-          <!-- 用例变量（可编辑，保存后作为本接口的用例级变量） -->
-          <div v-if="selectedRequest" class="case-variables-section">
-            <h4>用例变量</h4>
-            <div class="variables-editor">
-              <KeyValueEditor
-                v-model="caseVariablesRows"
-                :placeholder-key="$t('apiTesting.interface.paramName')"
-                :placeholder-value="$t('apiTesting.interface.paramValue')"
-              />
-            </div>
-            <p class="variables-hint">启用状态且有变量名的行会作为本接口的用例级变量，执行时替换请求里的 &#123;&#123;变量名&#125;&#125;，且覆盖环境变量中的同名变量。</p>
-          </div>
 
           <!-- 响应区域 -->
           <div v-if="response" class="response-section">
@@ -5247,11 +5256,9 @@ const useLocalVariableCategories = () => {
 .schema-tree { margin-top: 8px; }
 .empty-tip { color: var(--aitest-text-3); font-size: 13px; padding: 16px 0; }
 
-/* 用例变量展示 */
-.case-variables-section { padding: 12px 16px; border-top: 1px solid var(--el-border-color-light); }
-.case-variables-section h4 { margin: 0 0 8px; font-size: 14px; font-weight: 500; color: var(--el-text-color-primary); }
-.variables-editor { max-width: 480px; }
-.variables-hint { margin: 6px 0 0; font-size: 12px; color: var(--el-text-color-secondary); }
+/* 用例变量 tab */
+.case-variables-tab { padding: 4px 0; }
+.variables-hint { margin: 8px 0 0; font-size: 12px; color: var(--el-text-color-secondary); }
 
 /* Deprecated tree node styles */
 .deprecated-node .node-label {

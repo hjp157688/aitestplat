@@ -228,6 +228,8 @@ export default {
     // 脚本
     preRequestScript: '// 请求前脚本，使用JavaScript语法',
     postRequestScript: '// 请求后脚本和测试，使用JavaScript语法',
+    // 用例变量
+    caseVariables: '用例变量',
     // 断言
     assertions: '断言',
     addAssertion: '添加断言',
