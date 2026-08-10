@@ -41,7 +41,15 @@ for img in images/*.tar; do
 done
 
 # --- 4. 生成 .docker_env(仅首次;已存在则不动) ---
-gen_secret() { openssl rand -hex 32 2>/dev/null || head -c 64 /dev/urandom | tr -dc 'a-f0-9'; }
+gen_secret() {
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -hex 32
+  elif command -v xxd >/dev/null 2>&1; then
+    head -c 32 /dev/urandom | xxd -p | tr -d '\n'
+  else
+    od -A n -t x1 -N 32 /dev/urandom | tr -d ' \n'
+  fi
+}
 if [ ! -f .docker_env ]; then
   say "首次运行,依据 .docker_env.example 生成 .docker_env(自动随机密钥)..."
   cp .docker_env.example .docker_env
