@@ -250,8 +250,14 @@ docker compose --env-file .docker_env up -d --build
 - 访问：前端 http://localhost:18081，后端直连 http://localhost:18181/api/docs/
 - 配置模板见 `.docker_env.example`；全栈 nginx 配置见 `deploy/nginx.conf`
 - 后端镜像：`backend/Dockerfile` + `backend/entrypoint.sh` + `backend/scheduler-loop.sh`
-- 镜像构建/推送：`./build-and-push.sh [--push]`
+- 镜像构建/推送：`./build-offline.sh`（见下方离线部署）
 - 前端"仅前端"模式：`frontend/Dockerfile` + `frontend/docker-compose.yml`（反向代理到宿主机后端）
+
+### 离线部署（内网服务器）
+
+内网服务器无法访问外网时：在任意有 Docker + 外网的机器运行 `./build-offline.sh` 生成离线包
+`aitestplat-offline-<VER>.tar.gz`，上传到服务器解压后执行 `./install.sh` 即可（自动加载镜像与生成密钥，
+全程零外网）。详见 `offline/README.offline.txt`。
 
 ## API 结构
 
