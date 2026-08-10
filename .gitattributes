@@ -1,0 +1,7 @@
+# 容器/脚本关键文件强制 LF 行尾(Windows 检出默认会转 CRLF,会破坏容器内 shell 脚本)
+*.sh        text eol=lf
+*.bash      text eol=lf
+Dockerfile* text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+.dockerignore text eol=lf

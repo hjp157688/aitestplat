@@ -33,3 +33,26 @@ AITestPlat 离线部署包
   · 某端口被占用:改 .docker_env 的 FRONTEND_PORT/BACKEND_PORT 后重跑 install.sh
   · 起不来: docker compose --env-file .docker_env logs -f --tail 200 看报错
   · 需真离线:镜像已内置全部依赖,启动阶段不访问外网(AI/短信等外部 API 为可选)
+
+Windows 部署说明
+---------------  (服务器或构建机是 Windows 时)
+  1. 跑 compose(全栈起/日常管理):装 Docker Desktop for Windows(WSL2 后端)后,
+     PowerShell / CMD 里直接执行(命令与 Linux 完全一致):
+       docker compose --env-file .docker_env up -d --no-build
+       docker compose --env-file .docker_env ps
+  2. 跑 bash 脚本(build-offline.sh / install.sh):Windows 无原生 bash,请用
+     「Git for Windows 自带的 Git Bash」或 WSL,在里面执行:
+       ./install.sh           (或: bash install.sh)
+       ./build-offline.sh     (或: bash build-offline.sh)
+     install.sh 用到的 openssl 由 Git Bash 自带;若缺失会走 /dev/urandom+od 兜底,
+     同样可生成满熵密钥。
+  3. 行尾坑(重要):git 在 Windows 默认(autocrlf=true)会把 *.sh 打成 CRLF,
+     容器里的 entrypoint.sh 会因此报 "not found"/bad interpreter 起不来。
+     仓库已带 .gitattributes 强制 LF,新克隆一般不用处理;若仍报错,执行:
+       git config core.autocrlf false
+       git rm --cached -r . >/dev/null
+       git reset --hard
+     然后重新 ./install.sh。
+  4. 端口占用/防火墙:对外端口(默认为 18081/18181)需在 Windows 防火墙放行,
+     或改 .docker_env 的 FRONTEND_PORT/BACKEND_PORT。
+
