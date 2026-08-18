@@ -1,0 +1,60 @@
+# ========================================
+# AITestPlat Docker 部署环境变量模板
+# 用法:
+#   cp .docker_env.example .docker_env   # 然后填写真实值
+#   docker compose --env-file .docker_env up -d --build
+# .docker_env 不入库(.docker_env.example 入库)
+# ========================================
+
+# ---- 安全 ----
+# Django SECRET_KEY(必填;生产用强随机串)
+SECRET_KEY=please-change-me-to-a-long-random-string
+# 调试模式;生产设为 False。DEBUG=False 时必须设置下方 ALLOWED_HOSTS
+DEBUG=True
+# 允许的主机(逗号分隔;DEBUG=False 时必填,建议写具体域名)
+ALLOWED_HOSTS=*
+
+# ---- 跨域 / CSRF(前端默认 http://localhost:18081)----
+CORS_ALLOWED_ORIGINS=http://localhost:18081,http://127.0.0.1:18081
+CSRF_TRUSTED_ORIGINS=http://localhost:18081,http://127.0.0.1:18081
+
+# ---- 数据库(compose 内部 mysql 服务;不需改 host/port)----
+# MySQL root 密码(必填)
+MYSQL_ROOT_PASSWORD=change-me-root-password
+# 应用账号(由 mysql 服务据此创建,%主机可访问)
+DB_USER=aitestplat
+DB_PASSWORD=change-me-db-password
+# 库名
+DB_NAME=aitestplat
+
+# ---- 端口(可覆盖默认值)----
+# 前端对外端口
+FRONTEND_PORT=18081
+# 后端对外端口
+BACKEND_PORT=18181
+
+# ---- 镜像标签(build-offline.sh 用)----
+# DOCKER_REGISTRY=https://hub.docker.com/
+DOCKER_NAMESPACE=aitestplat
+IMAGE_VERSION=latest
+
+# ---- Redis(compose 内部 redis 服务,一般无需改)----
+# REDIS_URL=redis://redis:6379/0
+
+# ---- scheduler 间隔(秒)----
+# SCHEDULER_INTERVAL=300
+
+# ---- 可选外部密钥(有使用则照抄根 .env.example 的对应键)----
+# DEEPSEEK_API_KEY=
+# SMS_ACCESS_KEY_ID=
+# EMAIL_HOST_PASSWORD=
+
+# ---- MCP Server(AI Agent 连接平台)----
+# http transport 时用于 Bearer 校验的强令牌(必填,生产请使用强随机串)
+MCP_SERVER_TOKEN=your-strong-mcp-token
+# MCP 服务账号用户名(进程内直连业务以此身份执行)
+MCP_SERVICE_USER=mcp_agent
+# http transport 监听地址与端口
+MCP_HOST=0.0.0.0
+MCP_PORT=8765
+

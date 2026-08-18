@@ -1,0 +1,24 @@
+# 前端开发环境 Dockerfile
+# vite ^7 要求 Node >=20.19 / >=22.12,这里用 LTS 22
+FROM node:22-alpine
+
+WORKDIR /app
+
+# tree-sitter(curlconverter 传递依赖)为原生模块,Node 22 ABI 无预编译二进制,
+# 需 node-gyp 现场编译;Alpine 默认缺 python3/make/g++,故先装齐
+RUN apk add --no-cache python3 make g++
+
+# 复制依赖文件
+COPY package*.json ./
+
+# 安装依赖
+RUN npm install
+
+# 复制源代码
+COPY . .
+
+# 暴露开发服务器端口
+EXPOSE 3000
+
+# 启动开发服务器
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

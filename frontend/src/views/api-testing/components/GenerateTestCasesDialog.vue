@@ -1,0 +1,717 @@
+<template>
+  <el-dialog
+    v-model="visible"
+    :title="$t('apiTesting.generateTestCases.title')"
+    width="1000px"
+    :close-on-click-modal="false"
+    @close="handleClose"
+  >
+    <div class="generate-testcases-dialog">
+      <!-- Step 1: 配置生成 -->
+      <div v-if="!generationStarted" class="config-section">
+        <div class="selected-requests">
+          <h4>{{ $t('apiTesting.generateTestCases.selectedRequests') }} ({{ selectedRequests.length }})</h4>
+          <el-table :data="selectedRequests" max-height="200" style="width: 100%">
+            <el-table-column prop="name" :label="$t('apiTesting.importOpenApi.summary')" />
+            <el-table-column :label="$t('apiTesting.importOpenApi.method')" width="80">
+              <template #default="{ row }">
+                <el-tag :type="methodTagType(row.method)" size="small">{{ row.method }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="url" :label="'URL'" min-width="250" show-overflow-tooltip />
+          </el-table>
+        </div>
+
+        <div class="gen-options">
+          <div class="option-item">
+            <span class="label">{{ $t('apiTesting.generateTestCases.aiConfig') }}:</span>
+            <el-select v-model="aiConfigId" :placeholder="$t('apiTesting.generateTestCases.selectAiConfig')" style="width: 300px;">
+              <el-option
+                v-for="c in aiConfigs"
+                :key="c.id"
+                :label="`${c.name} (${c.model_name})`"
+                :value="c.id"
+              />
+            </el-select>
+          </div>
+          <div class="option-item">
+            <span class="label">{{ $t('apiTesting.generateTestCases.environment') }}:</span>
+            <el-select v-model="environmentId" clearable placeholder="-"
+                       style="width: 300px;">
+              <el-option v-for="env in environments" :key="env.id" :label="env.name" :value="env.id" />
+            </el-select>
+          </div>
+          <div class="option-item">
+            <span class="label">{{ $t('apiTesting.generateTestCases.scenarios') }}:</span>
+            <el-checkbox-group v-model="scenarios">
+              <el-checkbox value="positive" label="positive">{{ $t('apiTesting.generateTestCases.positive') }}</el-checkbox>
+              <el-checkbox value="negative" label="negative">{{ $t('apiTesting.generateTestCases.negative') }}</el-checkbox>
+              <el-checkbox value="boundary" label="boundary">{{ $t('apiTesting.generateTestCases.boundary') }}</el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: 生成进度 -->
+      <div v-if="generationStarted && generating" class="progress-section">
+        <el-alert :title="$t('apiTesting.generateTestCases.generating')" type="info" :closable="false" show-icon />
+        <el-progress :percentage="progress" :status="progress === 100 ? 'success' : ''" style="margin-top: 16px;" />
+        <p class="progress-text">{{ progressText }}</p>
+      </div>
+
+      <!-- Step 3: 生成结果 -->
+      <div v-if="generationCompleted" class="result-section">
+        <el-alert
+          :title="`${$t('apiTesting.generateTestCases.completed')} - ${$t('apiTesting.generateTestCases.totalCases', { count: totalCaseCount })}`"
+          type="success"
+          :closable="false"
+          show-icon
+        />
+
+        <div class="result-toolbar">
+          <el-checkbox v-model="selectAllCases" @change="handleSelectAllCases">{{ $t('apiTesting.generateTestCases.selectAll') }}</el-checkbox>
+          <el-button size="small" @click="expandAll">{{ $t('apiTesting.generateTestCases.expandAll') }}</el-button>
+          <el-button size="small" @click="collapseAll">{{ $t('apiTesting.generateTestCases.collapseAll') }}</el-button>
+        </div>
+
+        <el-collapse v-model="activeGroups" class="result-groups">
+          <el-collapse-item
+            v-for="group in caseGroups"
+            :key="group.requestId"
+            :name="String(group.requestId)"
+          >
+            <template #title>
+              <div class="group-title">
+                <el-tag :type="methodTagType(group.method)" size="small">{{ group.method }}</el-tag>
+                <span class="group-name">{{ group.requestName }}</span>
+                <span class="group-url">{{ group.url }}</span>
+                <el-tag size="small" type="info">{{ group.cases.length }} {{ $t('apiTesting.generateTestCases.cases') }}</el-tag>
+              </div>
+            </template>
+
+            <div class="case-list">
+              <div
+                v-for="(testCase, index) in group.cases"
+                :key="index"
+                class="case-card"
+                :class="{ selected: selectedCases[group.requestId]?.includes(index) }"
+              >
+                <div class="case-header">
+                  <el-checkbox
+                    :model-value="selectedCases[group.requestId]?.includes(index)"
+                    @change="(val) => toggleCase(group.requestId, index, val)"
+                  >
+                    <span class="case-name">{{ testCase.name }}</span>
+                  </el-checkbox>
+                  <div class="case-actions">
+                    <el-button size="small" text @click="toggleCaseDetail(group.requestId, index)">
+                      {{ expandedCases[`${group.requestId}_${index}`] ? $t('apiTesting.generateTestCases.collapseAll') : $t('apiTesting.generateTestCases.expandAll') }}
+                    </el-button>
+                    <el-button size="small" text type="danger" @click="removeCase(group.requestId, index)">
+                      {{ $t('apiTesting.common.delete') }}
+                    </el-button>
+                  </div>
+                </div>
+
+                <div v-if="expandedCases[`${group.requestId}_${index}`]" class="case-detail">
+                  <div class="detail-section">
+                    <h5>{{ $t('apiTesting.generateTestCases.requestBody') }}</h5>
+                    <el-input
+                      :model-value="formatBody(testCase.body_override)"
+                      type="textarea"
+                      :rows="4"
+                      readonly
+                    />
+                  </div>
+                  <div class="detail-section">
+                    <h5>{{ $t('apiTesting.generateTestCases.assertions') }} ({{ testCase.assertions?.length || 0 }})</h5>
+                    <div v-for="(assertion, ai) in testCase.assertions" :key="ai" class="assertion-item">
+                      <el-tag size="small" type="success">✓</el-tag>
+                      <span>{{ formatAssertion(assertion) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+
+        <div class="save-section">
+          <div class="save-options">
+            <el-input
+              v-model="suiteName"
+              :placeholder="$t('apiTesting.generateTestCases.suiteNamePlaceholder')"
+              style="width: 300px;"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- 错误提示 -->
+      <div v-if="generationError" class="error-section">
+        <el-alert :title="$t('apiTesting.generateTestCases.error')" :description="generationError" type="error" show-icon />
+      </div>
+    </div>
+
+    <template #footer>
+      <el-button @click="handleClose">{{ $t('apiTesting.common.cancel') }}</el-button>
+      <el-button
+        v-if="!generationStarted"
+        type="primary"
+        @click="startGeneration"
+        :loading="generating"
+        :disabled="!canGenerate"
+      >
+        {{ $t('apiTesting.generateTestCases.generate') }}
+      </el-button>
+      <el-button
+        v-if="generationStarted && generationError"
+        @click="retryGeneration"
+      >
+        {{ $t('apiTesting.generateTestCases.retry') }}
+      </el-button>
+      <el-button
+        v-if="generationCompleted"
+        type="primary"
+        @click="saveCases"
+        :loading="saving"
+        :disabled="saving"
+      >
+        {{ $t('apiTesting.generateTestCases.save') }}
+      </el-button>
+    </template>
+  </el-dialog>
+</template>
+
+<script setup>
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
+import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
+import api from '@/utils/api'
+
+const props = defineProps({
+  modelValue: Boolean,
+  selectedRequests: { type: Array, default: () => [] },
+  projectId: { type: Number, default: null },
+})
+
+const emit = defineEmits(['update:modelValue', 'saved'])
+
+const { t } = useI18n()
+
+const visible = computed({
+  get: () => props.modelValue,
+  set: (val) => emit('update:modelValue', val),
+})
+
+// 生成配置
+const aiConfigs = ref([])
+const aiConfigId = ref(null)
+const scenarios = ref(['positive', 'negative', 'boundary'])
+const generating = ref(false)
+const generationStarted = ref(false)
+const generationCompleted = ref(false)
+const generationError = ref('')
+const progress = ref(0)
+const progressText = ref('')
+const elapsedSeconds = ref(0)
+let startTime = null
+const taskId = ref('')
+let pollingTimer = null
+
+// 生成结果
+const caseGroups = ref([])
+const activeGroups = ref([])
+const selectedCases = ref({})
+const expandedCases = ref({})
+const selectAllCases = ref(true)
+const suiteName = ref('')
+const saving = ref(false)
+
+// 环境选择
+const environments = ref([])
+const environmentId = ref(null)
+
+// 保存摘要
+const pendingVariables = ref([])
+const variablesCount = ref(0)
+
+const canGenerate = computed(() => {
+  return props.selectedRequests.length > 0
+})
+
+const totalCaseCount = computed(() => {
+  let count = 0
+  caseGroups.value.forEach(g => { count += g.cases.length })
+  return count
+})
+
+function methodTagType(method) {
+  const map = { GET: 'success', POST: 'primary', PUT: 'warning', DELETE: 'danger', PATCH: 'info' }
+  return map[method] || 'info'
+}
+
+function formatBody(body) {
+  if (!body) return ''
+  if (typeof body === 'string') return body
+  return JSON.stringify(body, null, 2)
+}
+
+const ASSERTION_TYPE_LABEL = {
+  status_code: '状态码',
+  response_time: '响应时间',
+  contains: '包含文本',
+  json_path: 'JSON字段',
+  header: '响应头',
+  equals: '响应完全匹配',
+}
+const ASSERTION_OP_LABEL = {
+  equals: '等于',
+  not_equals: '不等于',
+  contains: '包含',
+  not_contains: '不包含',
+  exists: '存在',
+  not_exists: '不存在',
+  greater_than: '大于',
+  less_than: '小于',
+  greater_or_equal: '大于等于',
+  less_or_equal: '小于等于',
+}
+
+function formatAssertion(assertion) {
+  if (!assertion) return ''
+  const type = assertion.type || ''
+  const op = ASSERTION_OP_LABEL[assertion.operator] || ''
+  // 兼容 AI 生成（path）与归一化（json_path）两种字段名
+  const jsonPath = assertion.json_path || assertion.path || ''
+  if (type === 'status_code') {
+    return `${ASSERTION_TYPE_LABEL.status_code} ${op || '等于'} ${assertion.expected ?? ''}`
+  }
+  if (type === 'response_time') {
+    return `${ASSERTION_TYPE_LABEL.response_time} 不超过 ${assertion.expected ?? ''}ms`
+  }
+  if (type === 'json_path') {
+    const showExpected = assertion.operator && !['exists', 'not_exists'].includes(assertion.operator)
+    const suffix = showExpected ? ` ${assertion.expected ?? ''}` : ''
+    return `${ASSERTION_TYPE_LABEL.json_path} ${jsonPath} ${op || ''} ${suffix}`.trim()
+  }
+  if (type === 'header') {
+    const headerName = assertion.header_name || assertion.path || ''
+    const val = assertion.expected_value ?? assertion.expected ?? ''
+    return `${ASSERTION_TYPE_LABEL.header} ${headerName} ${op || '等于'} ${val}`.trim()
+  }
+  if (type === 'contains') return `${ASSERTION_TYPE_LABEL.contains} ${assertion.expected ?? ''}`
+  if (type === 'equals') return `${ASSERTION_TYPE_LABEL.equals} ${assertion.expected ?? ''}`
+  return [assertion.type, assertion.operator, jsonPath, assertion.expected ?? ''].filter(Boolean).join(' ')
+}
+
+async function loadAiConfigs() {
+  try {
+    const res = await api.get('/requirement-analysis/ai-models/', {
+      params: { role: 'api_testcase_generator', is_active: true },
+    })
+    aiConfigs.value = res.data?.results || res.data || []
+    if (aiConfigs.value.length > 0) {
+      aiConfigId.value = aiConfigs.value[0].id
+    }
+  } catch (e) {
+    console.error('Failed to load AI configs:', e)
+  }
+}
+
+async function loadEnvironments() {
+  if (!props.projectId) return
+  try {
+    const res = await api.get('/api-testing/environments/', {})
+    const all = res.data.results || res.data || []
+    environments.value = all.filter(env =>
+      env.scope === 'GLOBAL' || (env.scope === 'LOCAL' && env.project === props.projectId))
+    const active = environments.value.find(e => e.is_active)
+    environmentId.value = active ? active.id : (environments.value[0]?.id ?? null)
+  } catch (e) {
+    // 忽略，环境可选
+  }
+}
+
+function progressStageLabel(p) {
+  if (p < 10) return t('apiTesting.generateTestCases.generating')
+  if (p < 30) return t('apiTesting.generateTestCases.progressPreparing')
+  if (p < 50) return t('apiTesting.generateTestCases.progressLoadingConfig')
+  if (p < 90) return t('apiTesting.generateTestCases.progressGenerating')
+  return t('apiTesting.generateTestCases.progressFinishing')
+}
+
+async function startGeneration() {
+  generationStarted.value = true
+  generating.value = true
+  progress.value = 0
+  elapsedSeconds.value = 0
+  startTime = Date.now()
+  progressText.value = progressStageLabel(0)
+  generationError.value = ''
+
+  try {
+    const res = await api.post('/api-testing/requests/generate-testcases/', {
+      request_ids: props.selectedRequests.map(r => r.id),
+      ai_config_id: aiConfigId.value,
+      environment_id: environmentId.value,
+    })
+    taskId.value = res.data.task_id
+    startPolling()
+  } catch (e) {
+    generating.value = false
+    generationError.value = e.response?.data?.error || e.message
+  }
+}
+
+function startPolling() {
+  pollingTimer = setInterval(async () => {
+    try {
+      const res = await api.get('/api-testing/requests/generation-progress/', {
+        params: { task_id: taskId.value },
+      })
+
+      const data = res.data
+      progress.value = data.progress || 0
+      elapsedSeconds.value = startTime ? Math.round((Date.now() - startTime) / 1000) : 0
+      const stage = progressStageLabel(progress.value)
+      progressText.value = t('apiTesting.generateTestCases.progressWithElapsed', {
+        stage,
+        progress: progress.value,
+        elapsed: elapsedSeconds.value,
+      })
+
+      if (data.status === 'completed') {
+        clearInterval(pollingTimer)
+        generating.value = false
+        generationCompleted.value = true
+        processResult(data.result)
+      } else if (data.status === 'failed') {
+        clearInterval(pollingTimer)
+        generating.value = false
+        generationError.value = data.error || t('apiTesting.generateTestCases.error')
+      }
+    } catch (e) {
+      // 继续轮询
+    }
+  }, 2000)
+}
+
+function processResult(result) {
+  if (!result || !result.test_cases) {
+    generationCompleted.value = false
+    generationError.value = t('apiTesting.generateTestCases.emptyResult')
+    return
+  }
+
+  const groups = []
+  for (const [requestId, cases] of Object.entries(result.test_cases)) {
+    const request = props.selectedRequests.find(r => String(r.id) === String(requestId))
+    if (request) {
+      groups.push({
+        requestId: Number(requestId),
+        requestName: request.name,
+        method: request.method,
+        url: request.url,
+        cases: Array.isArray(cases) ? cases : [],
+      })
+      // 默认全选
+      selectedCases.value[requestId] = Array.from({ length: (Array.isArray(cases) ? cases : []).length }, (_, i) => i)
+    }
+  }
+
+  if (groups.length === 0) {
+    generationCompleted.value = false
+    generationError.value = t('apiTesting.generateTestCases.emptyResult')
+    return
+  }
+
+  caseGroups.value = groups
+  activeGroups.value = groups.map(g => String(g.requestId))
+}
+
+function handleSelectAllCases(val) {
+  if (val) {
+    caseGroups.value.forEach(g => {
+      selectedCases.value[g.requestId] = Array.from({ length: g.cases.length }, (_, i) => i)
+    })
+  } else {
+    selectedCases.value = {}
+  }
+}
+
+function toggleCase(requestId, index, val) {
+  if (!selectedCases.value[requestId]) {
+    selectedCases.value[requestId] = []
+  }
+  if (val) {
+    if (!selectedCases.value[requestId].includes(index)) {
+      selectedCases.value[requestId].push(index)
+    }
+  } else {
+    selectedCases.value[requestId] = selectedCases.value[requestId].filter(i => i !== index)
+  }
+}
+
+function toggleCaseDetail(requestId, index) {
+  const key = `${requestId}_${index}`
+  expandedCases.value[key] = !expandedCases.value[key]
+}
+
+function removeCase(requestId, index) {
+  const group = caseGroups.value.find(g => g.requestId === requestId)
+  if (group) {
+    group.cases.splice(index, 1)
+    if (selectedCases.value[requestId]) {
+      selectedCases.value[requestId] = selectedCases.value[requestId]
+        .filter(i => i !== index)
+        .map(i => i > index ? i - 1 : i)
+    }
+  }
+}
+
+function expandAll() {
+  activeGroups.value = caseGroups.value.map(g => String(g.requestId))
+  caseGroups.value.forEach(g => {
+    g.cases.forEach((_, i) => {
+      expandedCases.value[`${g.requestId}_${i}`] = true
+    })
+  })
+}
+
+function collapseAll() {
+  activeGroups.value = []
+  expandedCases.value = {}
+}
+
+async function saveCases() {
+  saving.value = true
+  try {
+    const cases = []
+    for (const group of caseGroups.value) {
+      for (const index of (selectedCases.value[group.requestId] || [])) {
+        cases.push({
+          request_id: group.requestId,
+          ...group.cases[index],
+        })
+      }
+    }
+
+    const res = await api.post('/api-testing/requests/save-testcases/', {
+      task_id: taskId.value,
+      cases,
+      suite_name: suiteName.value || null,
+      collection_id: null,
+      project_id: props.projectId,
+    })
+
+    pendingVariables.value = res.data.pending_variables || []
+    variablesCount.value = res.data.variables_count || 0
+
+    const msg = t('apiTesting.generateTestCases.saveSuccess', { count: cases.length }) +
+      (variablesCount.value ? '，' + t('apiTesting.generateTestCases.variablesWritten', { count: variablesCount.value }) : '') +
+      (pendingVariables.value.length ? '，' + t('apiTesting.generateTestCases.pendingVariablesList', { variables: pendingVariables.value.join(', ') }) : '')
+
+    ElMessage[pendingVariables.value.length ? 'warning' : 'success'](msg)
+    emit('saved')
+    handleClose()
+  } catch (e) {
+    ElMessage.error(t('apiTesting.generateTestCases.saveFailed') + (e.response?.data?.error || e.message))
+  } finally {
+    saving.value = false
+  }
+}
+
+function handleClose() {
+  visible.value = false
+  resetState()
+}
+
+function resetState() {
+  generationStarted.value = false
+  generationCompleted.value = false
+  generationError.value = ''
+  generating.value = false
+  progress.value = 0
+  progressText.value = ''
+  elapsedSeconds.value = 0
+  startTime = null
+  caseGroups.value = []
+  selectedCases.value = {}
+  expandedCases.value = {}
+  selectAllCases.value = true
+  suiteName.value = ''
+  pendingVariables.value = []
+  variablesCount.value = 0
+  if (pollingTimer) {
+    clearInterval(pollingTimer)
+    pollingTimer = null
+  }
+}
+
+function retryGeneration() {
+  generationError.value = ''
+  generationStarted.value = false
+  startGeneration()
+}
+
+watch(visible, (val) => {
+  if (val) {
+    loadAiConfigs()
+    loadEnvironments()
+    resetState()
+  }
+})
+
+onBeforeUnmount(() => {
+  if (pollingTimer) {
+    clearInterval(pollingTimer)
+  }
+})
+</script>
+
+<style scoped>
+.generate-testcases-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.selected-requests h4 {
+  margin: 0 0 8px 0;
+}
+
+.gen-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: var(--el-fill-color-light);
+  border-radius: 4px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.option-item .label {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.progress-section {
+  text-align: center;
+  padding: 20px;
+}
+
+.progress-text {
+  color: var(--el-text-color-secondary);
+  margin-top: 8px;
+}
+
+.result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.result-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.group-name {
+  font-weight: 500;
+}
+
+.group-url {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.case-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.case-card {
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.case-card.selected {
+  border-color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+
+.case-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.case-name {
+  font-weight: 500;
+}
+
+.case-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.case-detail {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.detail-section {
+  margin-bottom: 8px;
+}
+
+.detail-section h5 {
+  margin: 0 0 4px 0;
+}
+
+.assertion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.save-section {
+  padding: 12px;
+  background: var(--el-fill-color-light);
+  border-radius: 4px;
+}
+
+.save-options {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+</style>

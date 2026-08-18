@@ -1,0 +1,443 @@
+@use './tokens.scss';
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--aitest-canvas);
+  color: var(--aitest-text-1);
+  font-family: var(--aitest-font-sans);
+  font-size: var(--aitest-font-size-md);
+}
+
+/* ============ Element Plus 主题覆写 ============ */
+:root {
+  --el-color-primary: var(--aitest-primary);
+  --el-color-primary-light-3: #7670EA;
+  --el-color-primary-light-5: #9A95F0;
+  --el-color-primary-light-7: #C5C3F8;
+  --el-color-primary-light-8: #DBDAFB;
+  --el-color-primary-light-9: var(--aitest-primary-subtle);
+  --el-color-primary-dark-2: var(--aitest-primary-active);
+  --el-color-success: var(--aitest-success);
+  --el-color-warning: var(--aitest-warning);
+  --el-color-danger: var(--aitest-danger);
+  --el-color-error: var(--aitest-danger);
+  --el-color-info: var(--aitest-neutral);
+
+  --el-bg-color: var(--aitest-surface);
+  --el-bg-color-overlay: var(--aitest-surface);
+  --el-fill-color-blank: var(--aitest-surface);
+  --el-fill-color: var(--aitest-surface-subtle);
+  --el-fill-color-light: var(--aitest-surface-subtle);
+  --el-fill-color-lighter: var(--aitest-surface-subtle);
+  --el-fill-color-dark: var(--aitest-border-strong);
+  --el-fill-color-darker: var(--aitest-border-strong);
+
+  --el-border-color: var(--aitest-border-strong);
+  --el-border-color-light: var(--aitest-border);
+  --el-border-color-lighter: var(--aitest-border);
+  --el-border-color-extra-light: var(--aitest-border);
+  --el-border-color-dark: var(--aitest-border-strong);
+  --el-border-color-hover: var(--aitest-border-strong);
+
+  --el-text-color-primary: var(--aitest-text-1);
+  --el-text-color-regular: var(--aitest-text-2);
+  --el-text-color-secondary: var(--aitest-text-3);
+  --el-text-color-placeholder: var(--aitest-text-3);
+  --el-text-color-disabled: var(--aitest-text-3);
+
+  --el-border-radius-base: var(--aitest-radius);
+  --el-border-radius-small: var(--aitest-radius-sm);
+  --el-border-radius-round: var(--aitest-radius-full);
+
+  --el-box-shadow: var(--aitest-shadow-md);
+  --el-box-shadow-light: var(--aitest-shadow-sm);
+  --el-box-shadow-lighter: var(--aitest-shadow-xs);
+
+  --el-font-family: var(--aitest-font-sans);
+}
+
+/* ============ Element Plus 表格/弹窗全局覆写（成品一致密度） ============ */
+.el-table {
+  --el-table-header-bg-color: var(--aitest-surface-subtle);
+  --el-table-header-text-color: var(--aitest-text-2);
+  --el-table-row-hover-bg-color: var(--aitest-surface-subtle);
+  --el-table-border-color: var(--aitest-border);
+  --el-table-tr-bg-color: var(--aitest-surface);
+  font-size: var(--aitest-font-size-base);
+
+  th.el-table__cell {
+    font-size: var(--aitest-font-size-sm);
+    font-weight: 600;
+    padding: 8px 0;
+  }
+
+  .el-table__cell { padding: 8px 0; }
+
+  .el-table__row--striped td.el-table__cell,
+  .el-table__row--striped { background-color: var(--aitest-surface); }
+
+  .el-table__row.is-selected > td.el-table__cell {
+    background-color: var(--aitest-primary-subtle);
+    box-shadow: inset 3px 0 0 var(--aitest-primary);
+  }
+}
+
+.el-dialog {
+  --el-dialog-border-radius: var(--aitest-radius-lg);
+  box-shadow: var(--aitest-shadow-md);
+
+  .el-dialog__title {
+    font-size: var(--aitest-font-size-lg);
+    font-weight: 600;
+    color: var(--aitest-text-1);
+  }
+}
+
+.el-pagination { --el-pagination-font-size: var(--aitest-font-size-base); }
+
+/* ============ 公共页面骨架 ============ */
+.page-container {
+  padding: var(--aitest-space-page);
+}
+
+/* ============ 页头（顶层规则，不依赖 .page-container） ============ */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--aitest-header-margin-bottom);
+  flex-wrap: wrap;
+  gap: var(--aitest-header-gap);
+
+  &.has-actions { align-items: center; }
+
+  .page-header__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .page-eyebrow {
+    font-size: var(--aitest-font-size-sm);
+    font-weight: 500;
+    color: var(--aitest-text-3);
+    margin-bottom: var(--aitest-space-2);
+    letter-spacing: 0.02em;
+  }
+
+  .page-title {
+    font-size: var(--aitest-font-size-xl);
+    font-weight: 600;
+    color: var(--aitest-text-1);
+    line-height: var(--aitest-line-height-tight);
+  }
+
+  .page-desc {
+    margin-top: var(--aitest-space-1);
+    font-size: var(--aitest-font-size-base);
+    color: var(--aitest-text-3);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--aitest-space-3);
+    flex-shrink: 0;
+  }
+}
+
+.card-container {
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-card-border);
+  border-radius: var(--aitest-card-radius);
+  padding: var(--aitest-card-padding);
+  box-shadow: var(--aitest-card-shadow);
+}
+
+/* ============ 统计卡片 ============ */
+.stat-card {
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-card-border);
+  border-radius: var(--aitest-card-radius);
+  padding: var(--aitest-space-4) var(--aitest-space-5);
+  box-shadow: var(--aitest-card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--aitest-space-1);
+
+  &__label { font-size: var(--aitest-font-size-sm); font-weight: 500; color: var(--aitest-text-3); }
+  &__value { font-size: var(--aitest-font-size-2xl); font-weight: 600; color: var(--aitest-text-1); line-height: var(--aitest-line-height-tight); font-variant-numeric: tabular-nums; }
+  &__hint  { font-size: var(--aitest-font-size-sm); color: var(--aitest-text-3); }
+  &--accent-success { &__value { color: var(--aitest-success); } }
+  &--accent-warning { &__value { color: var(--aitest-warning); } }
+  &--accent-danger  { &__value { color: var(--aitest-danger); } }
+  &--accent-info    { &__value { color: var(--aitest-info); } }
+}
+
+/* ============ 筛选/工具栏统一容器 ============ */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--aitest-space-2);
+  margin-bottom: var(--aitest-space-section);
+
+  .el-form--inline .el-form-item { margin-right: 0; }
+
+  /* 修复：el-row 作为 flex item 默认塌缩到内容宽（EP .el-row 无 width:100%），
+     导致内部 el-col 的百分比宽度以塌缩宽度计算；强制撑满恢复块级行为 */
+  > .el-row {
+    width: 100%;
+  }
+
+  /* el-form 作为 flex item 同样需要撑满；inline 表单变 flex 容器给 form-item 间距 */
+  > .el-form {
+    width: 100%;
+
+    &.el-form--inline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--aitest-space-3);
+    }
+  }
+}
+
+/* ============ 状态/优先级标签 ============ */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+
+  .status-tag__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
+  }
+
+  /* 主导航/通用状态：淡色背景 + 文字色 */
+  &.active { background-color: var(--aitest-success-bg); color: var(--aitest-success); }
+  &.inactive { background-color: var(--aitest-danger-bg); color: var(--aitest-danger); }
+  &.paused { background-color: var(--aitest-warning-bg); color: var(--aitest-warning); }
+  &.completed { background-color: var(--aitest-neutral-bg); color: var(--aitest-neutral); }
+
+  // 双态精确映射（active/inactive/paused/completed 之外，容许与语义色名对齐的用法）
+  &.success { background-color: var(--aitest-success-bg); color: var(--aitest-success); }
+  &.warning { background-color: var(--aitest-warning-bg); color: var(--aitest-warning); }
+  &.danger  { background-color: var(--aitest-danger-bg);  color: var(--aitest-danger); }
+  &.info    { background-color: var(--aitest-info-bg);    color: var(--aitest-info); }
+
+  border-radius: var(--aitest-radius-full);
+}
+
+.priority-tag {
+  /* 优先级：令牌色文字 */
+  &.low { color: var(--aitest-success); }
+  &.medium { color: var(--aitest-warning); }
+  &.high { color: var(--aitest-danger); }
+  &.critical { color: var(--aitest-danger); font-weight: bold; }
+}
+
+/* ============ 签名元素：HTTP 方法徽章 ============ */
+.method-badge {
+  display: inline-block;
+  min-width: 44px;
+  text-align: center;
+  padding: 2px 8px;
+  border-radius: var(--aitest-radius-full);
+  font-family: var(--aitest-font-mono);
+  font-size: var(--aitest-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.6;
+
+  &.get     { background: var(--aitest-method-bg-get);     color: var(--aitest-method-get); }
+  &.post    { background: var(--aitest-method-bg-post);    color: var(--aitest-method-post); }
+  &.put     { background: var(--aitest-method-bg-put);     color: var(--aitest-method-put); }
+  &.delete  { background: var(--aitest-method-bg-delete);  color: var(--aitest-method-delete); }
+  &.patch   { background: var(--aitest-method-bg-patch);   color: var(--aitest-method-patch); }
+  &.head    { background: var(--aitest-method-bg-head);    color: var(--aitest-method-head); }
+  &.options { background: var(--aitest-method-bg-options); color: var(--aitest-method-options); }
+  &.connect { background: var(--aitest-method-bg-options); color: var(--aitest-method-options); }
+  &.trace   { background: var(--aitest-method-bg-trace);   color: var(--aitest-method-trace); }
+}
+
+/* ============ 空状态（方向性引导，不只报丧） ============ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: var(--aitest-space-12) var(--aitest-space-5);
+  text-align: center;
+
+  .empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--aitest-radius-full);
+    background: var(--aitest-primary-subtle);
+    color: var(--aitest-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .empty-title { font-size: 15px; font-weight: 600; color: var(--aitest-text-1); }
+  .empty-hint { font-size: var(--aitest-font-size-base); color: var(--aitest-text-3); max-width: 320px; line-height: var(--aitest-line-height-relaxed); }
+  .empty-state__actions { margin-top: var(--aitest-space-3); }
+}
+
+/* ============ 工具类 ============ */
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-nums { font-variant-numeric: tabular-nums; }
+
+/* ============ 响应式断点（保留原有，未修改） ============ */
+@media screen and (max-width: 1920px) {
+  body {
+    font-size: 14px;
+  }
+
+  .page-container {
+    padding: 18px;
+  }
+
+  .page-header .page-title {
+    font-size: 22px;
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  body {
+    font-size: 14px;
+  }
+
+  .page-container {
+    padding: 16px;
+  }
+
+  .page-header .page-title {
+    font-size: 20px;
+  }
+}
+
+@media screen and (max-width: 1440px) {
+  body {
+    font-size: 13px;
+  }
+
+  .page-container {
+    padding: 14px;
+  }
+
+  .page-header .page-title {
+    font-size: 18px;
+  }
+}
+
+@media screen and (max-width: 1366px) {
+  body {
+    font-size: 13px;
+  }
+
+  .page-container {
+    padding: 12px;
+  }
+
+  .page-header .page-title {
+    font-size: 18px;
+  }
+}
+
+@media screen and (max-width: 1280px) {
+  body {
+    font-size: 13px;
+  }
+
+  .page-container {
+    padding: 12px;
+  }
+
+  .page-header .page-title {
+    font-size: 16px;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  body {
+    font-size: 12px;
+  }
+
+  .page-container {
+    padding: 10px;
+  }
+
+  .page-header .page-title {
+    font-size: 16px;
+  }
+
+  .card-container {
+    padding: 15px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  body {
+    font-size: 12px;
+  }
+
+  .page-container {
+    padding: 8px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .page-title {
+      font-size: 16px;
+    }
+  }
+
+  .card-container {
+    padding: 12px;
+    border-radius: 6px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  body {
+    font-size: 11px;
+  }
+
+  .page-container {
+    padding: 6px;
+  }
+
+  .page-header .page-title {
+    font-size: 14px;
+  }
+
+  .card-container {
+    padding: 10px;
+    border-radius: 4px;
+  }
+}

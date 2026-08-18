@@ -1,0 +1,130 @@
+# ============================================================
+# AITestPlat 项目根 .gitignore
+# 只忽略"运行时/构建自动生成、或仅本机有意义的"内容；
+# 源码、文档(docs/)、CLAUDE.md、AGENTS.md 等一律纳入版本管理。
+# 注意：gitignore 规则行内不允许内联注释，如需注释请单独成行。
+# ============================================================
+
+# ----- 操作系统 / 编辑器 / 本地工具 -----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.trae/
+*.swp
+*.swo
+*~
+.history/
+
+# ----- Claude Code / superpowers 本地缓存 -----
+.claude/
+.superpowers/
+
+# ----- 工作区本地文档(不入库) -----
+docs/
+CLAUDE.md
+AGENTS.md
+
+# ----- Python / Django -----
+.venv/
+venv/
+env/
+aitestplat/
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ----- 前端 (Vue 3) -----
+frontend/node_modules/
+frontend/.npm/
+frontend/dist/
+frontend/*.log
+frontend/.DS_Store
+
+# ----- 环境变量与密钥 (保留 .env.example 示例) -----
+.env
+.env.*
+!.env.example
+*.sql
+
+# ----- 本地个人文件 -----
+备注笔记.txt
+.bak
+*.bak
+
+# ----- 运行时生成的第三方工具分发 -----
+allure/
+chroma_data/
+
+# ----- log 文件 (保留目录与 .gitkeep) -----
+*.log
+logs/*
+!logs/.gitkeep
+!logs/*/
+logs/*/*
+!logs/*/.gitkeep
+
+# ----- media 运行时上传文件 (保留各目录 .gitkeep) -----
+media/ai_recording/*
+!media/ai_recording/.gitkeep
+media/api_docs/*
+!media/api_docs/.gitkeep
+media/knowledge_docs/*
+!media/knowledge_docs/.gitkeep
+media/requirement_docs/*
+!media/requirement_docs/.gitkeep
+media/defect_attachments/*
+!media/defect_attachments/.gitkeep
+media/knowledgebase/*
+!media/knowledgebase/.gitkeep
+media/testcase_imports/*
+media/testcase_import_failures/*
+
+# 接口测试运行时 Allure 产物
+media/api-testing/allure-results/*
+!media/api-testing/allure-results/.gitkeep
+media/api-testing/allure-reports/*
+!media/api-testing/allure-reports/.gitkeep
+media/api-testing/allure-static/*
+!media/api-testing/allure-static/.gitkeep
+
+# APP 自动化运行时产物
+media/app-automation/allure-results/*
+!media/app-automation/allure-results/.gitkeep
+media/app-automation/allure-reports/*
+!media/app-automation/allure-reports/.gitkeep
+media/app-automation/screenshots/*
+!media/app-automation/screenshots/.gitkeep
+
+# ----- 运行时模板产物 -----
+apps/app_automation/Template/**
+!apps/app_automation/Template/
+
+# ----- 静态资源 -----
+static_files/img/
+
+# ----- superpowers 本地 worktree (不入库) -----
+.worktrees/
+
+# ----- Docker 部署密钥(不入库;模板 .docker_env.example 入库) -----
+.docker_env
+
+# ----- 离线部署包临时组装目录(不入库) -----
+dist-offline/

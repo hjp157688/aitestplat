@@ -1,0 +1,122 @@
+// AITestPlat 设计令牌 —— 「靛蓝精密石板」
+// 唯一事实源；global.scss 通过 @use 引入。
+// 结构：Primitive(原始值) → Semantic(语义别名) → Component(组件键)。
+// 补全依据：docs/superpowers/specs/2026-08-07-design-token-gap-completion.md
+:root {
+
+  /* ===== PRIMITIVES：原始值，无语义 ===== */
+  // Indigo 色阶（主色族）
+  --aitest-prim-indigo-50:  #EEF2FF;
+  --aitest-prim-indigo-100: #E0E7FF;
+  --aitest-prim-indigo-200: #C7D2FE;
+  --aitest-prim-indigo-500: #6366F1;
+  --aitest-prim-indigo-600: #4F46E5;
+  --aitest-prim-indigo-700: #4338CA;
+  --aitest-prim-indigo-800: #3730A3;
+
+  // Slate 色阶（画布/边框/文字）
+  --aitest-prim-slate-50:  #F8FAFC;
+  --aitest-prim-slate-100: #F1F5F9;
+  --aitest-prim-slate-200: #E2E8F0;
+  --aitest-prim-slate-300: #CBD5E1;
+  --aitest-prim-slate-500: #64748B;
+  --aitest-prim-slate-600: #475569;
+  --aitest-prim-slate-800: #1E293B;
+  --aitest-prim-slate-900: #0F172A;
+
+  // 其他原始色
+  --aitest-prim-sky-500: #0EA5E9;
+
+  /* ===== SPACING（4px 基准） ===== */
+  --aitest-space-1: 4px;
+  --aitest-space-2: 8px;
+  --aitest-space-3: 12px;
+  --aitest-space-4: 16px;
+  --aitest-space-5: 20px;
+  --aitest-space-6: 24px;
+  --aitest-space-8: 32px;
+  --aitest-space-10: 40px;
+  --aitest-space-12: 48px;
+  --aitest-space-16: 64px;
+
+  // 间距语义别名（对应公共类现状；以实际为准，不强行换值）
+  --aitest-space-card:    var(--aitest-space-5); // 卡片内边距 20px
+  --aitest-space-page:    var(--aitest-space-6); // 页面容器 24px
+  --aitest-space-section: var(--aitest-space-5); // 页头下/区块间距 20px
+  --aitest-space-gap:     var(--aitest-space-2); // 工具栏/操作区默认间隙
+
+  /* ===== TYPOGRAPHY（层级对齐 08-04 spec §3） ===== */
+  --aitest-font-size-xs:   11px; // 徽章/等宽辅助
+  --aitest-font-size-sm:   12px; // 标签/表头/眉题
+  --aitest-font-size-base: 13px; // 次级正文/表格（现行多数 13px）
+  --aitest-font-size-md:   14px; // 正文（body 默认）
+  --aitest-font-size-lg:   16px; // 小节标题/卡片标题
+  --aitest-font-size-xl:   20px; // 页头标题
+  --aitest-font-size-2xl:  22px; // 高优先级页头（>1920 断点）
+
+  --aitest-line-height-tight:   1.3;
+  --aitest-line-height-normal:  1.5;
+  --aitest-line-height-relaxed: 1.6;
+
+  /* ===== 颜色（语义别名 → 引用原始层） ===== */
+  --aitest-canvas:         var(--aitest-prim-slate-50); // 页面背景
+  --aitest-surface:        #FFFFFF;                     // 卡片/面板
+  --aitest-surface-subtle: var(--aitest-prim-slate-100); // 表头/悬停/禁用底
+  --aitest-border:         var(--aitest-prim-slate-200); // 发丝线
+  --aitest-border-strong:  var(--aitest-prim-slate-300); // 分隔/强调边
+
+  --aitest-primary:        var(--aitest-prim-indigo-600); // 主色（靛蓝）
+  --aitest-primary-hover:  var(--aitest-prim-indigo-700);
+  --aitest-primary-active: var(--aitest-prim-indigo-800);
+  --aitest-primary-subtle: var(--aitest-prim-indigo-50);  // 选中底/图标圆底
+
+  --aitest-accent:         var(--aitest-prim-sky-500);    // 信息链接/强调
+
+  --aitest-text-1:         var(--aitest-prim-slate-900);  // 主文字
+  --aitest-text-2:         var(--aitest-prim-slate-600);  // 次级文字
+  --aitest-text-3:         #94A3B8;                       // 弱化/占位（slate-400）
+
+  --aitest-success: #10B981;  --aitest-success-bg: #ECFDF5;
+  --aitest-warning: #F59E0B;  --aitest-warning-bg: #FFFBEB;
+  --aitest-danger:  #EF4444;  --aitest-danger-bg:  #FEF2F2;
+  --aitest-info:    #3B82F6;  --aitest-info-bg:    #EFF6FF;
+  --aitest-neutral: #94A3B8;  --aitest-neutral-bg: #F1F5F9;
+
+  /* ===== 阴影 ===== */
+  --aitest-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --aitest-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --aitest-shadow-md: 0 6px 16px rgba(15, 23, 42, 0.08);
+  --aitest-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+
+  /* ===== 圆角 ===== */
+  --aitest-radius-sm: 4px;
+  --aitest-radius: 6px;
+  --aitest-radius-lg: 8px;
+  --aitest-radius-full: 999px;
+
+  /* ===== 字体栈 ===== */
+  --aitest-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --aitest-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ===== COMPONENT：组件键 → 引用语义层 ===== */
+  // 卡片
+  --aitest-card-padding: var(--aitest-space-5);
+  --aitest-card-radius:  var(--aitest-radius-lg);
+  --aitest-card-border:  var(--aitest-border);
+  --aitest-card-shadow:  var(--aitest-shadow-sm);
+
+  // 页头
+  --aitest-header-min-height: 0; // 预留：后续若要固定页头高度
+  --aitest-header-margin-bottom: var(--aitest-space-section);
+  --aitest-header-gap:           var(--aitest-space-3);
+
+  // HTTP 方法徽章（签名元素 → 令牌化，杜绝页面复刻漂移）
+  --aitest-method-get:      #1D4ED8;  --aitest-method-bg-get:      #DBEAFE;
+  --aitest-method-post:     #047857;  --aitest-method-bg-post:     #D1FAE5;
+  --aitest-method-put:      #B45309;  --aitest-method-bg-put:      #FEF3C7;
+  --aitest-method-delete:   #B91C1C;  --aitest-method-bg-delete:   #FEE2E2;
+  --aitest-method-patch:    #7E22CE;  --aitest-method-bg-patch:    #E9D5FF;
+  --aitest-method-head:     #0369A1;  --aitest-method-bg-head:     #E0F2FE;
+  --aitest-method-options:  #475569;  --aitest-method-bg-options:  #F1F5F9; // connect 同用
+  --aitest-method-trace:    #C2410C;  --aitest-method-bg-trace:    #FFEDD5;
+}
