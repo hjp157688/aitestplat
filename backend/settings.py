@@ -508,21 +508,3 @@ SIMPLEUI_ICON = {
 # 开发环境，暂时禁用迁移历史检查
 # SILENCED_SYSTEM_CHECKS = ['django.db.migrations.InconsistentMigrationHistory']
 
-# ===== RAGFlow 知识库引擎配置 =====
-# 知识库从 ChromaDB 迁移到 RAGFlow（详见 docs/superpowers 的 ragflow 方案）
-RAGFLOW = {
-    "ENABLED": os.getenv("RAGFLOW_ENABLED", "false").lower() == "true",
-    "BASE_URL": os.getenv("RAGFLOW_BASE_URL", "http://127.0.0.1:9380"),
-    "API_KEY": os.getenv("RAGFLOW_API_KEY", ""),
-    "EMBEDDING_MODEL": os.getenv("RAGFLOW_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B@INFINITY"),
-    "RERANK_ID": os.getenv("RAGFLOW_RERANK_ID", ""),
-    "CHUNK_METHOD": os.getenv("RAGFLOW_CHUNK_METHOD", "naive"),
-    "TOP_K": int(os.getenv("RAGFLOW_TOP_K", "10")),
-    "SIMILARITY_THRESHOLD": float(os.getenv("RAGFLOW_SIMILARITY_THRESHOLD", "0.2")),
-    "VECTOR_WEIGHT": float(os.getenv("RAGFLOW_VECTOR_WEIGHT", "0.3")),
-    "TIMEOUT": float(os.getenv("RAGFLOW_TIMEOUT", "15")),
-    "SCORE_SCALE": float(os.getenv("RAGFLOW_SCORE_SCALE", "10")),
-    "GRAPHRAG_ENABLED": os.getenv("RAGFLOW_GRAPHRAG_ENABLED", "false").lower() == "true",
-    "GRAPHRAG_METHOD": os.getenv("RAGFLOW_GRAPHRAG_METHOD", "light"),
-    "GRAPHRAG_ENTITY_TYPES": ["organization", "person", "event", "category"],
-}

@@ -619,9 +619,6 @@ class KnowledgeDocument(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
-    ragflow_dataset_id = models.CharField(max_length=64, blank=True)
-    ragflow_document_id = models.CharField(max_length=64, blank=True)
-
     class Meta:
         db_table = 'knowledge_documents'
         verbose_name = '知识文档'
@@ -673,9 +670,6 @@ class KnowledgeEntry(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
-    ragflow_dataset_id = models.CharField(max_length=64, blank=True)
-    ragflow_document_id = models.CharField(max_length=64, blank=True)
-
     class Meta:
         db_table = 'knowledge_entries'
         verbose_name = '知识条目'
@@ -1298,44 +1292,3 @@ class AIModelService:
 
         logger.info(f"重新编号完成: 共{sum(counters.values())}条测试用例")
         return '\n'.join(out_lines)
-
-
-class RagflowConfig(models.Model):
-    """RAGFlow 连接与检索配置(单例行)"""
-    base_url = models.CharField(max_length=255, default="http://127.0.0.1:9380")
-    api_key = models.CharField(max_length=255, blank=True)
-    embedding_model = models.CharField(max_length=255, blank=True)
-    rerank_id = models.CharField(max_length=255, blank=True)
-    chunk_method = models.CharField(max_length=64, default="naive")
-    graphrag_enabled = models.BooleanField(default=False)
-    graphrag_method = models.CharField(max_length=16, default="light")
-    score_scale = models.FloatField(default=10)
-    embedding_models_json = models.TextField(default="{}", help_text="RAGFlow dataset_id → embedding_model 快照")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = "ragflow_configs"
-
-    @staticmethod
-    def get_solo():
-        cfg, _ = RagflowConfig.objects.get_or_create(pk=1)
-        return cfg
-
-
-class RagflowBinding(models.Model):
-    """项目 ⇄ RAGFlow dataset 绑定(多对多;null=全局默认)"""
-    project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name="ragflow_bindings")
-    dataset_id = models.CharField(max_length=64)
-    dataset_name = models.CharField(max_length=255, blank=True)
-    embedding_model = models.CharField(max_length=255, blank=True)  # 拉取快照
-    is_write_target = models.BooleanField(default=True)
-    enabled = models.BooleanField(default=True)  # 项目级引擎开关
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "ragflow_bindings"
-        constraints = [models.UniqueConstraint(fields=["project", "dataset_id"], name="uniq_project_dataset")]
-
-    def __str__(self):
-        return f"{self.dataset_name}({self.dataset_id})"
