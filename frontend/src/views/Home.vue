@@ -1,143 +1,152 @@
 <template>
   <div class="home-container">
-    <div class="content-wrapper">
-      <div class="header-actions">
-        <!-- PC：语言、用户分开 -->
-        <div class="header-actions-pc">
-          <el-dropdown @command="handleLanguageChange" class="language-dropdown">
-            <span class="el-dropdown-link">
-              <span class="language-icon">{{ currentLanguage === 'zh-cn' ? '🇨🇳' : '🇺🇸' }}</span>
-              <span class="language-text">{{ $t('home.language.current') }}</span>
-              <el-icon class="el-icon--right"><arrow-down /></el-icon>
+    <div class="portal">
+      <!-- PC：语言、用户分开 -->
+      <header class="portal-header header-actions-pc">
+        <el-dropdown @command="handleLanguageChange" class="language-dropdown">
+          <span class="el-dropdown-link dropdown-link">
+            <span class="lang-dot">{{ currentLanguage === 'zh-cn' ? '中' : 'EN' }}</span>
+            <span class="dropdown-text">{{ $t('home.language.current') }}</span>
+            <el-icon class="dd-caret"><ArrowDown /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="zh-cn" :disabled="currentLanguage === 'zh-cn'">
+                {{ $t('home.language.zhCN') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="en" :disabled="currentLanguage === 'en'">
+                {{ $t('home.language.en') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+
+        <el-dropdown @command="handleCommand">
+          <span class="el-dropdown-link dropdown-link">
+            <el-avatar :size="30" :src="userStore.user?.avatar" :icon="UserFilled" class="user-avatar" />
+            <span class="dropdown-text">{{ userStore.user?.username || $t('home.user') }}</span>
+            <el-icon class="dd-caret"><ArrowDown /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="logout">{{ $t('home.logout') }}</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </header>
+
+      <!-- 移动端：合并菜单 -->
+      <header class="portal-header header-actions-mobile">
+        <el-dropdown trigger="click" @command="handleHeaderCommand">
+          <span class="user-menu-trigger">
+            <span class="avatar-wrap">
+              <el-avatar :size="26" :src="userStore.user?.avatar" :icon="UserFilled" class="user-avatar" />
+              <span class="lang-badge">{{ currentLanguage === 'zh-cn' ? '中' : 'EN' }}</span>
             </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="zh-cn" :disabled="currentLanguage === 'zh-cn'">
-                  <span class="dropdown-flag">🇨🇳</span> {{ $t('home.language.zhCN') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="en" :disabled="currentLanguage === 'en'">
-                  <span class="dropdown-flag">🇺🇸</span> {{ $t('home.language.en') }}
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+            <el-icon class="trigger-arrow"><ArrowDown /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="zh-cn" :disabled="currentLanguage === 'zh-cn'">
+                {{ $t('home.language.zhCN') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="en" :disabled="currentLanguage === 'en'">
+                {{ $t('home.language.en') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="logout" divided>
+                {{ $t('home.logout') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </header>
 
-          <el-dropdown @command="handleCommand">
-            <span class="el-dropdown-link">
-              <el-avatar :size="32" :src="userStore.user?.avatar" :icon="UserFilled" />
-              <span class="username">{{ userStore.user?.username || $t('home.user') }}</span>
-              <el-icon class="el-icon--right"><arrow-down /></el-icon>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="logout">{{ $t('home.logout') }}</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
+      <main class="portal-main">
+        <!-- Hero：按时段问候 + 品牌字标 + 签名渐变 -->
+        <section class="hero">
+          <p class="hero-eyebrow">{{ greeting }}</p>
+          <h1 class="hero-title">
+            <span class="brand">AITest</span><span class="brand-accent">Plat</span>
+          </h1>
+          <p class="hero-subtitle">{{ $t('home.subtitle') }}</p>
+          <div class="hero-rule"></div>
+        </section>
 
-        <!-- 移动端：合并菜单 -->
-        <div class="header-actions-mobile">
-          <el-dropdown trigger="click" @command="handleHeaderCommand">
-            <span class="user-menu-trigger">
-              <span class="avatar-wrap">
-                <el-avatar :size="28" :src="userStore.user?.avatar" :icon="UserFilled" />
-                <span class="lang-badge">{{ currentLanguage === 'zh-cn' ? '🇨🇳' : '🇺🇸' }}</span>
-              </span>
-              <el-icon class="trigger-arrow"><ArrowDown /></el-icon>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="zh-cn" :disabled="currentLanguage === 'zh-cn'">
-                  <span class="dropdown-flag">🇨🇳</span> {{ $t('home.language.zhCN') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="en" :disabled="currentLanguage === 'en'">
-                  <span class="dropdown-flag">🇺🇸</span> {{ $t('home.language.en') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="logout" divided>
-                  {{ $t('home.logout') }}
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-      </div>
-
-      <h1 class="main-title">{{ $t('home.title') }}</h1>
-      <p class="subtitle">{{ $t('home.subtitle') }}</p>
-
-      <div class="cards-container">
-        <!-- AI用例生成 -->
-        <div class="nav-card" @click="handleNavigate('ai')" role="button" tabindex="0">
-          <div class="card-icon ai-icon">
-            <el-icon><MagicStick /></el-icon>
+        <!-- 模块导航 -->
+        <nav class="module-grid" aria-label="modules">
+          <div class="module-card module--ai" @click="handleNavigate('ai')" role="button" tabindex="0" :style="{ animationDelay: stagger(0) }">
+            <div class="module-tile"><el-icon><MagicStick /></el-icon></div>
+            <div class="module-body">
+              <h3>{{ $t('home.aiCaseGeneration') }}</h3>
+              <p>{{ $t('home.aiCaseGenerationDesc') }}</p>
+            </div>
+            <el-icon class="module-arrow"><Right /></el-icon>
           </div>
-          <h3>{{ $t('home.aiCaseGeneration') }}</h3>
-          <p>{{ $t('home.aiCaseGenerationDesc') }}</p>
-        </div>
 
-        <!-- 接口测试 -->
-        <div class="nav-card" @click="handleNavigate('api')" role="button" tabindex="0">
-          <div class="card-icon api-icon">
-            <el-icon><Link /></el-icon>
+          <div class="module-card module--api" @click="handleNavigate('api')" role="button" tabindex="0" :style="{ animationDelay: stagger(1) }">
+            <div class="module-tile"><el-icon><Link /></el-icon></div>
+            <div class="module-body">
+              <h3>{{ $t('home.apiTesting') }}</h3>
+              <p>{{ $t('home.apiTestingDesc') }}</p>
+            </div>
+            <el-icon class="module-arrow"><Right /></el-icon>
           </div>
-          <h3>{{ $t('home.apiTesting') }}</h3>
-          <p>{{ $t('home.apiTestingDesc') }}</p>
-        </div>
 
-        <!-- UI自动化测试 -->
-        <div class="nav-card" @click="handleNavigate('ui')" role="button" tabindex="0">
-          <div class="card-icon ui-icon">
-            <el-icon><Monitor /></el-icon>
+          <div class="module-card module--ui" @click="handleNavigate('ui')" role="button" tabindex="0" :style="{ animationDelay: stagger(2) }">
+            <div class="module-tile"><el-icon><Monitor /></el-icon></div>
+            <div class="module-body">
+              <h3>{{ $t('home.uiAutomation') }}</h3>
+              <p>{{ $t('home.uiAutomationDesc') }}</p>
+            </div>
+            <el-icon class="module-arrow"><Right /></el-icon>
           </div>
-          <h3>{{ $t('home.uiAutomation') }}</h3>
-          <p>{{ $t('home.uiAutomationDesc') }}</p>
-        </div>
 
-        <!-- Bug缺陷管理 -->
-        <div class="nav-card" @click="handleNavigate('defects')" role="button" tabindex="0">
-          <div class="card-icon defects-icon">
-            <el-icon><Tickets /></el-icon>
+          <div class="module-card module--defects" @click="handleNavigate('defects')" role="button" tabindex="0" :style="{ animationDelay: stagger(3) }">
+            <div class="module-tile"><el-icon><Tickets /></el-icon></div>
+            <div class="module-body">
+              <h3>{{ $t('home.defectManagement') }}</h3>
+              <p>{{ $t('home.defectManagementDesc') }}</p>
+            </div>
+            <el-icon class="module-arrow"><Right /></el-icon>
           </div>
-          <h3>{{ $t('home.defectManagement') }}</h3>
-          <p>{{ $t('home.defectManagementDesc') }}</p>
-        </div>
 
-        <!-- 数据工厂 -->
-        <div class="nav-card" @click="handleNavigate('data')" role="button" tabindex="0">
-          <div class="card-icon data-icon">
-            <el-icon><DataLine /></el-icon>
+          <div class="module-card module--data" @click="handleNavigate('data')" role="button" tabindex="0" :style="{ animationDelay: stagger(4) }">
+            <div class="module-tile"><el-icon><DataLine /></el-icon></div>
+            <div class="module-body">
+              <h3>{{ $t('home.dataFactory') }}</h3>
+              <p>{{ $t('home.dataFactoryDesc') }}</p>
+            </div>
+            <el-icon class="module-arrow"><Right /></el-icon>
           </div>
-          <h3>{{ $t('home.dataFactory') }}</h3>
-          <p>{{ $t('home.dataFactoryDesc') }}</p>
-        </div>
 
-        <!-- APP自动化测试 -->
-        <div class="nav-card" @click="handleNavigate('app')" role="button" tabindex="0">
-          <div class="card-icon app-icon">
-            <el-icon><Cellphone /></el-icon>
+          <div class="module-card module--app" @click="handleNavigate('app')" role="button" tabindex="0" :style="{ animationDelay: stagger(5) }">
+            <div class="module-tile"><el-icon><Cellphone /></el-icon></div>
+            <div class="module-body">
+              <h3>{{ $t('home.appAutomation') }}</h3>
+              <p>{{ $t('home.appAutomationDesc') }}</p>
+            </div>
+            <el-icon class="module-arrow"><Right /></el-icon>
           </div>
-          <h3>{{ $t('home.appAutomation') }}</h3>
-          <p>{{ $t('home.appAutomationDesc') }}</p>
-        </div>
 
-        <!-- AI 智能模式 -->
-        <div class="nav-card" @click="handleNavigate('ai-intelligent')" role="button" tabindex="0">
-          <div class="card-icon ai-intelligent-icon">
-            <el-icon><Cpu /></el-icon>
+          <div class="module-card module--ai-intelligent" @click="handleNavigate('ai-intelligent')" role="button" tabindex="0" :style="{ animationDelay: stagger(6) }">
+            <div class="module-tile"><el-icon><Cpu /></el-icon></div>
+            <div class="module-body">
+              <h3>{{ $t('home.aiIntelligentMode') }}</h3>
+              <p>{{ $t('home.aiIntelligentModeDesc') }}</p>
+            </div>
+            <el-icon class="module-arrow"><Right /></el-icon>
           </div>
-          <h3>{{ $t('home.aiIntelligentMode') }}</h3>
-          <p>{{ $t('home.aiIntelligentModeDesc') }}</p>
-        </div>
-        <!-- 配置中心 -->
-        <div class="nav-card" @click="handleNavigate('config')" role="button" tabindex="0">
-          <div class="card-icon config-icon">
-            <el-icon><Setting /></el-icon>
+
+          <div class="module-card module--config" @click="handleNavigate('config')" role="button" tabindex="0" :style="{ animationDelay: stagger(7) }">
+            <div class="module-tile"><el-icon><Setting /></el-icon></div>
+            <div class="module-body">
+              <h3>{{ $t('home.configCenter') }}</h3>
+              <p>{{ $t('home.configCenterDesc') }}</p>
+            </div>
+            <el-icon class="module-arrow"><Right /></el-icon>
           </div>
-          <h3>{{ $t('home.configCenter') }}</h3>
-          <p>{{ $t('home.configCenterDesc') }}</p>
-        </div>
-      </div>
+        </nav>
+      </main>
     </div>
 
     <el-dialog
@@ -172,7 +181,7 @@ import { useUserStore } from '@/stores/user'
 import { useAppStore } from '@/stores/app'
 import { track } from '@/utils/tracker'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { MagicStick, Link, Monitor, DataLine, Cpu, Setting, UserFilled, ArrowDown, Cellphone, Tickets } from '@element-plus/icons-vue'
+import { MagicStick, Link, Monitor, DataLine, Cpu, Setting, UserFilled, ArrowDown, Right, Cellphone, Tickets } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -185,6 +194,16 @@ const isMobile = ref(false)
 const mobileTipDismissed = ref(false)
 const MOBILE_BREAKPOINT = 768
 const MOBILE_TIP_STORAGE_KEY = 'aitestplat_home_mobile_tip_seen'
+
+// 按时段问候
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  const key = hour < 12 ? 'goodMorning' : hour < 18 ? 'goodAfternoon' : 'goodEvening'
+  return t(`home.${key}`, { name: userStore.user?.username || t('home.user') })
+})
+
+// 卡片交错入场延迟（毫秒）
+const stagger = (i) => `${i * 45}ms`
 
 const dismissMobileTip = () => {
   mobileTipDismissed.value = true
@@ -285,82 +304,106 @@ const handleNavigate = (type) => {
 <style scoped lang="scss">
 .home-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--aitest-canvas) 0%, #c3cfe2 100%);
+  background: var(--aitest-canvas);
+  position: relative;
+  overflow: hidden;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 20px;
+
+  /* 环境光斑：靛蓝→天青签名渐变，克制缓淡 */
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(60px);
+  }
+  &::before {
+    width: 560px;
+    height: 560px;
+    top: -220px;
+    right: -120px;
+    background: radial-gradient(circle, rgba(79, 70, 229, 0.14) 0%, transparent 68%);
+  }
+  &::after {
+    width: 480px;
+    height: 480px;
+    top: -160px;
+    left: -140px;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+  }
 }
 
-.content-wrapper {
-  text-align: center;
-  max-width: 1200px;
-  width: 100%;
+.portal {
   position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1160px;
+  padding: var(--aitest-space-8) var(--aitest-space-6) var(--aitest-space-12);
 }
 
-.header-actions {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 10px;
+/* ===== 顶栏 ===== */
+.portal-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--aitest-space-5);
 }
 
 .header-actions-pc {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-
-  .language-dropdown {
-    .el-dropdown-link {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      color: #5e6d82;
-      transition: color 0.3s;
-      outline: none;
-
-      &:focus {
-        outline: none;
-      }
-
-      .language-icon {
-        font-size: 18px;
-        margin-right: 5px;
-        line-height: 1;
-      }
-
-      .language-text {
-        margin: 0 5px;
-        font-size: 14px;
-      }
-
-      &:hover {
-        color: var(--el-color-primary);
-      }
-    }
-  }
-
-  .el-dropdown-link {
-    display: flex;
+  .dropdown-link {
+    display: inline-flex;
     align-items: center;
+    gap: var(--aitest-space-2);
     cursor: pointer;
-    color: #5e6d82;
-    transition: color 0.3s;
+    color: var(--aitest-text-2);
+    padding: var(--aitest-space-1) var(--aitest-space-3);
+    border: 1px solid transparent;
+    border-radius: var(--aitest-radius-full);
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
     outline: none;
 
-    &:focus {
-      outline: none;
-    }
-
-    .username {
-      margin: 0 8px;
-      font-size: 14px;
+    &:focus-visible {
+      outline: 2px solid var(--aitest-primary);
+      outline-offset: 2px;
     }
 
     &:hover {
-      color: var(--el-color-primary);
+      color: var(--aitest-primary);
+      background: var(--aitest-surface);
+      border-color: var(--aitest-border);
+      box-shadow: var(--aitest-shadow-xs);
     }
+
+    .dropdown-text {
+      font-size: var(--aitest-font-size-md);
+    }
+
+    .dd-caret {
+      font-size: 12px;
+      color: var(--aitest-text-3);
+    }
+  }
+
+  .lang-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: var(--aitest-radius-sm);
+    background: var(--aitest-primary-subtle);
+    color: var(--aitest-primary);
+    font-size: var(--aitest-font-size-xs);
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .user-avatar {
+    background: var(--aitest-primary-subtle);
+    color: var(--aitest-primary);
+    --el-avatar-bg-color: var(--aitest-primary-subtle);
   }
 }
 
@@ -371,26 +414,26 @@ const handleNavigate = (type) => {
 .user-menu-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--aitest-space-2);
   cursor: pointer;
-  color: #5e6d82;
-  padding: 6px 10px 6px 6px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.06);
-  transition: color 0.3s, background 0.3s;
+  color: var(--aitest-text-2);
+  padding: var(--aitest-space-1) var(--aitest-space-3) var(--aitest-space-1) var(--aitest-space-1);
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
+  border-radius: var(--aitest-radius-full);
+  box-shadow: var(--aitest-shadow-xs);
+  transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
   outline: none;
 
-  &:focus {
-    outline: none;
+  &:focus-visible {
+    outline: 2px solid var(--aitest-primary);
+    outline-offset: 2px;
   }
 
   &:hover {
-    color: var(--el-color-primary);
-    background: rgba(255, 255, 255, 0.85);
+    color: var(--aitest-primary);
+    border-color: var(--aitest-border-strong);
+    box-shadow: var(--aitest-shadow-sm);
   }
 
   .avatar-wrap {
@@ -399,348 +442,263 @@ const handleNavigate = (type) => {
     flex-shrink: 0;
   }
 
+  .user-avatar {
+    background: var(--aitest-primary-subtle);
+    color: var(--aitest-primary);
+    --el-avatar-bg-color: var(--aitest-primary-subtle);
+  }
+
   .lang-badge {
     position: absolute;
-    right: -5px;
+    right: -4px;
     bottom: -3px;
-    font-size: 11px;
-    line-height: 1;
-    background: #fff;
+    font-size: 9px;
+    line-height: 1.4;
+    font-weight: 700;
+    color: var(--aitest-primary);
+    background: var(--aitest-surface);
+    border: 1px solid var(--aitest-border-strong);
     border-radius: 50%;
-    padding: 1px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    padding: 0 2px;
   }
 
   .trigger-arrow {
     font-size: 12px;
-    color: var(--el-text-color-secondary);
+    color: var(--aitest-text-3);
   }
 }
 
-.dropdown-flag {
-  font-size: 16px;
-  margin-right: 5px;
+/* ===== Hero ===== */
+.hero {
+  max-width: 720px;
+  padding: var(--aitest-space-16) 0 var(--aitest-space-12);
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aitest-space-2);
+    margin: 0 0 var(--aitest-space-3);
+    font-size: var(--aitest-font-size-md);
+    color: var(--aitest-text-2);
+    letter-spacing: 0.02em;
+    font-weight: 500;
+
+    &::before {
+      content: '';
+      width: 18px;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--aitest-primary), var(--aitest-accent));
+    }
+  }
+
+  .hero-title {
+    margin: 0;
+    font-size: clamp(2.75rem, 6vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--aitest-text-1);
+
+    .brand-accent {
+      background: linear-gradient(90deg, var(--aitest-primary) 0%, var(--aitest-accent) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: var(--aitest-accent);
+    }
+  }
+
+  .hero-subtitle {
+    margin: var(--aitest-space-4) 0 0;
+    font-size: var(--aitest-font-size-lg);
+    color: var(--aitest-text-2);
+    line-height: var(--aitest-line-height-relaxed);
+  }
+
+  .hero-rule {
+    margin-top: var(--aitest-space-10);
+    height: 1px;
+    background: linear-gradient(90deg, var(--aitest-border) 0%, var(--aitest-border-strong) 100%);
+  }
 }
 
-.main-title {
-  font-size: 3.5rem;
-  color: #2c3e50;
-  margin-bottom: 1rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-}
-
-.subtitle {
-  font-size: 1.5rem;
-  color: #5e6d82;
-  margin-bottom: 4rem;
-}
-
-.cards-container {
+/* ===== 模块网格 ===== */
+.module-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 30px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--aitest-space-4);
 }
 
-.nav-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 40px 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+.module-card {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
+  gap: var(--aitest-space-4);
+  padding: var(--aitest-space-5);
+  background: var(--aitest-surface);
+  border: 1px solid var(--aitest-border);
+  border-radius: var(--aitest-radius-lg);
+  cursor: pointer;
+  box-shadow: var(--aitest-shadow-xs);
+  overflow: hidden;
+  opacity: 0;
+  animation: rise 0.5s ease forwards;
+
+  /* 左缘强调条：hover 时显现 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--aitest-primary), var(--aitest-accent));
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
 
   &:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
-    background: #fff;
-  }
+    transform: translateY(-3px);
+    border-color: var(--aitest-border-strong);
+    box-shadow: var(--aitest-shadow-md);
 
-  h3 {
-    font-size: 1.5rem;
-    color: #2c3e50;
-    margin: 20px 0 10px;
-  }
-
-  p {
-    color: #7f8c8d;
-    line-height: 1.5;
-    margin: 0;
-  }
-}
-
-.card-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  margin-bottom: 10px;
-  transition: all 0.3s ease;
-
-  &.ai-icon {
-    background: #e8f4ff;
-    color: var(--el-color-primary);
-  }
-
-  &.api-icon {
-    background: #f0f9eb;
-    color: var(--el-color-success);
-  }
-
-  &.ui-icon {
-    background: #fdf6ec;
-    color: var(--el-color-warning);
-  }
-
-  &.data-icon {
-    background: #e8f4ff;
-    color: var(--el-color-primary);
-  }
-
-  &.defects-icon {
-    background: #fef0f0;
-    color: var(--el-color-danger);
-  }
-
-  &.app-icon {
-    background: #f9f0ff;
-    color: #722ed1;
-  }
-
-  &.ai-intelligent-icon {
-    background: #f0f5ff;
-    color: #2f54eb;
-  }
-
-  &.config-icon {
-    background: #e6fffb;
-    color: #13c2c2;
-  }
-}
-
-.nav-card:hover .card-icon {
-  transform: scale(1.1);
-}
-
-@media screen and (max-width: 1920px) {
-  .main-title {
-    font-size: 3.2rem;
-  }
-
-  .subtitle {
-    font-size: 1.4rem;
-  }
-
-  .cards-container {
-    gap: 28px;
-    padding: 18px;
-  }
-}
-
-@media screen and (max-width: 1600px) {
-  .main-title {
-    font-size: 3rem;
-  }
-
-  .subtitle {
-    font-size: 1.3rem;
-  }
-
-  .cards-container {
-    gap: 26px;
-    padding: 16px;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  }
-
-  .nav-card {
-    padding: 35px 18px;
-  }
-}
-
-@media screen and (max-width: 1440px) {
-  .main-title {
-    font-size: 2.8rem;
-  }
-
-  .subtitle {
-    font-size: 1.2rem;
-  }
-
-  .cards-container {
-    gap: 24px;
-    padding: 14px;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  }
-
-  .nav-card {
-    padding: 30px 16px;
-
-    h3 {
-      font-size: 1.4rem;
+    &::before {
+      opacity: 1;
+      transform: scaleY(1);
     }
   }
 
-  .card-icon {
-    width: 70px;
-    height: 70px;
-    font-size: 35px;
-  }
-}
-
-@media screen and (max-width: 1366px) {
-  .main-title {
-    font-size: 2.6rem;
+  &:focus-visible {
+    outline: 2px solid var(--aitest-primary);
+    outline-offset: 2px;
   }
 
-  .subtitle {
-    font-size: 1.1rem;
+  .module-tile {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--aitest-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: var(--tile-bg, var(--aitest-neutral-bg));
+    color: var(--tile-color, var(--aitest-text-2));
+    transition: transform 0.25s ease;
   }
 
-  .cards-container {
-    gap: 22px;
-    padding: 12px;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-
-  .nav-card {
-    padding: 28px 14px;
+  .module-body {
+    min-width: 0;
 
     h3 {
-      font-size: 1.3rem;
-    }
-  }
-
-  .card-icon {
-    width: 65px;
-    height: 65px;
-    font-size: 32px;
-  }
-}
-
-@media screen and (max-width: 1280px) {
-  .main-title {
-    font-size: 2.4rem;
-  }
-
-  .subtitle {
-    font-size: 1rem;
-  }
-
-  .cards-container {
-    gap: 20px;
-    padding: 12px;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  }
-
-  .nav-card {
-    padding: 25px 12px;
-
-    h3 {
-      font-size: 1.2rem;
-    }
-  }
-
-  .card-icon {
-    width: 60px;
-    height: 60px;
-    font-size: 30px;
-  }
-}
-
-@media screen and (max-width: 1024px) {
-  .home-container {
-    padding: 15px;
-  }
-
-  .main-title {
-    font-size: 2.2rem;
-  }
-
-  .subtitle {
-    font-size: 1rem;
-    margin-bottom: 3rem;
-  }
-
-  .cards-container {
-    gap: 18px;
-    padding: 10px;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  }
-
-  .nav-card {
-    padding: 20px 10px;
-
-    h3 {
-      font-size: 1.1rem;
+      margin: 0 0 var(--aitest-space-1);
+      font-size: var(--aitest-font-size-lg);
+      font-weight: 600;
+      color: var(--aitest-text-1);
+      line-height: var(--aitest-line-height-normal);
     }
 
     p {
-      font-size: 0.9rem;
+      margin: 0;
+      font-size: var(--aitest-font-size-sm);
+      color: var(--aitest-text-2);
+      line-height: var(--aitest-line-height-normal);
     }
   }
 
-  .card-icon {
-    width: 55px;
-    height: 55px;
-    font-size: 28px;
+  .module-arrow {
+    position: absolute;
+    right: var(--aitest-space-4);
+    bottom: var(--aitest-space-4);
+    font-size: 15px;
+    color: var(--aitest-primary);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
   }
 
-  .header-actions {
-    padding: 8px;
+  &:hover .module-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  &:hover .module-tile {
+    transform: scale(1.06);
   }
 }
 
-/* 移动端：≤768px 专用样式 */
+/* 各模块瓷砖色：仅使用令牌族（靛蓝/天青/石板 + 语义色），不引入游离色 */
+.module--ai {
+  --tile-bg: var(--aitest-primary-subtle);
+  --tile-color: var(--aitest-primary);
+}
+.module--api {
+  --tile-bg: var(--aitest-info-bg);
+  --tile-color: var(--aitest-info);
+}
+.module--ui {
+  --tile-bg: var(--aitest-primary-subtle);
+  --tile-color: var(--aitest-prim-indigo-500);
+}
+.module--defects {
+  --tile-bg: var(--aitest-danger-bg);
+  --tile-color: var(--aitest-danger);
+}
+.module--data {
+  --tile-bg: var(--aitest-neutral-bg);
+  --tile-color: var(--aitest-prim-slate-500);
+}
+.module--app {
+  --tile-bg: var(--aitest-primary-subtle);
+  --tile-color: var(--aitest-prim-indigo-700);
+}
+.module--ai-intelligent {
+  --tile-bg: var(--aitest-info-bg);
+  --tile-color: var(--aitest-accent);
+}
+.module--config {
+  --tile-bg: var(--aitest-neutral-bg);
+  --tile-color: var(--aitest-prim-slate-500);
+}
+
+/* 入场动画 */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ===== 平板：≤1024 ===== */
+@media screen and (max-width: 1024px) {
+  .portal {
+    padding: var(--aitest-space-8) var(--aitest-space-5) var(--aitest-space-10);
+  }
+
+  .hero {
+    padding: var(--aitest-space-12) 0 var(--aitest-space-10);
+  }
+
+  .module-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+/* ===== 移动端：≤768 ===== */
 @media screen and (max-width: 768px) {
   .home-container {
-    position: relative;
-    overflow: hidden;
-    padding: 14px 14px 24px;
-    padding-top: max(14px, env(safe-area-inset-top));
-    background: linear-gradient(165deg, #eef2f7 0%, #e2eaf2 42%, #d5dfea 100%);
-
-    &::before,
-    &::after {
-      content: '';
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    &::before {
-      width: 260px;
-      height: 260px;
-      top: -70px;
-      right: -50px;
-      background: radial-gradient(circle, rgba(64, 158, 255, 0.14) 0%, transparent 68%);
-    }
-
-    &::after {
-      width: 220px;
-      height: 220px;
-      bottom: 8%;
-      left: -70px;
-      background: radial-gradient(circle, rgba(99, 126, 234, 0.1) 0%, transparent 70%);
-    }
+    background: var(--aitest-canvas);
   }
 
-  .content-wrapper {
-    position: relative;
-    z-index: 1;
-  }
-
-  .header-actions {
-    position: static;
-    margin-bottom: 12px;
-    padding: 0;
+  .portal {
+    padding: calc(var(--aitest-space-4) + env(safe-area-inset-top)) var(--aitest-space-4) var(--aitest-space-8);
   }
 
   .header-actions-pc {
@@ -752,130 +710,80 @@ const handleNavigate = (type) => {
     justify-content: flex-end;
   }
 
-  .main-title {
-    font-size: 1.75rem;
-    letter-spacing: 0.5px;
-    color: #1f2d3d;
-    margin-bottom: 8px;
+  .hero {
+    padding: var(--aitest-space-10) 0 var(--aitest-space-8);
+
+    .hero-eyebrow {
+      font-size: var(--aitest-font-size-sm);
+    }
+
+    .hero-title {
+      font-size: clamp(2.1rem, 9vw, 3rem);
+    }
+
+    .hero-subtitle {
+      font-size: var(--aitest-font-size-md);
+    }
+
+    .hero-rule {
+      margin-top: var(--aitest-space-8);
+    }
   }
 
-  .subtitle {
-    font-size: 0.9375rem;
-    color: #7a8494;
-    margin: 0 auto 24px;
-    max-width: 280px;
-    line-height: 1.5;
-  }
-
-  .cards-container {
+  .module-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    gap: var(--aitest-space-3);
   }
 
-  .nav-card {
-    min-height: 148px;
-    padding: 18px 12px 16px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid rgba(255, 255, 255, 0.95);
-    box-shadow:
-      0 4px 14px rgba(31, 45, 61, 0.07),
-      0 1px 3px rgba(31, 45, 61, 0.04);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+  .module-card {
+    flex-direction: column;
+    gap: var(--aitest-space-3);
+    padding: var(--aitest-space-4);
+    border-radius: var(--aitest-radius);
 
-    &:hover {
-      transform: none;
-      box-shadow:
-        0 6px 18px rgba(31, 45, 61, 0.1),
-        0 2px 4px rgba(31, 45, 61, 0.05);
+    .module-tile {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
     }
 
-    &:active {
-      transform: scale(0.98);
-      background: rgba(255, 255, 255, 0.96);
+    .module-body {
+      h3 {
+        font-size: var(--aitest-font-size-md);
+      }
+
+      p {
+        font-size: var(--aitest-font-size-xs);
+      }
     }
 
-    h3 {
-      font-size: 15px;
-      margin: 12px 0 6px;
-      color: #1f2d3d;
-      line-height: 1.35;
+    .module-arrow {
+      display: none;
     }
-
-    p {
-      font-size: 12px;
-      line-height: 1.45;
-      color: #8a939d;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-  }
-
-  .card-icon {
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
-    border-radius: 14px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
-
-  .nav-card:hover .card-icon {
-    transform: none;
   }
 }
 
+/* ===== 小屏移动端：≤480 ===== */
 @media screen and (max-width: 480px) {
-  .home-container {
-    padding: 12px 12px 20px;
-    padding-top: max(12px, env(safe-area-inset-top));
+  .portal {
+    padding: calc(var(--aitest-space-3) + env(safe-area-inset-top)) var(--aitest-space-3) var(--aitest-space-6);
   }
 
-  .header-actions {
-    margin-bottom: 16px;
+  .module-card {
+    padding: var(--aitest-space-3);
+  }
+}
+
+/* 减少动效：禁用入场与位移动画 */
+@media (prefers-reduced-motion: reduce) {
+  .module-card {
+    opacity: 1;
+    animation: none;
   }
 
-  .header-actions-mobile .user-menu-trigger {
-    padding: 5px 8px 5px 5px;
-    gap: 4px;
-  }
-
-  .main-title {
-    font-size: 1.5rem;
-  }
-
-  .subtitle {
-    font-size: 0.875rem;
-    margin-bottom: 20px;
-  }
-
-  .cards-container {
-    gap: 12px;
-  }
-
-  .nav-card {
-    min-height: 140px;
-    padding: 16px 10px 14px;
-    border-radius: 12px;
-
-    h3 {
-      font-size: 14px;
-      margin: 10px 0 5px;
-    }
-
-    p {
-      font-size: 11px;
-      -webkit-line-clamp: 3;
-    }
-  }
-
-  .card-icon {
-    width: 44px;
-    height: 44px;
-    font-size: 22px;
-    border-radius: 12px;
+  .home-container::before,
+  .home-container::after {
+    filter: none;
   }
 }
 </style>
@@ -883,39 +791,39 @@ const handleNavigate = (type) => {
 <style lang="scss">
 .mobile-tip-dialog.el-dialog {
   max-width: 340px;
-  border-radius: 16px;
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
 
   .el-dialog__header {
-    padding: 20px 20px 8px;
+    padding: var(--aitest-space-5) var(--aitest-space-5) var(--aitest-space-2);
     margin-right: 0;
     text-align: center;
 
     .el-dialog__title {
-      font-size: 17px;
+      font-size: var(--aitest-font-size-lg);
       font-weight: 600;
       color: var(--aitest-text-1);
       line-height: 1.4;
     }
 
     .el-dialog__headerbtn {
-      top: 14px;
-      right: 14px;
+      top: var(--aitest-space-4);
+      right: var(--aitest-space-4);
     }
   }
 
   .el-dialog__body {
-    padding: 4px 24px 8px;
+    padding: var(--aitest-space-1) var(--aitest-space-6) var(--aitest-space-2);
   }
 
   .el-dialog__footer {
-    padding: 8px 20px 20px;
+    padding: var(--aitest-space-2) var(--aitest-space-5) var(--aitest-space-5);
 
     .dialog-confirm-btn {
       width: 100%;
       height: 40px;
-      border-radius: 20px;
-      font-size: 15px;
+      border-radius: var(--aitest-radius-full);
+      font-size: var(--aitest-font-size-md);
     }
   }
 }
@@ -926,10 +834,10 @@ const handleNavigate = (type) => {
   .dialog-icon-wrap {
     width: 56px;
     height: 56px;
-    margin: 0 auto 14px;
-    border-radius: 14px;
-    background: linear-gradient(145deg, var(--el-color-primary-light-9) 0%, #d9ecff 100%);
-    color: var(--el-color-primary);
+    margin: 0 auto var(--aitest-space-4);
+    border-radius: var(--aitest-radius);
+    background: var(--aitest-primary-subtle);
+    color: var(--aitest-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -938,8 +846,8 @@ const handleNavigate = (type) => {
 
   .dialog-desc {
     margin: 0;
-    font-size: 14px;
-    color: var(--el-text-color-regular);
+    font-size: var(--aitest-font-size-md);
+    color: var(--aitest-text-2);
     line-height: 1.6;
   }
 }

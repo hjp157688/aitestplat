@@ -79,6 +79,11 @@ export default {
       en: 'English'
     },
 
+    // Hero
+    goodMorning: '早上好，{name}',
+    goodAfternoon: '下午好，{name}',
+    goodEvening: '晚上好，{name}',
+
     // Title
     title: 'AITestPlat 测试平台',
     subtitle: '一站式智能化测试解决方案',

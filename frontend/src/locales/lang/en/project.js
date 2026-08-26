@@ -79,6 +79,11 @@ export default {
       en: 'English'
     },
 
+    // Hero
+    goodMorning: 'Good morning, {name}',
+    goodAfternoon: 'Good afternoon, {name}',
+    goodEvening: 'Good evening, {name}',
+
     // Title
     title: 'AITestPlat Testing Platform',
     subtitle: 'All-in-One Intelligent Testing Solution',
