@@ -37,7 +37,7 @@ from .models import (
     RequirementDocument, RequirementAnalysis,
     GeneratedTestCase, AnalysisTask, AIModelConfig, PromptConfig, TestCaseGenerationTask,
     GenerationConfig, AIModelService, ZentaoConfig, Requirement,
-    KnowledgeDocument, KnowledgeEntry, create_requirement_from_br_data
+    WeKnoraConfig, WeKnoraProjectBinding, create_requirement_from_br_data
 )
 from apps.ai.resolver import ConfigResolver
 from apps.ai.client import AIClient
@@ -51,8 +51,7 @@ from .serializers import (
     RequirementListSerializer, AIRequirementParseRequestSerializer,
     AIRequirementImportRequestSerializer, RequirementGenerateTestCasesRequestSerializer,
     ZentaoSyncRequestSerializer,
-    KnowledgeDocumentSerializer, KnowledgeDocumentUploadSerializer,
-    KnowledgeEntrySerializer, KnowledgeRetrieveRequestSerializer
+    WeKnoraConfigSerializer, WeKnoraProjectBindingSerializer
 )
 from .services import RequirementAnalysisService, DocumentProcessor, ZentaoService, AIRequirementParser
 from .text_cleaner import clean_text, normalize_steps
@@ -1175,6 +1174,67 @@ def _execute_task(task, selected_knowledge):
                      'reviewer_model_config', 'reviewer_prompt_config'):
             getattr(task, _rel, None)
 
+        # ---- WeKnora 知识注入：项目绑定了智能体且未显式传 knowledge 时，取智能体回答注入 ----
+        # 唯一注入水槽（单条/批量两条生成链路都汇聚到这里）；失败优雅降级，不阻断生成。
+        # 同时把回答与引用(文档/分块)落到任务上，供"已引用知识库"审计展示。
+        # 任务未带 project 时回退到"创建者的项目"找绑定；再无则回退全局默认智能体；
+        # 仍无绑定则把原因记入 generation_log（不再静默），便于排查。
+        if not selected_knowledge:
+            try:
+                from .weknora_client import WeKnoraClient
+                from apps.projects.models import Project
+                from types import SimpleNamespace as _NS
+                _cfg = WeKnoraConfig.get_solo()
+                if not _cfg.enabled:
+                    pass  # 未启用：不注入，也不干扰（无知识上下文）
+                else:
+                    _binding = None
+                    _ctx_project = task.project_id
+                    if _ctx_project:
+                        _binding = WeKnoraProjectBinding.objects.filter(
+                            project_id=_ctx_project, enabled=True).first()
+                    if not _binding and not _ctx_project and task.created_by_id:
+                        # 任务未带项目 → 回退到创建者的第一个项目（与 _ensure_requirement 逻辑一致）
+                        _pr = Project.objects.filter(
+                            models.Q(owner=task.created_by) | models.Q(members=task.created_by)
+                        ).distinct().order_by('id').first()
+                        if _pr:
+                            _ctx_project = _pr.id
+                            _binding = WeKnoraProjectBinding.objects.filter(
+                                project_id=_pr.id, enabled=True).first()
+                    if not _binding and _cfg.default_agent_id:
+                        # 兜底：全局默认智能体
+                        _binding = _NS(agent_id=_cfg.default_agent_id,
+                                       agent_name=_cfg.default_agent_name or _cfg.default_agent_id,
+                                       knowledge_base_ids=_cfg.knowledge_base_ids)
+
+                    if not _binding:
+                        task.generation_log = f"{task.generation_log or ''}[WeKnora] 未找到可用绑定（project={task.project_id}, default_agent={_cfg.default_agent_id!r}），本次未注入知识库回答。\n".strip()
+                        task.save(update_fields=['generation_log'])
+                        logger.warning(
+                            '任务 %s 未关联 WeKnora 绑定(project=%s, default_agent=%r)，跳过知识注入',
+                            task.task_id, task.project_id, _cfg.default_agent_id)
+                    else:
+                        _client = WeKnoraClient(_cfg.base_url, _cfg.api_key, _cfg.timeout)
+                        _result = _client.agent_answer(
+                            task.requirement_text, _binding.agent_id,
+                            _binding.knowledge_base_ids or None,
+                        )
+                        _answer = ((_result or {}).get('answer') or '').strip()
+                        task.weknora_answer = _answer
+                        task.weknora_references = (_result or {}).get('references') or []
+                        task.weknora_steps = (_result or {}).get('steps') or []
+                        task.save(update_fields=['weknora_answer', 'weknora_references', 'weknora_steps'])
+                        if _answer:
+                            selected_knowledge = [{
+                                'name': f"WeKnora({_binding.agent_name or _binding.agent_id})",
+                                'content': _answer,
+                            }]
+                            logger.info('任务 %s 已注入 WeKnora(%s, project=%s) 回答',
+                                        task.task_id, _binding.agent_id, _ctx_project or 'default')
+            except Exception as e:
+                logger.warning('任务 %s WeKnora 知识注入失败(跳过): %s', task.task_id, e)
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
@@ -1890,11 +1950,12 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
             last_review_length = 0  # 记录上次发送的评审内容长度
             last_final_length = 0  # 记录上次发送的最终用例长度
             last_status = ''  # 记录上次的任务状态
+            last_weknora_sent = False  # WeKnora 知识审计事件是否已发送
 
             # 同步生成器: 由 _SSEStream 双协议逐块消费(WSGI 同步 __next__ / ASGI 线程池 __aiter__),
             # 不要再喂给标准 StreamingHttpResponse(会被 iter() 解包走 list() 整包缓冲)
             def event_stream():
-                nonlocal last_sent_position, loop_count, last_review_length, last_final_length, last_status
+                nonlocal last_sent_position, loop_count, last_review_length, last_final_length, last_status, last_weknora_sent
 
                 # Performance & Timeout Optimization
                 start_time = time.time()
@@ -2032,6 +2093,18 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                                     yield f"data: {final_data}\n\n"
                                     last_final_length = len(final_cases)
                                     has_sent_data = True
+
+                    # 发送 WeKnora 知识审计(注入的回答 + 思考/检索过程 + 引用文档/分块) - 出现一次即发送
+                    if not last_weknora_sent and (task.weknora_answer or task.weknora_references or task.weknora_steps):
+                        weknora_data = json.dumps({
+                            'type': 'weknora',
+                            'answer': task.weknora_answer or '',
+                            'references': task.weknora_references or [],
+                            'steps': task.weknora_steps or [],
+                        }, ensure_ascii=False)
+                        yield f"data: {weknora_data}\n\n"
+                        last_weknora_sent = True
+                        has_sent_data = True
 
                     # 发送进度更新 (Optimized)
                     current_progress_hash = f"{task.status}_{task.progress}"
@@ -3503,577 +3576,89 @@ def zentao_sync(request):
         return JsonResponse({'error': f'同步失败: {str(e)}'}, status=400)
 
 
+
 # ============================================================
-# 业务知识库 ViewSets
+# WeKnora 外部知识库配置(配置中心) + 项目⇄智能体绑定
 # ============================================================
+class WeKnoraConfigViewSet(viewsets.ViewSet):
+    """WeKnora 连接配置(单例行)；支持测试连接与拉取智能体列表"""
 
-def _assert_knowledge_object_access(request, project_id, knowledge_level):
-    """知识库对象写操作前置校验：非空 project 校验成员/owner；global 级数据仅管理员可写。"""
-    assert_project_access(request.user, project_id)
-    if knowledge_level == 'global' and not is_admin(request.user):
-        raise PermissionDenied("无权操作全局知识库")
+    def list(self, request):
+        cfg = WeKnoraConfig.get_solo()
+        return Response(WeKnoraConfigSerializer(cfg).data)
 
+    def retrieve(self, request, pk=None):
+        cfg = WeKnoraConfig.get_solo()
+        return Response(WeKnoraConfigSerializer(cfg).data)
 
-class KnowledgeDocumentViewSet(viewsets.ModelViewSet):
-    """知识文档视图集"""
-    queryset = KnowledgeDocument.objects.all()
-    serializer_class = KnowledgeDocumentSerializer
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
-    pagination_class = KnowledgePagination
-
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return KnowledgeDocumentUploadSerializer
-        return KnowledgeDocumentSerializer
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-
-        if not hasattr(self.request, 'query_params'):
-            return queryset.order_by('-created_at')
-
-        # 按知识级别过滤
-        level = self.request.query_params.get('level')
-        if level in ['global', 'project']:
-            queryset = queryset.filter(knowledge_level=level)
-
-        # 按项目过滤
-        project_id = self.request.query_params.get('project')
-        if project_id:
-            queryset = queryset.filter(project_id=project_id)
-
-        return queryset.order_by('-created_at')
-
-    @action(detail=False, methods=['get'])
-    def stats(self, request):
-        """知识库概览统计（文档/条目总量）"""
-        total_documents = KnowledgeDocument.objects.count()
-        ready_documents = KnowledgeDocument.objects.filter(status='ready').count()
-        total_entries = KnowledgeEntry.objects.count()
-        llm_entries = KnowledgeEntry.objects.filter(source='llm_extract').count()
-        return Response({
-            'total_documents': total_documents,
-            'ready_documents': ready_documents,
-            'total_entries': total_entries,
-            'llm_entries': llm_entries,
-        })
+    def update(self, request, pk=None):
+        cfg = WeKnoraConfig.get_solo()
+        data = dict(request.data)
+        # api_key 为 write_only；留空表示保持不变，避免误清空
+        if not data.get('api_key'):
+            data.pop('api_key', None)
+        serializer = WeKnoraConfigSerializer(cfg, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(WeKnoraConfigSerializer(WeKnoraConfig.get_solo()).data)
 
     @action(detail=False, methods=['post'])
-    def batch_delete(self, request):
-        """批量删除知识文档"""
-        ids = request.data.get('ids', [])
-        if not ids:
-            return Response(
-                {'error': '请选择要删除的知识文档'}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        from .vector_store import vector_store
-        deleted = 0
-        for doc in KnowledgeDocument.objects.filter(id__in=ids):
-            _assert_knowledge_object_access(request, doc.project_id, doc.knowledge_level)
-            try:
-                vector_store.remove_by_document(doc.project_id, doc.id)
-            except Exception as e:
-                logger.warning(f"清理 ChromaDB 文档 {doc.id} 失败: {e}")
-            doc.delete()
-            deleted += 1
-
-        return Response({
-            'success': True,
-            'message': f'已删除 {deleted} 个知识文档',
-            'deleted': deleted,
-        })
+    def test_connection(self, request):
+        cfg = WeKnoraConfig.get_solo()
+        data = request.data or {}
+        base_url = data.get('base_url', cfg.base_url)
+        api_key = data.get('api_key', cfg.api_key)
+        timeout = data.get('timeout', cfg.timeout)
+        check_agents = bool(data.get('check_agents', True))
+        try:
+            from .weknora_client import WeKnoraClient
+            client = WeKnoraClient(base_url, api_key, timeout)
+            ok, result = client.test_connection(check_agents=check_agents)
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if not ok:
+            return Response({'success': False, 'error': result},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({'success': True, **result})
 
     @action(detail=False, methods=['get'])
-    def config_status(self, request):
-        """检查知识库分词/向量化模型配置状态
-
-        只有显式配置了 tokenizer / embedding 角色才视为「已配置」；
-        即便 writer 配置可作回退，也不满足知识库专用分词模型的要求。
-        """
-        from apps.ai.resolver import ConfigResolver
-
-        config = ConfigResolver.active_by_priority(('tokenizer', 'embedding'))
-        return Response({
-            'tokenizer_configured': config is not None,
-            'model_name': config.name if config else None,
-            'model_detail': config.model_name if config else None,
-            'role': config.role if config else None,
-        })
-
-    @action(detail=True, methods=['get'])
-    def chunks(self, request, pk=None):
-        """获取文档的全部分块（预览）"""
-        document = self.get_object()
+    def agents(self, request):
+        cfg = WeKnoraConfig.get_solo()
+        if not (cfg.base_url and (cfg.api_key or '') ):
+            return Response({'success': False, 'error': 'WeKnora 未配置'},
+                            status=status.HTTP_400_BAD_REQUEST)
         try:
-            from .vector_store import vector_store
-
-            chunks = vector_store.get_chunks(document.project_id, document.id)
-            return Response({
-                'results': chunks,
-                'total': len(chunks),
-            })
+            from .weknora_client import WeKnoraClient
+            client = WeKnoraClient(cfg.base_url, cfg.api_key, cfg.timeout)
+            agents = client.list_agents()
         except Exception as e:
-            logger.error(f"获取分块失败: {e}")
-            return Response(
-                {'error': f'获取分块失败: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @action(detail=True, methods=['post'], url_path='update-chunk')
-    def update_chunk(self, request, pk=None):
-        """编辑单个分块并重新向量化"""
-        document = self.get_object()
-        _assert_knowledge_object_access(request, document.project_id, document.knowledge_level)
-        chunk_id = request.data.get('chunk_id')
-        content = request.data.get('content')
-
-        if not chunk_id:
-            return Response({'error': '缺少 chunk_id'}, status=status.HTTP_400_BAD_REQUEST)
-        if content is None or not str(content).strip():
-            return Response({'error': '分块内容不能为空'}, status=status.HTTP_400_BAD_REQUEST)
-
-        from .embedding_service import embedding_service
-        if not embedding_service.get_embedding_config():
-            return Response(
-                {'error': '未配置分词/嵌入模型，无法重新向量化，请先在配置中心配置分词模型'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            from .vector_store import vector_store
-            vector_store.update_chunk(
-                project_id=document.project_id,
-                chunk_id=chunk_id,
-                content=content,
-                embedding_service=embedding_service,
-            )
-            return Response({'message': '分块已更新'})
-        except Exception as e:
-            logger.error(f"更新分块失败: {e}")
-            return Response(
-                {'error': f'更新分块失败: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    def perform_destroy(self, instance):
-        """删除文档时同步清理 ChromaDB"""
-        _assert_knowledge_object_access(self.request, instance.project_id, instance.knowledge_level)
-        from .vector_store import vector_store
-        try:
-            vector_store.remove_by_document(instance.project_id, instance.id)
-        except Exception as e:
-            logger.warning(f"清理 ChromaDB 文档 {instance.id} 失败: {e}")
-        instance.delete()
-
-    @action(detail=True, methods=['post'])
-    def process(self, request, pk=None):
-        """
-        处理文档：解析文本 → 分块 → 向量化
-        """
-        document = self.get_object()
-        _assert_knowledge_object_access(request, document.project_id, document.knowledge_level)
-
-        if document.status == 'processing':
-            return Response(
-                {'error': '文档正在处理中，请稍后再试'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if document.status == 'ready' and document.raw_text:
-            return Response(
-                {'message': '文档已处理完成', 'chunk_count': document.chunk_count},
-                status=status.HTTP_200_OK
-            )
-
-        # 前置校验：未配置分词/嵌入模型时无法分块向量化
-        from .embedding_service import embedding_service
-        embedding_config = embedding_service.get_embedding_config(refresh=True)
-        if not embedding_config:
-            return Response(
-                {'error': '未配置分词/嵌入模型，请在配置中心配置一个分词模型后再处理文档'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            # 更新状态
-            document.status = 'processing'
-            document.save()
-
-            # 异步处理
-            def run_processing():
-                try:
-                    from .services import DocumentProcessor
-                    from .knowledge_chunker import KnowledgeChunker
-                    from .vector_store import vector_store
-                    from .embedding_service import embedding_service
-
-                    # 1. 解析文本
-                    logger.info(f"开始解析文档: {document.name}")
-                    raw_text = DocumentProcessor.extract_text(document)
-                    document.raw_text = raw_text
-                    document.save()
-
-                    # 2. 分块（使用分词模型做语义分块；模型不可用时回退段落拆分）
-                    logger.info(f"开始分块文档: {document.name}")
-                    chunker = KnowledgeChunker(
-                        embedding_model=embedding_service.get_langchain_embedding_model()
-                    )
-                    sections = chunker.chunk(raw_text)
-
-                    # 3. 向量化存储
-                    logger.info(f"开始向量化文档: {document.name}, 章节数: {len(sections)}")
-                    chunk_count = vector_store.add_sections(
-                        project_id=document.project_id,
-                        sections=sections,
-                        embedding_service=embedding_service,
-                        document_name=document.name,
-                        document_id=document.id,
-                    )
-
-                    document.chunk_count = chunk_count
-                    document.status = 'ready'
-                    document.save()
-
-                    logger.info(f"文档处理完成: {document.name}, 分块数: {chunk_count}")
-
-                except Exception as e:
-                    logger.error(f"文档处理失败: {e}")
-                    document.status = 'failed'
-                    document.error_message = str(e)
-                    document.save()
-
-            import threading
-            thread = threading.Thread(target=run_processing, daemon=True)
-            thread.start()
-
-            return Response({
-                'message': '文档处理任务已启动',
-                'status': 'processing',
-            }, status=status.HTTP_202_ACCEPTED)
-
-        except Exception as e:
-            logger.error(f"启动文档处理失败: {e}")
-            document.status = 'failed'
-            document.error_message = str(e)
-            document.save()
-            return Response(
-                {'error': f'处理失败: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @action(detail=True, methods=['post'])
-    def extract(self, request, pk=None):
-        """
-        触发 LLM 提取知识条目
-        """
-        document = self.get_object()
-        _assert_knowledge_object_access(request, document.project_id, document.knowledge_level)
-
-        if not document.raw_text:
-            return Response(
-                {'error': '文档尚未处理，请先调用 process 接口'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if document.is_extracting:
-            return Response(
-                {'error': '文档正在提取中，请稍后再试'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 获取 writer 模型配置
-        writer_config = ConfigResolver.active(role='writer')
-        if not writer_config:
-            return Response(
-                {'error': '未找到可用的 AI 模型配置'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            # 标记提取中（同步可见，避免重复触发）
-            document.is_extracting = True
-            document.extract_progress = 0
-            document.extract_message = '提取任务已启动'
-            document.save(update_fields=['is_extracting', 'extract_progress', 'extract_message'])
-
-            # 异步提取
-            def persist_progress(pct, msg):
-                document.is_extracting = True
-                document.extract_progress = pct
-                document.extract_message = msg
-                document.save(update_fields=['is_extracting', 'extract_progress', 'extract_message'])
-
-            from asgiref.sync import sync_to_async
-            persist_progress_async = sync_to_async(persist_progress)
-
-            async def progress_callback(pct, msg):
-                await persist_progress_async(pct, msg)
-
-            def run_extraction():
-                try:
-                    from .knowledge_chunker import KnowledgeChunker
-                    from .knowledge_extractor import KnowledgeExtractor
-                    from .embedding_service import embedding_service
-                    from .vector_store import vector_store
-
-                    # 创建 loop 用于异步调用
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-
-                    try:
-                        chunker = KnowledgeChunker()
-                        extractor = KnowledgeExtractor(
-                            llm_service=AIModelService,
-                            embedding_service=embedding_service,
-                            chunker=chunker,
-                        )
-
-                        entries = loop.run_until_complete(
-                            extractor.extract_from_document(
-                                document, writer_config,
-                                progress_callback=progress_callback,
-                            )
-                        )
-
-                        # 保存到数据库
-                        document.extract_progress = 98
-                        document.extract_message = '正在保存知识条目'
-                        document.save(update_fields=['extract_progress', 'extract_message'])
-
-                        saved_count = 0
-                        for entry_data in entries:
-                            entry = KnowledgeEntry.objects.create(
-                                name=entry_data.get('name', ''),
-                                content=entry_data.get('content', ''),
-                                category=entry_data.get('category', 'other'),
-                                knowledge_level=document.knowledge_level,
-                                project=document.project,
-                                source='llm_extract',
-                                source_document=document,
-                                created_by=document.created_by,
-                            )
-
-                            # 向量化存入 ChromaDB
-                            try:
-                                vector_store.add_entry(
-                                    project_id=document.project_id,
-                                    entry_id=entry.id,
-                                    entry_name=entry.name,
-                                    entry_content=entry.content,
-                                    category=entry.category,
-                                    embedding_service=embedding_service,
-                                    document_name=document.name,
-                                    knowledge_level=document.knowledge_level,
-                                )
-                            except Exception as e:
-                                logger.warning(f"向量化条目 {entry.id} 失败: {e}")
-
-                            saved_count += 1
-
-                        document.entry_count = saved_count
-                        document.extract_progress = 100
-                        document.extract_message = '提取完成'
-                        document.is_extracting = False
-                        document.save()
-
-                        logger.info(f"LLM 提取完成: {document.name}, 提取 {saved_count} 条")
-
-                    finally:
-                        loop.close()
-
-                except Exception as e:
-                    logger.error(f"LLM 提取失败: {e}")
-                    document.is_extracting = False
-                    document.extract_message = f'提取失败: {e}'
-                    document.error_message = str(e)
-                    document.save()
-
-            import threading
-            thread = threading.Thread(target=run_extraction, daemon=True)
-            thread.start()
-
-            return Response({
-                'message': 'LLM 提取任务已启动',
-            }, status=status.HTTP_202_ACCEPTED)
-
-        except Exception as e:
-            logger.error(f"启动 LLM 提取失败: {e}")
-            return Response(
-                {'error': f'提取失败: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({'success': False, 'error': str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({'success': True, 'agents': agents})
 
 
-class KnowledgeEntryViewSet(viewsets.ModelViewSet):
-    """知识条目视图集"""
-    queryset = KnowledgeEntry.objects.all()
-    serializer_class = KnowledgeEntrySerializer
-    pagination_class = KnowledgePagination
+class WeKnoraProjectBindingViewSet(viewsets.ModelViewSet):
+    """项目 ⇄ WeKnora 智能体绑定 CRUD(每项目至多一个,upsert)"""
+
+    queryset = WeKnoraProjectBinding.objects.all().order_by('id')
+    serializer_class = WeKnoraProjectBindingSerializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-
-        if not hasattr(self.request, 'query_params'):
-            return queryset.order_by('-created_at')
-
-        # 按分类过滤
-        category = self.request.query_params.get('category')
-        if category:
-            queryset = queryset.filter(category=category)
-
-        # 按知识级别过滤
-        level = self.request.query_params.get('level')
-        if level in ['global', 'project']:
-            queryset = queryset.filter(knowledge_level=level)
-
-        # 按项目过滤
+        qs = super().get_queryset()
         project_id = self.request.query_params.get('project')
         if project_id:
-            queryset = queryset.filter(project_id=project_id)
-
-        return queryset.order_by('-created_at')
+            qs = qs.filter(project_id=project_id)
+        return qs.select_related('project')
 
     def perform_create(self, serializer):
         project = serializer.validated_data.get('project')
-        assert_project_access(self.request.user, getattr(project, 'id', None))
-        instance = serializer.save()
-        # 向量化存入 ChromaDB
-        self._sync_to_chromadb(instance)
-
-    def perform_update(self, serializer):
-        project = serializer.validated_data.get('project')
-        project_id = getattr(project, 'id', None)
-        if project_id is None:
-            project_id = getattr(serializer.instance, 'project_id', None)
-        assert_project_access(self.request.user, project_id)
-        instance = serializer.save()
-        # 更新 ChromaDB
-        self._sync_to_chromadb(instance, is_update=True)
-
-    def perform_destroy(self, instance):
-        """删除条目时同步清理 ChromaDB"""
-        assert_project_access(self.request.user, instance.project_id)
-        from .vector_store import vector_store
-        try:
-            vector_store.remove_entry(instance.id)
-        except Exception as e:
-            logger.warning(f"清理 ChromaDB 条目 {instance.id} 失败: {e}")
-        instance.delete()
-
-    @action(detail=False, methods=['post'])
-    def batch_delete(self, request):
-        """批量删除知识条目"""
-        ids = request.data.get('ids', [])
-        if not ids:
-            return Response(
-                {'error': '请选择要删除的知识条目'}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        from .vector_store import vector_store
-        deleted = 0
-        for entry in KnowledgeEntry.objects.filter(id__in=ids):
-            try:
-                vector_store.remove_entry(entry.id)
-            except Exception as e:
-                logger.warning(f"清理 ChromaDB 条目 {entry.id} 失败: {e}")
-            entry.delete()
-            deleted += 1
-
-        return Response({
-            'success': True,
-            'message': f'已删除 {deleted} 条知识条目',
-            'deleted': deleted,
-        })
-
-    def _sync_to_chromadb(self, instance, is_update=False):
-        """同步条目到 ChromaDB"""
-        try:
-            from .vector_store import vector_store
-            from .embedding_service import embedding_service
-
-            doc_name = ""
-            if instance.source_document:
-                doc_name = instance.source_document.name
-
-            if is_update:
-                vector_store.update_entry(
-                    project_id=instance.project_id,
-                    entry_id=instance.id,
-                    entry_name=instance.name,
-                    entry_content=instance.content,
-                    category=instance.category,
-                    embedding_service=embedding_service,
-                    document_name=doc_name,
-                    knowledge_level=instance.knowledge_level,
-                )
-            else:
-                vector_store.add_entry(
-                    project_id=instance.project_id,
-                    entry_id=instance.id,
-                    entry_name=instance.name,
-                    entry_content=instance.content,
-                    category=instance.category,
-                    embedding_service=embedding_service,
-                    document_name=doc_name,
-                    knowledge_level=instance.knowledge_level,
-                )
-        except Exception as e:
-            logger.warning(f"同步条目 {instance.id} 到 ChromaDB 失败: {e}")
-
-
-class KnowledgeRetrieveViewSet(viewsets.ViewSet):
-    """知识检索视图集"""
-
-    @action(detail=False, methods=['post'])
-    def search(self, request):
-        """检索相关知识"""
-        serializer = KnowledgeRetrieveRequestSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        validated_data = serializer.validated_data
-        requirement_text = validated_data['requirement_text']
-        project_id = validated_data.get('project_id')
-        top_k = validated_data.get('top_k', 10)
-        assert_project_access(request.user, project_id)
-
-        # 获取 writer 配置（用于 Rerank）
-        writer_config = ConfigResolver.active(role='writer')
-
-        try:
-            from .knowledge_retriever import KnowledgeRetriever
-            from .vector_store import vector_store
-            from .embedding_service import embedding_service
-
-            retriever = KnowledgeRetriever(
-                vector_store=vector_store,
-                embedding_service=embedding_service,
-                llm_service=AIModelService,
-            )
-
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                results = loop.run_until_complete(
-                    retriever.retrieve(
-                        query=requirement_text,
-                        project_id=project_id,
-                        writer_config=writer_config,
-                        top_k=top_k,
-                    )
-                )
-            finally:
-                loop.close()
-
-            return Response({
-                'results': results,
-                'total': len(results),
-            })
-
-        except Exception as e:
-            logger.error(f"知识检索失败: {e}")
-            return Response(
-                {'error': f'检索失败: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        existing = WeKnoraProjectBinding.objects.filter(project=project).first()
+        if existing:
+            for attr, value in serializer.validated_data.items():
+                if attr != 'project':
+                    setattr(existing, attr, value)
+            existing.save()
+            serializer.instance = existing
+        else:
+            serializer.save()

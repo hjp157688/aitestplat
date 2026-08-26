@@ -76,6 +76,15 @@
         {{ getStatusText(task.status) }} · {{ Math.round(task.progress || 0) }}%
       </div>
 
+      <!-- WeKnora 智能体（思考过程 vs 结果，WeKnora 风格） -->
+      <WeKnoraAgentTrace
+        v-if="task.weknora_answer || (task.weknora_references && task.weknora_references.length) || (task.weknora_steps && task.weknora_steps.length)"
+        :answer="task.weknora_answer || ''"
+        :references="task.weknora_references || []"
+        :steps="task.weknora_steps || []"
+        class="stream-section"
+      />
+
       <!-- 生成中：初版用例预览（JSONL 解析为卡片；非 JSON 输出时回退展示原文） -->
       <div v-if="streamedContent && !streamedReviewContent && !finalCasesStream" class="stream-section">
         <div class="stream-section-title">
@@ -392,9 +401,11 @@ import api from '@/utils/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { DocumentCopy, Delete, Plus } from '@element-plus/icons-vue'
 import * as XLSX from 'xlsx'
+import WeKnoraAgentTrace from '@/components/WeKnoraAgentTrace.vue'
 
 export default {
   name: 'TaskDetail',
+  components: { WeKnoraAgentTrace },
   data() {
     return {
       taskId: '',
@@ -2003,5 +2014,73 @@ export default {
 
 .requirement-description-card .el-collapse-item__header .el-icon-arrow-left {
   display: none !important;
+}
+
+/* WeKnora 知识审计面板 */
+.weknora-audit-title {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.weknora-audit-title .el-icon {
+  color: var(--aitest-text-3);
+}
+.weknora-count {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--aitest-text-3);
+}
+.weknora-audit-body {
+  padding: 10px 0 4px;
+}
+.weknora-block {
+  margin-bottom: 12px;
+}
+.weknora-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--aitest-text-2);
+  margin-bottom: 6px;
+}
+.weknora-answer-text {
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 260px;
+  overflow: auto;
+}
+.weknora-ref-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--aitest-border);
+  font-size: 0.9rem;
+}
+.weknora-ref-row:last-child {
+  border-bottom: none;
+}
+.weknora-ref-doc {
+  font-weight: 600;
+  color: var(--aitest-text-1);
+}
+.weknora-ref-title {
+  color: var(--aitest-text-2);
+}
+.weknora-ref-chunk {
+  color: var(--aitest-text-3);
+  font-size: 0.8rem;
+}
+.weknora-ref-score {
+  margin-left: auto;
+  color: var(--aitest-primary, #4f46e5);
+  font-variant-numeric: tabular-nums;
 }
 </style>

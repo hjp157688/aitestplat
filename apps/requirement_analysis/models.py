@@ -170,8 +170,6 @@ class AIModelConfig(models.Model):
         ('writer', '测试用例编写专家'),
         ('reviewer', '测试评审专家'),
         ('browser_use_text', 'Browser Use - 文本模式'),
-        ('embedding', '嵌入模型'),
-        ('tokenizer', '分词模型'),
         ('api_testcase_generator', '接口测试用例生成'),
         # 合并自 api_testing.AIServiceConfig 的旧角色（保数据完整，无运行时消费方，UI 不展示）
         ('doc_extractor', 'API文档提取'),
@@ -233,9 +231,6 @@ class PromptConfig(models.Model):
         ('reviewer', '用例评审提示词'),
         ('requirement_parse', '需求解析提示词'),
         ('api_testcase_generator', '接口测试用例生成'),
-        ('knowledge_structure', '知识库-结构分析'),
-        ('knowledge_section', '知识库-章节提取'),
-        ('knowledge_rerank', '知识库-相关性重排'),
         ('browser_use_task', 'Browser Use-执行任务'),
         ('browser_use_breakdown', 'Browser Use-任务拆分'),
     ]
@@ -410,6 +405,10 @@ class TestCaseGenerationTask(models.Model):
     # 元数据
     generation_log = models.TextField(blank=True, verbose_name='生成日志')
     error_message = models.TextField(blank=True, verbose_name='错误信息')
+    # WeKnora 知识注入审计：生成时从 WeKnora 智能体拉取的回答与引用（文档/分块）
+    weknora_answer = models.TextField(blank=True, default='', verbose_name='WeKnora 知识注入回答')
+    weknora_references = models.JSONField(default=list, blank=True, verbose_name='WeKnora 引用(文档/分块)')
+    weknora_steps = models.JSONField(default=list, blank=True, verbose_name='WeKnora 思考/检索过程')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
@@ -581,103 +580,51 @@ def create_requirement_from_br_data(analysis, req_data):
     )
 
 
-class KnowledgeDocument(models.Model):
-    """知识文档模型"""
-    KNOWLEDGE_LEVEL_CHOICES = [
-        ('global', '全局知识'),
-        ('project', '项目知识'),
-    ]
-
-    STATUS_CHOICES = [
-        ('uploaded', '已上传'),
-        ('processing', '处理中'),
-        ('ready', '就绪'),
-        ('failed', '失败'),
-    ]
-
-    name = models.CharField(max_length=200, verbose_name='文档名称')
-    file = models.FileField(upload_to='knowledge_docs/%Y/%m/', verbose_name='文档文件')
-    file_type = models.CharField(max_length=10, verbose_name='文件类型')
-    knowledge_level = models.CharField(
-        max_length=20, choices=KNOWLEDGE_LEVEL_CHOICES, default='global', verbose_name='知识级别'
-    )
-    project = models.ForeignKey(
-        Project, null=True, blank=True, on_delete=models.CASCADE,
-        related_name='knowledge_documents', verbose_name='关联项目'
-    )
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='uploaded', verbose_name='状态'
-    )
-    raw_text = models.TextField(blank=True, verbose_name='解析后的文本内容')
-    chunk_count = models.IntegerField(default=0, verbose_name='分块数量')
-    entry_count = models.IntegerField(default=0, verbose_name='提取的条目数')
-    error_message = models.TextField(blank=True, verbose_name='错误信息')
-    is_extracting = models.BooleanField(default=False, verbose_name='是否提取中')
-    extract_progress = models.IntegerField(default=0, verbose_name='提取进度(0-100)')
-    extract_message = models.CharField(max_length=200, blank=True, default='', verbose_name='提取状态信息')
-    is_active = models.BooleanField(default=True, verbose_name='是否启用')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')
+class WeKnoraConfig(models.Model):
+    """WeKnora 外部知识库连接配置（单例行；连接/打默认智能体与知识库）"""
+    base_url = models.CharField(max_length=255, default='http://localhost:8080', verbose_name='WeKnora Base URL')
+    api_key = models.CharField(max_length=500, blank=True, default='', verbose_name='API Key')
+    timeout = models.IntegerField(default=30, verbose_name='超时(秒)')
+    default_agent_id = models.CharField(max_length=100, blank=True, default='', verbose_name='默认智能体ID')
+    default_agent_name = models.CharField(max_length=200, blank=True, default='', verbose_name='默认智能体名称')
+    knowledge_base_ids = models.JSONField(default=list, blank=True, verbose_name='默认知识库ID列表')
+    enabled = models.BooleanField(default=False, verbose_name='是否启用')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
     class Meta:
-        db_table = 'knowledge_documents'
-        verbose_name = '知识文档'
-        verbose_name_plural = '知识文档'
-        ordering = ['-created_at']
+        db_table = 'weknora_configs'
+        verbose_name = 'WeKnora 配置'
+        verbose_name_plural = 'WeKnora 配置'
 
     def __str__(self):
-        return f"{self.name} - {self.get_status_display()}"
+        return f'WeKnora({self.base_url})'
+
+    @staticmethod
+    def get_solo():
+        cfg, _ = WeKnoraConfig.objects.get_or_create(pk=1)
+        return cfg
 
 
-class KnowledgeEntry(models.Model):
-    """知识条目模型（手动创建或LLM自动提取）"""
-    CATEGORY_CHOICES = [
-        ('module', '功能模块'),
-        ('data_model', '数据模型'),
-        ('interface', '接口规范'),
-        ('business_rule', '业务规则'),
-        ('naming', '命名约定'),
-        ('constraint', '约束条件'),
-        ('other', '其他'),
-    ]
-
-    SOURCE_CHOICES = [
-        ('manual', '手动创建'),
-        ('llm_extract', 'LLM提取'),
-    ]
-
-    name = models.CharField(max_length=200, verbose_name='条目名称')
-    content = models.TextField(verbose_name='条目内容')
-    category = models.CharField(
-        max_length=20, choices=CATEGORY_CHOICES, default='other', verbose_name='分类'
+class WeKnoraProjectBinding(models.Model):
+    """项目 ⇄ WeKnora 智能体绑定（每个项目至多一个启用的绑定）"""
+    project = models.OneToOneField(
+        Project, on_delete=models.CASCADE, related_name='weknora_binding', verbose_name='项目'
     )
-    knowledge_level = models.CharField(
-        max_length=20, choices=KnowledgeDocument.KNOWLEDGE_LEVEL_CHOICES,
-        default='global', verbose_name='知识级别'
-    )
-    project = models.ForeignKey(
-        Project, null=True, blank=True, on_delete=models.CASCADE,
-        related_name='knowledge_entries', verbose_name='关联项目'
-    )
-    source = models.CharField(
-        max_length=20, choices=SOURCE_CHOICES, default='manual', verbose_name='来源'
-    )
-    source_document = models.ForeignKey(
-        KnowledgeDocument, null=True, blank=True, on_delete=models.SET_NULL,
-        related_name='entries', verbose_name='来源文档'
-    )
-    is_active = models.BooleanField(default=True, verbose_name='是否启用')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')
+    agent_id = models.CharField(max_length=100, verbose_name='WeKnora 智能体ID')
+    agent_name = models.CharField(max_length=200, blank=True, default='', verbose_name='智能体名称')
+    knowledge_base_ids = models.JSONField(default=list, blank=True, verbose_name='知识库ID列表')
+    enabled = models.BooleanField(default=True, verbose_name='是否启用')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
     class Meta:
-        db_table = 'knowledge_entries'
-        verbose_name = '知识条目'
-        verbose_name_plural = '知识条目'
-        ordering = ['-created_at']
+        db_table = 'weknora_project_bindings'
+        verbose_name = 'WeKnora 项目绑定'
+        verbose_name_plural = 'WeKnora 项目绑定'
 
     def __str__(self):
-        return f"{self.name} - {self.get_category_display()}"
+        return f'{self.project}: {self.agent_name or self.agent_id}'
 
 
 class AIModelService:

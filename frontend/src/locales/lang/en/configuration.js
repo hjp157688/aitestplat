@@ -173,8 +173,6 @@ export default {
       writer: 'Test Case Writer',
       reviewer: 'Test Reviewer',
       browser_use_text: 'Browser Use - Text mode',
-      embedding: 'Embedding',
-      tokenizer: 'Tokenizer',
       api_testcase_generator: 'API Test Case Generator'
     },
     messages: {
