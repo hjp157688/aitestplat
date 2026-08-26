@@ -48,68 +48,6 @@
                 </select>
               </div>
 
-              <!-- 业务知识检索 -->
-              <div class="knowledge-section">
-                <button
-                  class="retrieve-knowledge-btn"
-                  @click="doRetrieveKnowledge"
-                  :disabled="isRetrieving || !(manualInput.title && manualInput.description)">
-                  <span v-if="isRetrieving"><el-icon class="btn-icon"><Search /></el-icon> {{ $t('requirementAnalysis.retrieving') }}</span>
-                  <span v-else><el-icon class="btn-icon"><Search /></el-icon> {{ $t('requirementAnalysis.retrieveKnowledge') }}</span>
-                </button>
-
-                <div v-if="selectedKnowledge.length > 0" class="selected-knowledge-summary">
-                  {{ $t('requirementAnalysis.selectedKnowledge', { count: selectedKnowledge.length }) }}
-                  <span class="selected-tags">
-                    <span v-for="k in selectedKnowledge.slice(0, 3)" :key="k.id" class="knowledge-tag">
-                      {{ k.name }}
-                    </span>
-                    <span v-if="selectedKnowledge.length > 3" class="knowledge-tag">+{{ selectedKnowledge.length - 3 }}</span>
-                  </span>
-                </div>
-              </div>
-
-              <!-- 检索结果面板 -->
-              <div v-if="showKnowledgePanel" class="knowledge-panel">
-                <div class="knowledge-panel-header">
-                  <span>{{ $t('requirementAnalysis.retrieveResults') }}</span>
-                  <span class="knowledge-count">{{ $t('requirementAnalysis.resultCount', { count: knowledgeResults.length }) }}</span>
-                </div>
-                <div class="knowledge-panel-body">
-                  <div v-if="knowledgeResults.length === 0 && !isRetrieving" class="knowledge-empty">
-                    {{ $t('requirementAnalysis.noResults') }}
-                  </div>
-                  <div
-                    v-for="k in knowledgeResults"
-                    :key="k.id"
-                    class="knowledge-item"
-                    :class="{ selected: isKnowledgeSelected(k) }"
-                    @click="toggleKnowledge(k)">
-                    <div class="knowledge-item-header">
-                      <label class="knowledge-checkbox">
-                        <input type="checkbox" :checked="isKnowledgeSelected(k)" @click.stop="toggleKnowledge(k)">
-                      </label>
-                      <span class="knowledge-item-name">{{ k.name }}</span>
-                      <span
-                        class="knowledge-item-type"
-                        :class="k.type"
-                        :title="k.type === 'chunk' ? $t('requirementAnalysis.knowledgeTypeHintChunk') : $t('requirementAnalysis.knowledgeTypeHintEntry')">
-                        {{ k.type === 'chunk' ? '📄' : '🏷' }} {{ k.type === 'chunk' ? $t('requirementAnalysis.knowledgeChunk') : $t('requirementAnalysis.knowledgeEntry') }}
-                      </span>
-                      <span class="knowledge-item-score" :class="{ high: k.score >= 7, low: k.score < 6 }">
-                        {{ k.score.toFixed(1) }}
-                      </span>
-                    </div>
-                    <div class="knowledge-item-content">{{ k.content }}</div>
-                  </div>
-                </div>
-                <div class="knowledge-panel-footer">
-                  <span>{{ $t('requirementAnalysis.selected', { count: selectedKnowledge.length }) }}</span>
-                  <button class="confirm-knowledge-btn" @click="confirmKnowledgeSelection">
-                    {{ $t('requirementAnalysis.confirmSelection') }}
-                  </button>
-                </div>
-              </div>
             </div>
           </el-tab-pane>
 
@@ -338,6 +276,15 @@
             </el-button>
           </div>
 
+          <!-- WeKnora 智能体（思考过程 vs 结果，WeKnora 风格） -->
+          <WeKnoraAgentTrace
+            v-if="weknoraAnswer || weknoraReferences.length || weknoraSteps.length"
+            :answer="weknoraAnswer"
+            :references="weknoraReferences"
+            :steps="weknoraSteps"
+            class="result-section"
+          />
+
           <!-- 区块一：用例草稿（流式实时堆积） -->
           <section v-if="streamedCases.length > 0" class="result-section">
             <div class="result-section-head">
@@ -527,9 +474,9 @@ import api from '@/utils/api'
 import { ElMessage } from 'element-plus'
 import * as XLSX from 'xlsx'
 import { useUserStore } from '@/stores/user'
-import { Upload, Document, CircleClose, Tickets, EditPen, CircleCheck, Download, Search, Lightning, WarningFilled, Close, MagicStick, CopyDocument, Clock, RefreshRight, CircleCheckFilled } from '@element-plus/icons-vue'
-import { retrieveKnowledge } from '@/api/requirement'
+import { Upload, Document, CircleClose, Tickets, EditPen, CircleCheck, Download, Lightning, WarningFilled, Close, MagicStick, CopyDocument, Clock, RefreshRight, CircleCheckFilled } from '@element-plus/icons-vue'
 import PageHeader from '@/components/common/PageHeader.vue'
+import WeKnoraAgentTrace from '@/components/WeKnoraAgentTrace.vue'
 
 // localStorage 键：草稿 / 输出模式 / 提醒条关闭状态
 const STORAGE_KEYS = {
@@ -542,7 +489,7 @@ const STORAGE_KEYS = {
 
 export default {
   name: 'RequirementAnalysisView',
-  components: { PageHeader },
+  components: { PageHeader, WeKnoraAgentTrace },
   data() {
     return {
       // 全局输出模式设置
@@ -577,6 +524,9 @@ export default {
       parsedFinalCases: [],  // 从最终版用例解析出的用例卡片
       hasShownCompletionMessage: false,  // 是否已经显示过完成消息
       showReviewStep: true,  // 是否显示评审步骤（根据生成配置决定）
+      weknoraAnswer: '',  // WeKnora 注入的知识库回答（SSE weknora 事件）
+      weknoraReferences: [],  // WeKnora 引用来源（文档/分块）
+      weknoraSteps: [],  // WeKnora 思考/检索过程（SSE weknora 事件）
 
       // 生成结果
       showResults: false,
@@ -627,12 +577,6 @@ export default {
       showConfigGuide: false,
       checkingConfig: true,
       modalKey: 0,  // 用于强制重新渲染弹窗
-
-      // 业务知识检索
-      isRetrieving: false,
-      knowledgeResults: [],
-      selectedKnowledge: [],
-      showKnowledgePanel: false,
 
       // 新交互状态
       activeTab: 'manual',          // 输入页签：manual | upload
@@ -1098,67 +1042,6 @@ export default {
       }
     },
 
-    // 业务知识检索
-    async doRetrieveKnowledge() {
-      const requirementText = this.buildRequirementText()
-      if (!requirementText) {
-        ElMessage.warning(this.$t('requirementAnalysis.enterRequirementFirst'))
-        return
-      }
-      this.isRetrieving = true
-      this.showKnowledgePanel = true
-      this.knowledgeResults = []
-      try {
-        const projectId = this.manualInput.selectedProject || this.selectedProject || null
-        const res = await retrieveKnowledge({
-          requirement_text: requirementText,
-          project_id: projectId,
-          top_k: 10
-        })
-        this.knowledgeResults = res.data.results || []
-        // 默认勾选高分结果 (score >= 6)
-        this.selectedKnowledge = this.knowledgeResults
-          .filter(k => k.score >= 6)
-          .map(k => ({ id: k.id, type: k.type, name: k.name, content: k.content }))
-      } catch (e) {
-        ElMessage.error(this.$t('requirementAnalysis.retrieveFailed') + ': ' + (e.response?.data?.error || e.message))
-      } finally {
-        this.isRetrieving = false
-      }
-    },
-
-    toggleKnowledge(knowledge) {
-      const idx = this.selectedKnowledge.findIndex(k => k.id === knowledge.id)
-      if (idx >= 0) {
-        this.selectedKnowledge.splice(idx, 1)
-      } else {
-        this.selectedKnowledge.push({
-          id: knowledge.id,
-          type: knowledge.type,
-          name: knowledge.name,
-          content: knowledge.content
-        })
-      }
-    },
-
-    isKnowledgeSelected(knowledge) {
-      return this.selectedKnowledge.some(k => k.id === knowledge.id)
-    },
-
-    confirmKnowledgeSelection() {
-      this.showKnowledgePanel = false
-    },
-
-    buildRequirementText() {
-      if (this.manualInput.title && this.manualInput.description) {
-        return `${this.$t('requirementAnalysis.requirementTitle')}: ${this.manualInput.title}\n\n${this.$t('requirementAnalysis.requirementDescription')}:\n${this.manualInput.description}`
-      }
-      if (this.documentTitle && this.selectedFile) {
-        return `${this.$t('requirementAnalysis.documentTitle')}: ${this.documentTitle}`
-      }
-      return ''
-    },
-
     async startGeneration(title, requirementText, projectId, outputMode = 'stream', caseType = '', granularity = 'medium') {
       // 记录本次请求，供失败后一键重试
       this.lastRequest = { title, text: requirementText, projectId, mode: outputMode, caseType, granularity }
@@ -1190,6 +1073,9 @@ export default {
       this.streamedReviewContent = ''  // 清空评审内容
       this.streamedCases = []  // 清空用例卡片
       this.parsedFinalCases = []  // 清空最终用例卡片
+      this.weknoraAnswer = ''  // 清空 WeKnora 回答
+      this.weknoraReferences = []  // 清空 WeKnora 引用
+      this.weknoraSteps = []  // 清空 WeKnora 思考过程
       this.savedToRecords = false
       this.savedCount = 0
       this.hasShownCompletionMessage = false  // 重置完成消息标志位
@@ -1210,11 +1096,6 @@ export default {
         // 如果选择了项目，添加到请求中
         if (projectId) {
           requestData.project = projectId
-        }
-
-        // 如果有选择的业务知识，添加到请求中
-        if (this.selectedKnowledge && this.selectedKnowledge.length > 0) {
-          requestData.selected_knowledge = this.selectedKnowledge
         }
 
         const response = await api.post('/requirement-analysis/testcase-generation/generate/', requestData)
@@ -1279,6 +1160,11 @@ export default {
               this.currentStep = 3
               this.progressText = `${this.$t('requirementAnalysis.statusRevising')} ${data.progress}%`
             }
+          } else if (data.type === 'weknora') {
+            // WeKnora 知识审计：注入的回答 + 思考/检索过程 + 引用文档/分块
+            this.weknoraAnswer = data.answer || ''
+            this.weknoraReferences = data.references || []
+            this.weknoraSteps = data.steps || []
           } else if (data.type === 'content') {
             // Real-time streaming content (case generation)
             console.log('✍️ Received streaming content:', data.content.length, 'characters')
@@ -3193,5 +3079,72 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* WeKnora 知识审计面板（内联） */
+.weknora-audit-head {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.weknora-audit-head .result-section-title {
+  display: inline-flex;
+  align-items: center;
+}
+.weknora-audit-head .el-icon {
+  color: var(--aitest-text-3);
+}
+.weknora-audit-body {
+  padding: 10px 0 4px;
+}
+.weknora-block {
+  margin-bottom: 12px;
+}
+.weknora-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--aitest-text-2);
+  margin-bottom: 6px;
+}
+.weknora-answer-text {
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 260px;
+  overflow: auto;
+}
+.weknora-ref-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--aitest-border);
+  font-size: 0.9rem;
+}
+.weknora-ref-row:last-child {
+  border-bottom: none;
+}
+.weknora-ref-doc {
+  font-weight: 600;
+  color: var(--aitest-text-1);
+}
+.weknora-ref-title {
+  color: var(--aitest-text-2);
+}
+.weknora-ref-chunk {
+  color: var(--aitest-text-3);
+  font-size: 0.8rem;
+}
+.weknora-ref-score {
+  margin-left: auto;
+  color: var(--aitest-primary, #4f46e5);
+  font-variant-numeric: tabular-nums;
 }
 </style>

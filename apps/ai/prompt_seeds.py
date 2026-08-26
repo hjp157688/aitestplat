@@ -123,76 +123,6 @@ REQUIREMENT_PARSE_PROMPT = """你是一个专业的需求分析专家。请从�
 文档内容：
 {content}"""
 
-STRUCTURE_ANALYSIS_PROMPT = """你是一个技术文档分析专家。请分析以下文档的整体结构。
-
-文档内容：
-{document_text}
-
-请输出 JSON 格式（不要输出其他内容）：
-{{
-  "document_type": "系统设计文档",
-  "summary": "一句话概括文档内容",
-  "sections": [
-    {{
-      "title": "章节名",
-      "topics": ["本章涉及的主题1", "主题2"],
-      "key_entities": ["关键实体名1", "关键实体名2"]
-    }}
-  ],
-  "global_knowledge": [
-    "全局性知识，如技术栈选型、架构模式、通用规范等"
-  ]
-}}"""
-
-SECTION_EXTRACT_PROMPT = """你是一个业务知识提取专家。请从以下文档章节中提取关键的业务知识。
-
-【文档全局信息】
-- 文档类型：{document_type}
-- 文档概要：{summary}
-- 全局知识：{global_knowledge}
-
-【当前章节】
-- 章节标题：{section_title}
-- 章节内容：
-{section_content}
-
-【已提取的知识条目（请勿重复提取相同内容）】
-{existing_entries_summary}
-
-请提取以下类型的知识（如果某类知识在当前章节中不存在，跳过该类）：
-1. **功能模块 (module)**：系统有哪些功能模块，每个模块的职责和边界
-2. **数据模型 (data_model)**：涉及哪些数据实体、字段类型、字段含义、关联关系
-3. **接口规范 (interface)**：API 路径、请求方法、参数、返回值、错误码
-4. **业务规则 (business_rule)**：业务逻辑约束、状态流转、校验规则、计算公式
-5. **命名约定 (naming)**：代码命名规范、数据库命名规范、接口命名规范
-6. **约束条件 (constraint)**：性能要求、安全要求、兼容性要求、依赖关系
-
-提取要求：
-- 每个条目用一句话概括名称(name)，用 2-5 句话描述详细内容(content)
-- 准确分类到上述 6 种类型之一(category)
-- **只提取明确出现在文档中的信息，不要编造**
-- 避免提取与已有条目重复的内容
-
-返回 JSON 格式（只返回 JSON，不要输出其他内容）：
-{{"entries": [{{"name": "条目名称", "category": "module", "content": "详细描述..."}}]}}"""
-
-RERANK_PROMPT = """你是一个知识检索评估专家。请评估以下知识片段与用户需求的相关性。
-
-用户需求：
-{query}
-
-知识片段：
-{candidates_text}
-
-请对每个片段打分（1-10分），分数含义：
-- 9-10: 高度相关，直接回答了需求中的问题
-- 7-8: 相关，提供了有用的背景信息
-- 5-6: 部分相关，有一定参考价值
-- 1-4: 不相关，对需求没有帮助
-
-返回 JSON 格式（只返回 JSON，不要输出其他内容）：
-[{{"id": "片段ID", "score": 8, "reason": "评分理由（一句话）"}}]"""
-
 API_TESTCASE_GENERATOR_PROMPT = """你是一个专业的API接口测试专家。你的任务是根据给定的API接口定义，生成多种场景的测试用例。
 
 对每个接口，你需要生成以下类型的测试用例：
@@ -286,9 +216,8 @@ BROWSER_USE_TASK_RULES = (
 
 # 类型名 -> 种子定义（'source' 读 docs 文件；否则用 'fallback'）
 PROMPT_SEEDS_TYPES = (
-    'writer', 'reviewer', 'requirement_parse', 'knowledge_structure',
-    'knowledge_section', 'knowledge_rerank', 'api_testcase_generator',
-    'browser_use_task', 'browser_use_breakdown',
+    'writer', 'reviewer', 'requirement_parse',
+    'api_testcase_generator', 'browser_use_task', 'browser_use_breakdown',
 )
 
 SEEDS = {
@@ -305,18 +234,6 @@ SEEDS = {
     'requirement_parse': {
         'name': '默认需求解析提示词',
         'fallback': REQUIREMENT_PARSE_PROMPT,
-    },
-    'knowledge_structure': {
-        'name': '默认知识库结构分析提示词',
-        'fallback': STRUCTURE_ANALYSIS_PROMPT,
-    },
-    'knowledge_section': {
-        'name': '默认知识库章节提取提示词',
-        'fallback': SECTION_EXTRACT_PROMPT,
-    },
-    'knowledge_rerank': {
-        'name': '默认知识库相关性重排提示词',
-        'fallback': RERANK_PROMPT,
     },
     'api_testcase_generator': {
         'name': '默认接口测试用例生成提示词',

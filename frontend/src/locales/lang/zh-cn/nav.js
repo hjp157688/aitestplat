@@ -22,7 +22,6 @@ export default {
     promptConfig: '提示词配置',
     projectManagement: '项目管理',
     requirementManagement: '需求管理',
-    businessKnowledge: '业务知识库',
     testCases: '测试用例',
     versionManagement: '版本管理',
     reviewManagement: '评审管理',
@@ -72,6 +71,7 @@ export default {
     aiCallRecords: 'AI调用记录',
     aiModeConfig: 'AI智能模式配置',
     scheduledTaskConfig: '定时任务配置',
-    zentaoConfig: '禅道配置'
+    zentaoConfig: '禅道配置',
+    weknoraConfig: 'WeKnora知识库配置'
   }
 }

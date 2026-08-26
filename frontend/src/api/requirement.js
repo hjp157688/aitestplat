@@ -285,174 +285,79 @@ export function disableZentaoConfig(id) {
   })
 }
 
-// ==================== 业务知识库 ====================
+
+// ==================== WeKnora 外部知识库 ====================
 
 /**
- * 获取知识文档列表
+ * 获取 WeKnora 连接配置（单例行）
  */
-export function getKnowledgeDocuments(params) {
+export function getWeKnoraConfig() {
   return request({
-    url: '/requirement-analysis/knowledge-documents/',
-    method: 'get',
-    params
-  })
-}
-
-/**
- * 获取知识库概览统计
- */
-export function getKnowledgeStats() {
-  return request({
-    url: '/requirement-analysis/knowledge-documents/stats/',
+    url: '/requirement-analysis/weknora-config/',
     method: 'get'
   })
 }
 
 /**
- * 检查知识库分词/向量化模型配置状态
+ * 保存 WeKnora 连接配置
  */
-export function getKnowledgeConfigStatus() {
+export function updateWeKnoraConfig(data) {
   return request({
-    url: '/requirement-analysis/knowledge-documents/config_status/',
-    method: 'get'
-  })
-}
-
-/**
- * 上传知识文档
- */
-export function uploadKnowledgeDocument(data) {
-  return request({
-    url: '/requirement-analysis/knowledge-documents/',
-    method: 'post',
-    data,
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
-}
-
-/**
- * 批量删除知识文档
- */
-export function batchDeleteKnowledgeDocuments(ids) {
-  return request({
-    url: '/requirement-analysis/knowledge-documents/batch_delete/',
-    method: 'post',
-    data: { ids }
-  })
-}
-
-/**
- * 删除知识文档
- */
-export function deleteKnowledgeDocument(id) {
-  return request({
-    url: `/requirement-analysis/knowledge-documents/${id}/`,
-    method: 'delete'
-  })
-}
-
-/**
- * 处理文档（分块+向量化）
- */
-export function processKnowledgeDocument(id) {
-  return request({
-    url: `/requirement-analysis/knowledge-documents/${id}/process/`,
-    method: 'post'
-  })
-}
-
-/**
- * 获取文档分块（预览）
- */
-export function getKnowledgeDocumentChunks(id) {
-  return request({
-    url: `/requirement-analysis/knowledge-documents/${id}/chunks/`,
-    method: 'get'
-  })
-}
-
-/**
- * 编辑单个分块（重新向量化）
- */
-export function updateKnowledgeDocumentChunk(id, data) {
-  return request({
-    url: `/requirement-analysis/knowledge-documents/${id}/update-chunk/`,
-    method: 'post',
-    data
-  })
-}
-
-/**
- * LLM 提取知识条目
- */
-export function extractKnowledgeEntries(id) {
-  return request({
-    url: `/requirement-analysis/knowledge-documents/${id}/extract/`,
-    method: 'post'
-  })
-}
-
-/**
- * 获取知识条目列表
- */
-export function getKnowledgeEntries(params) {
-  return request({
-    url: '/requirement-analysis/knowledge-entries/',
-    method: 'get',
-    params
-  })
-}
-
-/**
- * 创建知识条目
- */
-export function createKnowledgeEntry(data) {
-  return request({
-    url: '/requirement-analysis/knowledge-entries/',
-    method: 'post',
-    data
-  })
-}
-
-/**
- * 更新知识条目
- */
-export function updateKnowledgeEntry(id, data) {
-  return request({
-    url: `/requirement-analysis/knowledge-entries/${id}/`,
+    url: '/requirement-analysis/weknora-config/1/',
     method: 'put',
     data
   })
 }
 
 /**
- * 批量删除知识条目
+ * 测试 WeKnora 连接
  */
-export function batchDeleteKnowledgeEntries(ids) {
+export function testWeKnoraConnection(data) {
   return request({
-    url: '/requirement-analysis/knowledge-entries/batch_delete/',
-    method: 'post',
-    data: { ids }
-  })
-}
-
-/**
- * 删除知识条目
- */
-export function deleteKnowledgeEntry(id) {
-  return request({
-    url: `/requirement-analysis/knowledge-entries/${id}/`,
-    method: 'delete'
-  })
-}
-
-/**
- * 检索业务知识
- */
-export function retrieveKnowledge(data) {
-  return request({
-    url: '/requirement-analysis/knowledge/search/',
+    url: '/requirement-analysis/weknora-config/test_connection/',
     method: 'post',
     data
+  })
+}
+
+/**
+ * 获取 WeKnora 智能体列表
+ */
+export function listWeKnoraAgents() {
+  return request({
+    url: '/requirement-analysis/weknora-config/agents/',
+    method: 'get'
+  })
+}
+
+/**
+ * 项目⇄智能体绑定列表
+ */
+export function listWeKnoraBindings(params) {
+  return request({
+    url: '/requirement-analysis/weknora-bindings/',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 创建/更新项目⇄智能体绑定(upsert)
+ */
+export function saveWeKnoraBinding(data) {
+  return request({
+    url: '/requirement-analysis/weknora-bindings/',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 删除项目绑定
+ */
+export function deleteWeKnoraBinding(id) {
+  return request({
+    url: `/requirement-analysis/weknora-bindings/${id}/`,
+    method: 'delete'
   })
 }

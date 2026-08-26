@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     RequirementDocument, RequirementAnalysis,
     GeneratedTestCase, AnalysisTask, AIModelConfig, PromptConfig,
-    GenerationConfig, TestCaseGenerationTask
+    GenerationConfig, TestCaseGenerationTask, WeKnoraConfig, WeKnoraProjectBinding
 )
 
 
@@ -89,3 +89,18 @@ class TestCaseGenerationTaskAdmin(admin.ModelAdmin):
     list_filter = ['status', 'output_mode', 'created_at']
     search_fields = ['task_id', 'title', 'requirement_text']
     readonly_fields = ['task_id', 'created_at', 'updated_at']
+
+
+@admin.register(WeKnoraConfig)
+class WeKnoraConfigAdmin(admin.ModelAdmin):
+    list_display = ['base_url', 'default_agent_name', 'enabled', 'updated_at']
+    search_fields = ['base_url', 'default_agent_name']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(WeKnoraProjectBinding)
+class WeKnoraProjectBindingAdmin(admin.ModelAdmin):
+    list_display = ['project', 'agent_name', 'agent_id', 'enabled', 'updated_at']
+    list_filter = ['enabled', 'updated_at']
+    search_fields = ['project__name', 'agent_name', 'agent_id']
+    readonly_fields = ['created_at', 'updated_at']

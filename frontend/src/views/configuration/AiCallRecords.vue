@@ -131,8 +131,6 @@ export default {
         { value: 'writer', label: 'writer' },
         { value: 'reviewer', label: 'reviewer' },
         { value: 'browser_use_text', label: 'browser_use_text' },
-        { value: 'embedding', label: 'embedding' },
-        { value: 'tokenizer', label: 'tokenizer' },
         { value: 'api_testcase_generator', label: 'api_testcase_generator' }
       ]
     }

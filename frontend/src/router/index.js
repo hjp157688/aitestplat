@@ -87,11 +87,6 @@ const routes = [
                 component: () => import('@/views/requirement-analysis/RequirementManagement.vue')
             },
             {
-                path: 'business-knowledge',
-                name: 'BusinessKnowledge',
-                component: () => import('@/views/requirement-analysis/BusinessKnowledge.vue')
-            },
-            {
                 path: 'testcases',
                 name: 'TestCases',
                 component: () => import('@/views/testcases/TestCaseList.vue')
@@ -435,6 +430,11 @@ const routes = [
                         path: 'zentao',
                         name: 'ConfigZentao',
                         component: () => import('@/views/configuration/ZentaoConfig.vue')
+                    },
+                    {
+                        path: 'weknora',
+                        name: 'ConfigWeKnora',
+                        component: () => import('@/views/configuration/WeKnoraConfig.vue')
                     }
                 ]
             }

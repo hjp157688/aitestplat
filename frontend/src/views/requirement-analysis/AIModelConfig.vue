@@ -150,8 +150,6 @@
                 <option value="">{{ $t('configuration.aiModel.selectRole') }}</option>
                 <option value="writer">{{ $t('configuration.aiModel.roles.writer') }}</option>
                 <option value="reviewer">{{ $t('configuration.aiModel.roles.reviewer') }}</option>
-                <option value="tokenizer">{{ $t('configuration.aiModel.roles.tokenizer') }}</option>
-                <option value="embedding">{{ $t('configuration.aiModel.roles.embedding') }}</option>
                 <option value="browser_use_text">{{ $t('configuration.aiModel.roles.browser_use_text') }}</option>
                 <option value="api_testcase_generator">{{ $t('configuration.aiModel.roles.api_testcase_generator') }}</option>              </select>
             </div>

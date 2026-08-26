@@ -28,10 +28,6 @@
               <el-icon><Tickets /></el-icon>
               <span>{{ $t('menu.requirementManagement') }}</span>
             </el-menu-item>
-            <el-menu-item index="/ai-generation/business-knowledge">
-              <el-icon><Collection /></el-icon>
-              <span>{{ $t('menu.businessKnowledge') }}</span>
-            </el-menu-item>
             <el-menu-item index="/ai-generation/testcases">
               <el-icon><Document /></el-icon>
               <span>{{ $t('menu.testCases') }}</span>
@@ -275,6 +271,10 @@
             <el-menu-item index="/configuration/zentao">
               <el-icon><Connection /></el-icon>
               <span>{{ $t('menu.zentaoConfig') }}</span>
+            </el-menu-item>
+            <el-menu-item index="/configuration/weknora">
+              <el-icon><Collection /></el-icon>
+              <span>{{ $t('menu.weknoraConfig') }}</span>
             </el-menu-item>
           </template>
         </el-menu>

@@ -22,7 +22,6 @@ export default {
     promptConfig: 'Prompt Configuration',
     projectManagement: 'Project Management',
     requirementManagement: 'Requirement Management',
-    businessKnowledge: 'Business Knowledge',
     testCases: 'Test Cases',
     versionManagement: 'Version Management',
     reviewManagement: 'Review Management',
@@ -72,6 +71,7 @@ export default {
     aiCallRecords: 'AI Call Records',
     aiModeConfig: 'AI Mode Configuration',
     scheduledTaskConfig: 'Scheduled Task Configuration',
-    zentaoConfig: 'Zentao Configuration'
+    zentaoConfig: 'Zentao Configuration',
+    weknoraConfig: 'WeKnora Knowledge Base'
   }
 }

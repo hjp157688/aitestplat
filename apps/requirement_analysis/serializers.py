@@ -2,8 +2,9 @@ from rest_framework import serializers
 from .models import (
     RequirementDocument, RequirementAnalysis,
     GeneratedTestCase, AnalysisTask, AIModelConfig, PromptConfig, TestCaseGenerationTask,
-    GenerationConfig, ZentaoConfig, Requirement, KnowledgeDocument, KnowledgeEntry
+    GenerationConfig, ZentaoConfig, Requirement, WeKnoraConfig, WeKnoraProjectBinding
 )
+from apps.projects.models import Project
 
 
 class RequirementDocumentSerializer(serializers.ModelSerializer):
@@ -311,11 +312,13 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
                  'reviewer_model_config', 'reviewer_model_name', 'writer_prompt_config', 'writer_prompt_name',
                  'reviewer_prompt_config', 'reviewer_prompt_name', 'generated_test_cases',
                  'review_feedback', 'final_test_cases', 'generation_log', 'error_message',
+                 'weknora_answer', 'weknora_references', 'weknora_steps',
                  'created_by', 'created_by_name', 'created_at', 'updated_at', 'completed_at',
                  'case_type', 'granularity', 'granularity_display']
         read_only_fields = ['task_id', 'status', 'progress', 'generated_test_cases',
                           'review_feedback', 'final_test_cases', 'generation_log',
-                          'error_message', 'created_by', 'completed_at']
+                          'error_message', 'weknora_answer', 'weknora_references', 'weknora_steps',
+                          'created_by', 'completed_at']
 
     def create(self, validated_data):
         # 自动设置创建者和任务ID
@@ -446,103 +449,36 @@ class ZentaoSyncRequestSerializer(serializers.Serializer):
     )
 
 
-class KnowledgeDocumentSerializer(serializers.ModelSerializer):
-    """知识文档序列化器"""
-    knowledge_level_display = serializers.CharField(source='get_knowledge_level_display', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-    project_name = serializers.CharField(source='project.name', read_only=True)
-    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
-    file_url = serializers.SerializerMethodField()
-
+class WeKnoraConfigSerializer(serializers.ModelSerializer):
+    """WeKnora 连接配置序列化器(单例行)"""
     class Meta:
-        model = KnowledgeDocument
+        model = WeKnoraConfig
         fields = [
-            'id', 'name', 'file', 'file_url', 'file_type', 'knowledge_level',
-            'knowledge_level_display', 'project', 'project_name', 'status',
-            'status_display', 'raw_text', 'chunk_count', 'entry_count',
-            'is_extracting', 'extract_progress', 'extract_message',
-            'error_message', 'is_active', 'created_by', 'created_by_name',
+            'id', 'base_url', 'api_key', 'timeout', 'default_agent_id',
+            'default_agent_name', 'knowledge_base_ids', 'enabled',
             'created_at', 'updated_at',
         ]
-        read_only_fields = [
-            'file_type', 'status', 'raw_text', 'chunk_count', 'entry_count',
-            'is_extracting', 'extract_progress', 'extract_message',
-            'error_message', 'created_by', 'created_at', 'updated_at',
-        ]
-
-    def get_file_url(self, obj):
-        if obj.file:
-            return obj.file.url
-        return None
+        read_only_fields = ['id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'api_key': {'write_only': True, 'required': False},
+            'knowledge_base_ids': {'required': False},
+            'default_agent_name': {'required': False},
+        }
 
 
-class KnowledgeDocumentUploadSerializer(serializers.ModelSerializer):
-    """知识文档上传序列化器"""
-    class Meta:
-        model = KnowledgeDocument
-        fields = ['id', 'name', 'file', 'knowledge_level', 'project']
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            validated_data['created_by'] = user
-        else:
-            from apps.users.models import User
-            default_user = User.objects.filter(is_superuser=True).first()
-            if not default_user:
-                default_user = User.objects.first()
-            validated_data['created_by'] = default_user
-
-        # 自动检测文件类型
-        file_name = validated_data.get('file').name.lower()
-        if file_name.endswith('.pdf'):
-            validated_data['file_type'] = 'pdf'
-        elif file_name.endswith('.docx') or file_name.endswith('.doc'):
-            validated_data['file_type'] = 'docx'
-        elif file_name.endswith('.md'):
-            validated_data['file_type'] = 'md'
-        elif file_name.endswith('.xlsx') or file_name.endswith('.xls'):
-            validated_data['file_type'] = 'xlsx'
-        else:
-            validated_data['file_type'] = 'txt'
-
-        return super().create(validated_data)
-
-
-class KnowledgeEntrySerializer(serializers.ModelSerializer):
-    """知识条目序列化器"""
-    category_display = serializers.CharField(source='get_category_display', read_only=True)
-    knowledge_level_display = serializers.CharField(source='get_knowledge_level_display', read_only=True)
-    source_display = serializers.CharField(source='get_source_display', read_only=True)
+class WeKnoraProjectBindingSerializer(serializers.ModelSerializer):
+    """项目 ⇄ WeKnora 智能体绑定序列化器"""
+    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all(), required=True)
     project_name = serializers.CharField(source='project.name', read_only=True)
-    source_document_name = serializers.CharField(source='source_document.name', read_only=True)
-    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
 
     class Meta:
-        model = KnowledgeEntry
+        model = WeKnoraProjectBinding
         fields = [
-            'id', 'name', 'content', 'category', 'category_display',
-            'knowledge_level', 'knowledge_level_display', 'project', 'project_name',
-            'source', 'source_display', 'source_document', 'source_document_name',
-            'is_active', 'created_by', 'created_by_name', 'created_at', 'updated_at',
+            'id', 'project', 'project_name', 'agent_id', 'agent_name',
+            'knowledge_base_ids', 'enabled', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['created_by', 'created_at', 'updated_at']
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            validated_data['created_by'] = user
-        else:
-            from apps.users.models import User
-            default_user = User.objects.filter(is_superuser=True).first()
-            if not default_user:
-                default_user = User.objects.first()
-            validated_data['created_by'] = default_user
-        return super().create(validated_data)
-
-
-class KnowledgeRetrieveRequestSerializer(serializers.Serializer):
-    """知识检索请求序列化器"""
-    requirement_text = serializers.CharField(help_text="需求描述文本")
-    project_id = serializers.IntegerField(required=False, allow_null=True, help_text="项目ID")
-    top_k = serializers.IntegerField(default=10, help_text="返回数量")
+        read_only_fields = ['id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'agent_name': {'required': False},
+            'knowledge_base_ids': {'required': False},
+        }

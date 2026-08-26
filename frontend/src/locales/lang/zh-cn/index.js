@@ -52,7 +52,7 @@ export default {
   taskDetail: requirementModule.taskDetail,
   configGuide: requirementModule.configGuide,
   requirementManagement: requirementModule.requirementManagement,
-  businessKnowledge: requirementModule.businessKnowledge,
+  weknoraTrace: requirementModule.weknoraTrace,
 
   // API测试模块
   apiTesting: apiTestingModule,

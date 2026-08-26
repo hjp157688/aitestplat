@@ -173,8 +173,6 @@ export default {
       writer: '测试用例编写专家',
       reviewer: '测试评审专家',
       browser_use_text: 'Browser Use - 文本模式',
-      embedding: '嵌入模型',
-      tokenizer: '分词模型',
       api_testcase_generator: '接口测试用例生成'
     },
     messages: {

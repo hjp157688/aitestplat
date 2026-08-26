@@ -12,9 +12,8 @@ from .views import (
     ConfigStatusViewSet,
     ZentaoConfigViewSet,
     RequirementViewSet,
-    KnowledgeDocumentViewSet,
-    KnowledgeEntryViewSet,
-    KnowledgeRetrieveViewSet,
+    WeKnoraConfigViewSet,
+    WeKnoraProjectBindingViewSet,
     upload_and_analyze,
     analyze_text,
     zentao_products,
@@ -38,9 +37,8 @@ router.register(r'testcase-generation', TestCaseGenerationTaskViewSet, basename=
 router.register(r'config', ConfigStatusViewSet, basename='configstatus')
 router.register(r'zentao-config', ZentaoConfigViewSet, basename='zentaoconfig')
 router.register(r'requirements-manage', RequirementViewSet, basename='requirementmanage')
-router.register(r'knowledge-documents', KnowledgeDocumentViewSet, basename='knowledgedocument')
-router.register(r'knowledge-entries', KnowledgeEntryViewSet, basename='knowledgeentry')
-router.register(r'knowledge', KnowledgeRetrieveViewSet, basename='knowledgeretrieve')
+router.register(r'weknora-config', WeKnoraConfigViewSet, basename='weknoraconfig')
+router.register(r'weknora-bindings', WeKnoraProjectBindingViewSet, basename='weknorabinding')
 
 app_name = 'requirement_analysis'
 

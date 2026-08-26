@@ -441,76 +441,6 @@
         <p class="ai-gen-hint">{{ $t('requirementManagement.aiGenerateHint') }}</p>
       </div>
 
-      <!-- 业务知识检索（按需求逐个检索，各需求独立选择上下文） -->
-      <div class="knowledge-section">
-        <div class="knowledge-toolbar">
-          <el-button size="small" @click="retrieveAllKnowledge" :loading="isRetrievingAll">
-            <el-icon><Search /></el-icon>
-            {{ isRetrievingAll ? $t('requirementManagement.knowledgeRetrieving') : $t('requirementManagement.retrieveKnowledge') }}
-          </el-button>
-          <span class="knowledge-toolbar-hint">{{ $t('requirementManagement.perReqKnowledgeHint') }}</span>
-        </div>
-
-        <div class="per-req-knowledge">
-          <div v-for="r in selectedRows" :key="r.id" class="req-knowledge-block">
-            <div class="req-knowledge-head">
-              <span class="req-knowledge-title" :title="r.title">{{ r.title }}</span>
-              <span v-if="isRetrievingReq[r.id]" class="req-knowledge-status">
-                {{ $t('requirementManagement.knowledgeRetrieving') }}
-              </span>
-              <el-button v-else size="small" text type="primary" @click="retrieveOneKnowledge(r)">
-                {{ $t('requirementManagement.reRetrieve') }}
-              </el-button>
-              <span v-if="(selectedKnowledgeMap[r.id] || []).length" class="req-knowledge-count">
-                {{ $t('requirementManagement.selectedKnowledgeCount', { count: selectedKnowledgeMap[r.id].length }) }}
-              </span>
-            </div>
-
-            <div v-if="(selectedKnowledgeMap[r.id] || []).length" class="selected-knowledge-tags">
-              <el-tag
-                v-for="k in selectedKnowledgeMap[r.id].slice(0, 3)"
-                :key="k.id"
-                size="small"
-                type="info"
-                effect="plain"
-                closable
-                @close="removeSelectedKnowledge(r, k)"
-              >{{ k.name }}</el-tag>
-              <el-tag v-if="selectedKnowledgeMap[r.id].length > 3" size="small" type="info" effect="plain">
-                +{{ selectedKnowledgeMap[r.id].length - 3 }}
-              </el-tag>
-            </div>
-
-            <div v-if="knowledgeResultsMap[r.id] !== undefined" class="knowledge-panel">
-              <div class="knowledge-panel-header">
-                <span>{{ $t('requirementAnalysis.retrieveResults') }}</span>
-                <span class="knowledge-count">{{ $t('requirementAnalysis.resultCount', { count: knowledgeResultsMap[r.id].length }) }}</span>
-              </div>
-              <div class="knowledge-panel-body">
-                <div v-if="knowledgeResultsMap[r.id].length === 0" class="knowledge-empty">
-                  {{ $t('requirementManagement.noKnowledge') }}
-                </div>
-                <label
-                  v-for="k in knowledgeResultsMap[r.id]"
-                  :key="k.id"
-                  class="knowledge-item"
-                  :class="{ selected: isKnowledgeSelected(r, k) }"
-                >
-                  <input type="checkbox" :checked="isKnowledgeSelected(r, k)" @change="toggleKnowledge(r, k)" />
-                  <span class="knowledge-item-type" :class="k.type">
-                    {{ k.type === 'chunk' ? '📄' : '🏷' }} {{ k.type === 'chunk' ? $t('requirementAnalysis.knowledgeChunk') : $t('requirementAnalysis.knowledgeEntry') }}
-                  </span>
-                  <span class="knowledge-item-name">{{ k.name }}</span>
-                  <span class="knowledge-item-score" :class="{ high: k.score >= 7, low: k.score < 6 }">
-                    {{ k.score.toFixed(1) }}
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <el-form label-width="96px" class="ai-gen-form">
         <el-form-item :label="$t('requirementManagement.outputMode')">
           <el-radio-group v-model="aiGenForm.output_mode">
@@ -669,7 +599,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, ArrowDown, Edit, Upload, Connection, UploadFilled, Loading, MagicStick } from '@element-plus/icons-vue'
@@ -688,8 +618,7 @@ import {
   getZentaoProductStories,
   getZentaoProjectStories,
   syncZentaoRequirements,
-  generateTestCasesForRequirements,
-  retrieveKnowledge
+  generateTestCasesForRequirements
 } from '@/api/requirement'
 import api from '@/utils/api'
 
@@ -718,11 +647,6 @@ const aiGenForm = reactive({
   case_type: '',
   use_reviewer_model: true
 })
-
-// ============ 业务知识检索（按需求逐个检索，分组上下文） ============
-const isRetrievingReq = reactive({})       // { [requirementId]: true }
-const knowledgeResultsMap = reactive({})   // { [requirementId]: [检索结果] }
-const selectedKnowledgeMap = reactive({})  // { [requirementId]: [{id,type,name,content}] }
 
 // ============ 手动创建/编辑 ============
 const createVisible = ref(false)
@@ -874,20 +798,11 @@ async function handleAiGenerate() {
   }
   aiGenerating.value = true
   try {
-    // 组装的按需求ID分组的业务知识（每条需求只带自己选中的知识）
-    const knowledgeMap = {}
-    for (const r of selectedRows.value) {
-      const list = selectedKnowledgeMap[r.id]
-      if (list && list.length) {
-        knowledgeMap[r.id] = list
-      }
-    }
     const res = await generateTestCasesForRequirements(selectedIds.value, {
       output_mode: aiGenForm.output_mode,
       granularity: aiGenForm.granularity,
       case_type: aiGenForm.case_type,
-      use_reviewer_model: aiGenForm.use_reviewer_model,
-      selected_knowledge: knowledgeMap
+      use_reviewer_model: aiGenForm.use_reviewer_model
     })
     ElMessage.success(res.data?.message || `已创建 ${res.data?.created || 0} 条生成任务`)
     const failedCount = (res.data?.failed || []).length
@@ -908,67 +823,6 @@ async function handleAiGenerate() {
     ElMessage.error(e.response?.data?.error || 'AI生成任务创建失败')
   } finally {
     aiGenerating.value = false
-  }
-}
-
-// ============ 业务知识检索（按需求逐个，各需求独立选择上下文） ============
-const isRetrievingAll = computed(() => Object.values(isRetrievingReq).some(Boolean))
-
-async function fetchKnowledgeForRequirement(r) {
-  if (!r) return
-  isRetrievingReq[r.id] = true
-  try {
-    const res = await retrieveKnowledge({
-      requirement_text: `需求标题: ${r.title}\n\n需求描述:\n${(r.spec || '').slice(0, 2000)}`,
-      project_id: r.project || null,
-      top_k: 10
-    })
-    knowledgeResultsMap[r.id] = res.data.results || []
-    // 默认勾选高分结果（score >= 6），与单需求生成页保持一致
-    selectedKnowledgeMap[r.id] = knowledgeResultsMap[r.id]
-      .filter(k => k.score >= 6)
-      .map(k => ({ id: k.id, type: k.type, name: k.name, content: k.content }))
-  } catch (e) {
-    knowledgeResultsMap[r.id] = []
-    ElMessage.error(`「${r.title}」业务知识检索失败：` + (e.response?.data?.error || e.message))
-  } finally {
-    isRetrievingReq[r.id] = false
-  }
-}
-
-// 一键为所有选中的需求逐个检索（并发）
-async function retrieveAllKnowledge() {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先勾选需求')
-    return
-  }
-  await Promise.all(selectedRows.value.map(r => fetchKnowledgeForRequirement(r)))
-}
-
-// 单独重搜某条需求
-async function retrieveOneKnowledge(r) {
-  await fetchKnowledgeForRequirement(r)
-}
-
-function toggleKnowledge(r, k) {
-  const list = selectedKnowledgeMap[r.id] || (selectedKnowledgeMap[r.id] = [])
-  const idx = list.findIndex(x => x.id === k.id)
-  if (idx >= 0) {
-    list.splice(idx, 1)
-  } else {
-    list.push({ id: k.id, type: k.type, name: k.name, content: k.content })
-  }
-}
-
-function isKnowledgeSelected(r, k) {
-  return (selectedKnowledgeMap[r.id] || []).some(x => x.id === k.id)
-}
-
-function removeSelectedKnowledge(r, k) {
-  const list = selectedKnowledgeMap[r.id] || []
-  const idx = list.findIndex(x => x.id === k.id)
-  if (idx >= 0) {
-    list.splice(idx, 1)
   }
 }
 
