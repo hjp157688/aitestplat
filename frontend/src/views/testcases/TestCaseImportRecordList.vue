@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('testcase.importRecordTitle')">
       <template #actions>
         <el-button @click="router.push('/ai-generation/testcases')">
@@ -13,7 +13,7 @@
 
     <div class="card-container">
       <div class="table-container">
-        <el-table :data="records" v-loading="loading" style="width: 100%">
+      <el-table :data="records" v-loading="loading" style="width: 100%" height="100%">
           <el-table-column prop="import_no" :label="$t('testcase.importNo')" min-width="220" />
           <el-table-column prop="project_name" :label="$t('testcase.importProject')" min-width="160" />
           <el-table-column prop="status" :label="$t('testcase.importStatus')" width="120">
@@ -258,46 +258,16 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.page-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.card-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.table-container {
-  flex: 1;
-  overflow: auto;
-  padding: 20px;
-}
-
-.pagination-container {
-  padding: 20px;
-  border-top: 1px solid var(--aitest-border);
-  display: flex;
-  justify-content: center;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
 .failure-section {
-  margin-top: 20px;
+  margin-top: var(--aitest-space-4);
 }
 
 .failure-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--aitest-space-3);
 }
 </style>

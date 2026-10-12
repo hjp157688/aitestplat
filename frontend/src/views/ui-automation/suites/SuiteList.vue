@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('uiAutomation.suite.title')">
       <template #actions>
         <el-button type="primary" @click="handleNewSuite">
@@ -32,7 +32,8 @@
         </el-row>
       </div>
 
-      <el-table :data="suites" v-loading="loading" style="width: 100%">
+      <div class="table-container">
+        <el-table :data="suites" v-loading="loading" style="width: 100%" height="100%">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="name" :label="$t('uiAutomation.suite.suiteName')" min-width="200">
           <template #default="{ row }">
@@ -83,6 +84,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <div class="pagination-container">
         <el-pagination
@@ -768,27 +770,7 @@ const handleNewSuite = async () => {
 </script>
 
 <style scoped lang="scss">
-.page-container {
-  padding: var(--aitest-space-5);
-  background: var(--aitest-canvas);
-  min-height: 100vh;
-}
-
-.card-container {
-  background: white;
-  padding: var(--aitest-space-5);
-  border-radius: var(--aitest-radius-sm);
-}
-
-.filter-bar {
-  margin-bottom: var(--aitest-space-5);
-}
-
-.pagination-container {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
 // 测试用例选择器样式
 .test-case-selector {

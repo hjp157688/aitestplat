@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('version.title')">
       <template #actions>
         <el-button
@@ -50,63 +50,66 @@
           </el-col>
         </el-row>
       </FilterBar>
-      
-      <el-table
-        :data="versions"
-        v-loading="loading"
-        style="width: 100%"
-        @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="55" />
-        <el-table-column type="index" :label="$t('version.serialNumber')" width="80" :index="getSerialNumber" />
-        <el-table-column prop="name" :label="$t('version.versionName')" min-width="100">
-          <template #default="{ row }">
-            <div class="version-name">
-              <span>{{ row.name }}</span>
-              <StatusTag v-if="row.is_baseline" status="warning" :text="$t('version.baseline')" class="baseline-tag" />
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="projects" :label="$t('version.relatedProject')" width="300">
-          <template #default="{ row }">
-            <div v-if="row.projects && row.projects.length > 0" class="project-tags">
-              <el-tag
-                v-for="project in row.projects.slice(0, 2)"
-                :key="project.id"
-                size="small"
-                type="primary"
-                class="project-tag"
-              >
-                {{ project.name }}
-              </el-tag>
-              <el-tooltip v-if="row.projects.length > 2" :content="getProjectsTooltip(row.projects)">
-                <el-tag size="small" type="info" class="project-tag">
-                  +{{ row.projects.length - 2 }}
+
+      <div class="table-container">
+        <el-table
+          :data="versions"
+          v-loading="loading"
+          style="width: 100%"
+          height="100%"
+          @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="55" />
+          <el-table-column type="index" :label="$t('version.serialNumber')" width="80" :index="getSerialNumber" />
+          <el-table-column prop="name" :label="$t('version.versionName')" min-width="100">
+            <template #default="{ row }">
+              <div class="version-name">
+                <span>{{ row.name }}</span>
+                <StatusTag v-if="row.is_baseline" status="warning" :text="$t('version.baseline')" class="baseline-tag" />
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="projects" :label="$t('version.relatedProject')" width="300">
+            <template #default="{ row }">
+              <div v-if="row.projects && row.projects.length > 0" class="project-tags">
+                <el-tag
+                  v-for="project in row.projects.slice(0, 2)"
+                  :key="project.id"
+                  size="small"
+                  type="primary"
+                  class="project-tag"
+                >
+                  {{ project.name }}
                 </el-tag>
-              </el-tooltip>
-            </div>
-            <span v-else class="no-project">{{ $t('version.noProject') }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="description" :label="$t('version.description')" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="testcases_count" :label="$t('version.testCaseCount')" width="100">
-          <template #default="{ row }">
-            <el-tag type="info" size="small">{{ row.testcases_count }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="created_by.username" :label="$t('version.creator')" width="120" />
-        <el-table-column prop="created_at" :label="$t('version.createdAt')" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.created_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column :label="$t('project.actions')" width="150" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="editVersion(row)">{{ $t('common.edit') }}</el-button>
-            <el-button type="danger" link size="small" @click="deleteVersion(row)">{{ $t('common.delete') }}</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      
+                <el-tooltip v-if="row.projects.length > 2" :content="getProjectsTooltip(row.projects)">
+                  <el-tag size="small" type="info" class="project-tag">
+                    +{{ row.projects.length - 2 }}
+                  </el-tag>
+                </el-tooltip>
+              </div>
+              <span v-else class="no-project">{{ $t('version.noProject') }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="description" :label="$t('version.description')" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="testcases_count" :label="$t('version.testCaseCount')" width="100">
+            <template #default="{ row }">
+              <el-tag type="info" size="small">{{ row.testcases_count }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="created_by.username" :label="$t('version.creator')" width="120" />
+          <el-table-column prop="created_at" :label="$t('version.createdAt')" width="180">
+            <template #default="{ row }">
+              {{ formatDate(row.created_at) }}
+            </template>
+          </el-table-column>
+          <el-table-column :label="$t('project.actions')" width="150" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" link size="small" @click="editVersion(row)">{{ $t('common.edit') }}</el-button>
+              <el-button type="danger" link size="small" @click="deleteVersion(row)">{{ $t('common.delete') }}</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
       <div class="pagination-container">
         <el-pagination
           v-model:current-page="currentPage"
@@ -405,11 +408,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.pagination-container {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: center;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
 .version-name {
   display: flex;

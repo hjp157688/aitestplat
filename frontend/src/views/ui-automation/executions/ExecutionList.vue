@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('uiAutomation.execution.title')" />
 
     <div class="card-container">
@@ -53,7 +53,8 @@
         </el-form>
       </div>
 
-      <el-table :data="executions" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+      <div class="table-container">
+        <el-table :data="executions" v-loading="loading" style="width: 100%" height="100%" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column prop="id" label="ID" width="80" align="center" />
         <el-table-column prop="test_case_name" :label="$t('uiAutomation.execution.caseName')" min-width="200">
@@ -131,6 +132,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <div class="pagination-container">
         <el-pagination
@@ -622,29 +624,7 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.page-container {
-  padding: var(--aitest-space-5);
-  height: 100%;
-  overflow-y: auto;
-  background: var(--aitest-canvas);
-}
-
-.card-container {
-  background-color: var(--aitest-surface);
-  border-radius: var(--aitest-radius-lg);
-  padding: var(--aitest-space-5);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.filter-bar {
-  margin-bottom: var(--aitest-space-5);
-}
-
-.pagination-container {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
 .execution-detail {
   .execution-tabs {
@@ -739,7 +719,7 @@ onMounted(async () => {
         max-width: 100%;
         border: 1px solid var(--el-border-color-lighter);
         border-radius: var(--aitest-radius-sm);
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--aitest-shadow-sm);
       }
 
       .screenshot-error {

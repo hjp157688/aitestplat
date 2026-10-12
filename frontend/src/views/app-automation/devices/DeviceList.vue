@@ -1,5 +1,5 @@
 <template>
-  <div class="device-management">
+  <div class="page-container device-management">
     <!-- 页面标题和操作按钮 -->
     <PageHeader :title="$t('appAutomation.device.title')">
       <template #actions>
@@ -22,12 +22,13 @@
     </PageHeader>
 
     <!-- 设备列表 -->
-    <el-table
-      v-loading="loading"
-      :data="devices"
-      style="width: 100%; margin-top: 20px"
-      :empty-text="emptyText"
-    >
+    <div class="card-container">
+      <el-table
+        v-loading="loading"
+        :data="devices"
+        style="width: 100%"
+        :empty-text="emptyText"
+      >
       <el-table-column prop="name" :label="$t('appAutomation.device.deviceName')" min-width="150">
         <template #default="{ row }">
           <span>{{ row.name || row.device_id }}</span>
@@ -149,6 +150,7 @@
         </template>
       </el-table-column>
     </el-table>
+    </div>
 
     <!-- 添加远程设备对话框 -->
     <el-dialog
@@ -586,10 +588,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.device-management {
-  padding: var(--aitest-space-5);
-}
-
+/* 列表区域使用全局 .card-container 卡片骨架，本地不覆盖 */
 .dialog-footer {
   text-align: right;
 }

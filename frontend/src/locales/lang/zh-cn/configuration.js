@@ -141,6 +141,8 @@ export default {
     availableModelsHint: '已获取 {total} 个模型，按当前输入筛选后剩余 {count} 个，点击即可回填',
     noFilteredModels: '当前输入下没有匹配模型，请继续手填或修改关键字',
     maxTokens: '最大Token数',
+    maxTokensHint: '留空 = 不限制（由模型输出上限决定）',
+    unlimited: '不限',
     temperature: '温度参数',
     topP: 'Top P参数',
     enableConfig: '启用此配置',

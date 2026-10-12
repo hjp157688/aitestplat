@@ -1,5 +1,5 @@
 <template>
-  <div class="suite-list">
+  <div class="page-container page-container--full suite-list">
     <!-- 页面标题 -->
     <PageHeader :title="$t('appAutomation.suite.title')">
       <template #actions>
@@ -12,9 +12,10 @@
       </template>
     </PageHeader>
 
-    <!-- 设备和应用选择 -->
-    <el-card class="config-card">
-      <el-form :model="runConfig" label-width="100px" size="small">
+    <div class="card-container">
+      <!-- 设备和应用选择 -->
+      <div class="filter-bar">
+        <el-form :model="runConfig" label-width="100px" size="small">
         <el-row :gutter="16">
           <el-col :span="5">
             <el-form-item :label="$t('appAutomation.suite.relatedProject')">
@@ -77,15 +78,17 @@
           </el-col>
         </el-row>
       </el-form>
-    </el-card>
+      </div>
 
-    <!-- 套件列表 -->
-    <el-table
-      v-loading="loading"
-      :data="suites"
-      style="width: 100%; margin-top: 16px"
-      :empty-text="$t('appAutomation.suite.noSuites')"
-    >
+      <!-- 套件列表 -->
+      <div class="table-container">
+        <el-table
+          v-loading="loading"
+          :data="suites"
+          style="width: 100%"
+          height="100%"
+          :empty-text="$t('appAutomation.suite.noSuites')"
+        >
       <el-table-column prop="name" :label="$t('appAutomation.suite.suiteName')" min-width="180">
         <template #default="{ row }">
           <el-link type="primary" @click="showEditDialog(row)">{{ row.name }}</el-link>
@@ -144,6 +147,8 @@
         </template>
       </el-table-column>
     </el-table>
+      </div>
+    </div>
 
     <!-- 创建/编辑套件对话框 -->
     <el-dialog
@@ -662,20 +667,9 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.suite-list {
-  padding: 0;
-}
-
-.config-card {
-  margin-bottom: var(--aitest-space-4);
-
-  :deep(.el-card__body) {
-    padding: var(--aitest-space-5);
-  }
-
-  :deep(.el-form-item) {
-    margin-bottom: 0;
-  }
+/* 页面骨架使用全局 .page-container--full 变体（工具栏固定、表体内部滚动），本地不覆盖 */
+.filter-bar :deep(.el-form-item) {
+  margin-bottom: 0;
 }
 
 .pass-fail {

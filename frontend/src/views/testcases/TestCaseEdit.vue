@@ -303,8 +303,8 @@ onMounted(async () => {
   .step-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: var(--aitest-space-2);
+    margin-bottom: var(--aitest-space-2);
 
     .step-index {
       width: 24px;

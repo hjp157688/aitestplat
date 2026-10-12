@@ -4,6 +4,8 @@ import json
 import unittest
 from unittest import mock
 
+import httpx
+
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -181,6 +183,24 @@ class WeKnoraClientTest(unittest.TestCase):
             agents = client.list_agents()
         self.assertEqual(len(agents), 2)
         self.assertEqual(agents[0]["id"], "builtin-quick-answer")
+
+    def test_http_timeout_caps_connect(self):
+        """WeKnora 服务不可达时 TCP 连接会吃满 OS 级 ~75s 才报错，
+        把生成流程卡死在知识注入阶段——connect 超时必须独立限短，read 保持配置值。"""
+        captured = {}
+
+        def client_factory(**kwargs):
+            captured["timeout"] = kwargs.get("timeout")
+            return FakeStreamClient(FakeResp(200, body={"success": True, "data": []}))
+
+        client = WeKnoraClient("http://kb.test", "sk-1", 300)
+        with mock.patch("apps.requirement_analysis.weknora_client.httpx.Client",
+                        new=client_factory):
+            client.list_agents()
+        t = captured["timeout"]
+        self.assertIsInstance(t, httpx.Timeout)
+        self.assertLessEqual(t.connect, 5.0)
+        self.assertEqual(t.read, 300)
 
 
 class WeKnoraProjectBindingAPITest(TestCase):

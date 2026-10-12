@@ -189,7 +189,8 @@ class AIModelConfig(models.Model):
     api_key = models.CharField(max_length=500, verbose_name='API Key', blank=True, null=True)
     base_url = models.CharField(max_length=500, verbose_name='API Base URL')
     model_name = models.CharField(max_length=200, verbose_name='模型名称')
-    max_tokens = models.IntegerField(default=4096, verbose_name='最大Token数')
+    max_tokens = models.IntegerField(default=4096, null=True, blank=True, verbose_name='最大Token数',
+                                     help_text='留空或0表示不限制（不向服务端传 max_tokens，由模型输出上限决定）')
     temperature = models.FloatField(default=0.7, verbose_name='温度参数')
     top_p = models.FloatField(default=0.9, verbose_name='Top P参数')
     is_active = models.BooleanField(default=True, verbose_name='是否启用')
@@ -316,6 +317,7 @@ class TestCaseGenerationTask(models.Model):
     STATUS_CHOICES = [
         ('pending', '等待中'),
         ('generating', '生成中'),
+        ('retrieving', '知识检索中'),
         ('reviewing', '评审中'),
         ('revising', '改进中'),
         ('completed', '已完成'),

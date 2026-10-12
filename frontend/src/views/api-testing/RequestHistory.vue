@@ -1,8 +1,8 @@
 <template>
-  <div class="request-history">
+  <div class="page-container request-history">
     <PageHeader :title="$t('apiTesting.history.title')" />
 
-    <div class="filters">
+    <div class="filter-bar">
       <el-input
         v-model="searchText"
         :placeholder="$t('apiTesting.history.searchRequest')"
@@ -24,38 +24,43 @@
 
     <el-tabs v-model="activeTab" @tab-change="onTabChange">
       <el-tab-pane :label="$t('apiTesting.history.httpRequest')" name="HTTP">
-        <HistoryTable
-          :data="httpHistory"
-          :loading="loading"
-          @view-detail="viewDetail"
-          @retry-request="retryRequest"
-          @selection-change="handleSelectionChange"
-          @delete-item="handleDelete"
-        />
+        <div class="card-container">
+          <HistoryTable
+            :data="httpHistory"
+            :loading="loading"
+            @view-detail="viewDetail"
+            @retry-request="retryRequest"
+            @selection-change="handleSelectionChange"
+            @delete-item="handleDelete"
+          />
+        </div>
       </el-tab-pane>
       <el-tab-pane :label="$t('apiTesting.history.websocketRequest')" name="WEBSOCKET">
-        <HistoryTable
-          :data="websocketHistory"
-          :loading="loading"
-          @view-detail="viewDetail"
-          @retry-request="retryRequest"
-          @selection-change="handleSelectionChange"
-          @delete-item="handleDelete"
-        />
+        <div class="card-container">
+          <HistoryTable
+            :data="websocketHistory"
+            :loading="loading"
+            @view-detail="viewDetail"
+            @retry-request="retryRequest"
+            @selection-change="handleSelectionChange"
+            @delete-item="handleDelete"
+          />
+        </div>
       </el-tab-pane>
     </el-tabs>
 
     <!-- 分页 -->
-    <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :page-sizes="[10, 20, 50, 100]"
-      :total="total"
-      layout="total, sizes, prev, pager, next, jumper"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      class="pagination"
-    />
+    <div class="pagination-container">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
 
     <!-- 详情对话框 -->
     <el-dialog
@@ -387,24 +392,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.request-history {
-  padding: var(--aitest-space-5);
-  height: 100%;
+.pagination-container {
   display: flex;
-  flex-direction: column;
-}
-
-.filters {
-  display: flex;
-  gap: var(--aitest-space-3);
-  align-items: center;
-  margin-bottom: var(--aitest-space-5);
-}
-
-.pagination {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+  margin-top: var(--aitest-space-4);
 }
 
 .history-detail {

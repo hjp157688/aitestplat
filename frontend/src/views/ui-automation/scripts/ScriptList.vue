@@ -1,5 +1,5 @@
 <template>
-  <div class="script-list">
+  <div class="page-container page-container--full script-list">
     <PageHeader :title="$t('uiAutomation.script.title')">
       <template #actions>
         <el-select v-model="selectedProject" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px" @change="onProjectChange">
@@ -12,57 +12,59 @@
       </template>
     </PageHeader>
 
-    <div class="main-content">
-      <el-table :data="scripts" stripe style="width: 100%">
-        <el-table-column type="index" :label="$t('uiAutomation.script.index')" width="60" />
-        <el-table-column :label="$t('uiAutomation.script.projectColumn')" width="150">
-          <template #default="{ row }">
-            {{ row.project?.name || $t('uiAutomation.script.unknownProject') }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="name" :label="$t('uiAutomation.script.nameColumn')" min-width="300" show-overflow-tooltip />
-        <el-table-column :label="$t('uiAutomation.script.languageColumn')" width="100">
-          <template #default="{ row }">
-            <el-tag size="small" :type="row.language === 'python' ? 'success' : 'primary'">
-              {{ getLanguageText(row.language) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column :label="$t('uiAutomation.script.frameworkColumn')" width="120">
-          <template #default="{ row }">
-            <el-tag size="small" :type="row.framework === 'playwright' ? 'warning' : 'info'">
-              {{ getFrameworkText(row.framework) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="created_at" :label="$t('uiAutomation.script.createTimeColumn')" width="180">
-          <template #default="{ row }">
-            {{ formatTime(row.created_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column :label="$t('uiAutomation.script.operationColumn')" width="280" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" text @click="viewScript(row)">
-              <el-icon><View /></el-icon>
-              {{ $t('uiAutomation.script.viewDetail') }}
-            </el-button>
-            <el-button size="small" text @click="editScript(row)">
-              <el-icon><Edit /></el-icon>
-              {{ $t('uiAutomation.script.edit') }}
-            </el-button>
-            <el-button size="small" text @click="renameScript(row)">
-              <el-icon><EditPen /></el-icon>
-              {{ $t('uiAutomation.script.rename') }}
-            </el-button>
-            <el-button size="small" text type="danger" @click="deleteScript(row)">
-              <el-icon><Delete /></el-icon>
-              {{ $t('uiAutomation.script.delete') }}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <div class="card-container">
+      <div class="table-container">
+        <el-table :data="scripts" stripe style="width: 100%" height="100%">
+          <el-table-column type="index" :label="$t('uiAutomation.script.index')" width="60" />
+          <el-table-column :label="$t('uiAutomation.script.projectColumn')" width="150">
+            <template #default="{ row }">
+              {{ row.project?.name || $t('uiAutomation.script.unknownProject') }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="name" :label="$t('uiAutomation.script.nameColumn')" min-width="300" show-overflow-tooltip />
+          <el-table-column :label="$t('uiAutomation.script.languageColumn')" width="100">
+            <template #default="{ row }">
+              <el-tag size="small" :type="row.language === 'python' ? 'success' : 'primary'">
+                {{ getLanguageText(row.language) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label="$t('uiAutomation.script.frameworkColumn')" width="120">
+            <template #default="{ row }">
+              <el-tag size="small" :type="row.framework === 'playwright' ? 'warning' : 'info'">
+                {{ getFrameworkText(row.framework) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="created_at" :label="$t('uiAutomation.script.createTimeColumn')" width="180">
+            <template #default="{ row }">
+              {{ formatTime(row.created_at) }}
+            </template>
+          </el-table-column>
+          <el-table-column :label="$t('uiAutomation.script.operationColumn')" width="280" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" text @click="viewScript(row)">
+                <el-icon><View /></el-icon>
+                {{ $t('uiAutomation.script.viewDetail') }}
+              </el-button>
+              <el-button size="small" text @click="editScript(row)">
+                <el-icon><Edit /></el-icon>
+                {{ $t('uiAutomation.script.edit') }}
+              </el-button>
+              <el-button size="small" text @click="renameScript(row)">
+                <el-icon><EditPen /></el-icon>
+                {{ $t('uiAutomation.script.rename') }}
+              </el-button>
+              <el-button size="small" text type="danger" @click="deleteScript(row)">
+                <el-icon><Delete /></el-icon>
+                {{ $t('uiAutomation.script.delete') }}
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
-      <div class="pagination">
+      <div class="pagination-container">
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
@@ -382,31 +384,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.script-list {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.page-header {
-  padding: var(--aitest-space-5);
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  background: white;
-  margin-bottom: 0;
-}
-
-.main-content {
-  flex: 1;
-  padding: var(--aitest-space-5);
-  overflow: auto;
-  background: var(--aitest-canvas);
-}
-
-.pagination {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
-}
+/* 页面骨架使用全局 .page-container--full 变体（表体内部滚动），本地不覆盖 */
 
 .script-detail {
   padding: var(--aitest-space-3);

@@ -1,5 +1,5 @@
 <template>
-  <div class="report-view">
+  <div class="page-container report-view">
     <PageHeader :title="$t('apiTesting.report.title')">
       <template #actions>
         <el-button type="primary" @click="refreshReports">{{ $t('apiTesting.report.refreshReport') }}</el-button>
@@ -7,7 +7,7 @@
       </template>
     </PageHeader>
 
-    <div class="content">
+    <div class="card-container">
       <el-table :data="reports" v-loading="loading" style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="test_suite_name" :label="$t('apiTesting.report.testSuite')" min-width="200" />
@@ -130,14 +130,13 @@ onMounted(() => {
 
 <style scoped>
 .report-view {
-  padding: var(--aitest-space-5);
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.content {
+.report-view > .card-container {
   flex: 1;
-  overflow: auto;
+  min-height: 0;
 }
 </style>

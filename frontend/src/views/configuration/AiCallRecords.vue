@@ -1,7 +1,8 @@
 <template>
-  <div class="ai-call-records page-shell">
+  <div class="ai-call-records page-container page-container--full">
     <PageHeader :title="$t('configuration.aiCallRecords.title')" />
 
+    <div class="card-container">
     <!-- 统计概览 -->
     <div class="stats-grid">
       <div v-for="s in statCards" :key="s.key" class="stat-card" :class="s.tone || ''">
@@ -32,7 +33,8 @@
     </div>
 
     <!-- 记录表 -->
-    <el-table :data="records" v-loading="loading" class="records-table">
+    <div class="table-container">
+      <el-table :data="records" v-loading="loading" class="records-table" height="100%">
       <el-table-column :label="$t('configuration.aiCallRecords.colTime')" width="170">
         <template #default="{ row }">
           <span class="mono">{{ formatTime(row.created_at) }}</span>
@@ -76,15 +78,19 @@
         </template>
       </el-table-column>
     </el-table>
+    </div>
 
-    <el-pagination
-      class="records-pagination"
-      layout="total, prev, pager, next"
-      :total="total"
-      :page-size="pageSize"
-      :current-page="page"
-      @current-change="onPageChange"
-    />
+    <div class="pagination-container">
+      <el-pagination
+        class="records-pagination"
+        layout="total, prev, pager, next"
+        :total="total"
+        :page-size="pageSize"
+        :current-page="page"
+        @current-change="onPageChange"
+      />
+    </div>
+    </div>
   </div>
 </template>
 
@@ -198,10 +204,9 @@ export default {
 </script>
 
 <style scoped>
-.page-shell {
-  padding: var(--aitest-space-5) var(--aitest-space-6);
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 .stats-grid {
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--aitest-space-3);
@@ -210,7 +215,7 @@ export default {
 .stat-card {
   background: var(--aitest-canvas);
   border: 1px solid var(--aitest-border);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   padding: var(--aitest-space-3) var(--aitest-space-4);
 }
 .stat-card.success .stat-value { color: var(--aitest-success); }
@@ -226,13 +231,6 @@ export default {
   color: var(--aitest-primary);
   font-variant-numeric: tabular-nums;
 }
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--aitest-space-3);
-  margin-bottom: var(--aitest-space-4);
-  align-items: center;
-}
 .filter-item { width: 170px; }
 .records-table { border: 1px solid var(--aitest-border); }
 .mono {
@@ -247,9 +245,5 @@ export default {
   display: block;
   max-height: 40px;
   overflow: hidden;
-}
-.records-pagination {
-  margin-top: var(--aitest-space-4);
-  justify-content: flex-end;
 }
 </style>

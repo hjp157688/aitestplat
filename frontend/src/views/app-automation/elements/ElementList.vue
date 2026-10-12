@@ -1,8 +1,8 @@
 <template>
-  <div class="element-management">
-    <el-card>
+  <div class="page-container page-container--full element-management">
+    <div class="card-container">
       <!-- 顶部操作栏 -->
-      <template #header>
+      <div class="filter-bar">
         <div class="header-actions">
           <el-space wrap>
             <!-- 项目筛选 -->
@@ -55,15 +55,17 @@
             </el-button>
           </el-space>
         </div>
-      </template>
-    
+      </div>
+
       <!-- 元素列表 -->
-      <el-table
-        :data="elements"
-        border
-        v-loading="loading"
-        @selection-change="handleSelectionChange"
-      >
+      <div class="table-container">
+        <el-table
+          :data="elements"
+          border
+          v-loading="loading"
+          height="100%"
+          @selection-change="handleSelectionChange"
+        >
         <el-table-column type="selection" width="55" />
         
         <el-table-column prop="name" :label="$t('appAutomation.element.elementName')" width="200" fixed="left">
@@ -164,7 +166,8 @@
           </template>
         </el-table-column>
       </el-table>
-      
+      </div>
+
       <!-- 批量操作栏 -->
       <div v-if="selectedElements.length > 0" class="batch-actions">
         <el-space>
@@ -174,19 +177,20 @@
           </el-button>
         </el-space>
       </div>
-      
+
       <!-- 分页 -->
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :total="total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @current-change="loadElements"
-        @size-change="loadElements"
-        style="margin-top: 20px; justify-content: flex-end"
-      />
-    </el-card>
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @current-change="loadElements"
+          @size-change="loadElements"
+        />
+      </div>
+    </div>
 
     <!-- 从设备截图创建对话框 -->
     <CaptureElementDialog
@@ -476,9 +480,8 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 .element-management {
-  padding: var(--aitest-space-5);
-
   .header-actions {
     display: flex;
     justify-content: space-between;
@@ -508,7 +511,7 @@ onMounted(() => {
   }
 
   .batch-actions {
-    margin-top: var(--aitest-space-4);
+    flex-shrink: 0;
     padding: var(--aitest-space-3);
     background: var(--el-color-primary-light-9);
     border: 1px solid #b3d8ff;
@@ -527,10 +530,6 @@ onMounted(() => {
     .el-link {
       font-weight: 500;
     }
-  }
-
-  :deep(.el-pagination) {
-    display: flex;
   }
 
   :deep(pre) {

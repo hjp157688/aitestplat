@@ -1,7 +1,8 @@
 <template>
-  <div class="notification-logs-container">
+  <div class="page-container page-container--full">
+    <div class="card-container">
     <!-- 页面操作栏 -->
-    <div class="page-actions">
+    <div class="filter-bar">
       <el-row :gutter="20" class="filter-row">
         <el-col :span="6">
           <el-input
@@ -57,13 +58,14 @@
     </div>
 
     <!-- 通知列表 -->
-    <div class="logs-table-container">
+    <div class="table-container">
       <el-table
           :data="logsData"
           v-loading="loading"
           :element-loading-text="$t('notification.logs.loading')"
           stripe
           style="width: 100%"
+          height="100%"
           @sort-change="handleSortChange"
       >
         <el-table-column
@@ -151,19 +153,20 @@
           </template>
         </el-table-column>
       </el-table>
+    </div>
 
-      <!-- 分页 -->
-      <div class="pagination-container">
-        <el-pagination
-            v-model:current-page="pagination.currentPage"
-            v-model:page-size="pagination.pageSize"
-            :page-sizes="[10, 20, 50, 100]"
-            :total="pagination.total"
-            layout="total, sizes, prev, pager, next, jumper"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-        />
-      </div>
+    <!-- 分页 -->
+    <div class="pagination-container">
+      <el-pagination
+          v-model:current-page="pagination.currentPage"
+          v-model:page-size="pagination.pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="pagination.total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+      />
+    </div>
     </div>
 
     <!-- 详情弹窗 -->
@@ -598,35 +601,7 @@ export default {
 </script>
 
 <style scoped>
-.notification-logs-container {
-  padding: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.page-actions {
-  margin-bottom: 20px;
-  padding: 20px;
-  background: var(--aitest-surface-subtle);
-  border-radius: 6px;
-}
-
-.filter-row {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.logs-table-container {
-  margin-top: 20px;
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
 .notification-detail-form :deep(.el-form-item) {
   margin-bottom: 18px;
@@ -647,11 +622,11 @@ export default {
 }
 
 .notification-content-parsed {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 20px;
+  background: var(--aitest-surface);
+  border-radius: var(--aitest-radius-lg);
+  padding: var(--aitest-space-5);
   border: 1px solid var(--aitest-border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .content-item {
@@ -676,7 +651,7 @@ export default {
   min-width: 100px;
   flex-shrink: 0;
   margin-right: 16px;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.8;
 }
 
@@ -684,7 +659,7 @@ export default {
   color: var(--aitest-text-1);
   flex: 1;
   word-break: break-word;
-  font-size: 14px;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.8;
 }
 
@@ -694,9 +669,9 @@ export default {
   margin: 0;
   padding: 16px;
   background: var(--aitest-canvas);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   border: 1px solid var(--aitest-border);
-  font-size: 13px;
+  font-size: var(--aitest-font-size-base);
   line-height: 1.6;
   color: var(--el-text-color-regular);
   max-height: 400px;
@@ -709,12 +684,12 @@ export default {
 }
 
 .notification-content-raw pre::-webkit-scrollbar-thumb {
-  background: #c0c4cc;
+  background: var(--aitest-text-3);
   border-radius: 3px;
 }
 
 .notification-content-raw pre::-webkit-scrollbar-thumb:hover {
-  background: #a8abb2;
+  background: var(--aitest-text-3);
 }
 
 .error-message {
@@ -727,11 +702,11 @@ export default {
   margin: 0;
   padding: 12px;
   background: var(--aitest-canvas);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius-sm);
   max-height: 150px;
   overflow-y: auto;
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
 }
 
 .dialog-footer {

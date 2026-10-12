@@ -1,5 +1,5 @@
 <template>
-  <div class="scheduled-tasks">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('apiTesting.scheduledTask.title')">
       <template #actions>
         <el-button type="primary" @click="handleCreateClick">
@@ -10,8 +10,9 @@
     </PageHeader>
 
     <!-- 筛选条件 -->
-    <div class="filters">
-      <el-row :gutter="20">
+    <div class="card-container">
+      <div class="filter-bar">
+        <el-row :gutter="20">
         <el-col :span="6">
           <el-select v-model="filters.task_type" :placeholder="$t('apiTesting.scheduledTask.taskType')" clearable>
             <el-option :label="$t('apiTesting.scheduledTask.taskTypes.testSuite')" value="TEST_SUITE" />
@@ -38,11 +39,11 @@
           <el-button type="primary" @click="loadTasks">{{ $t('apiTesting.common.search') }}</el-button>
         </el-col>
       </el-row>
-    </div>
+      </div>
 
-    <!-- 任务列表 -->
-    <div class="task-list">
-      <el-table :data="tasks" v-loading="loading">
+      <!-- 任务列表 -->
+      <div class="table-container">
+        <el-table :data="tasks" v-loading="loading" style="width: 100%" height="100%">
         <el-table-column prop="name" :label="$t('apiTesting.scheduledTask.taskName')" min-width="200" />
         <el-table-column prop="task_type" :label="$t('apiTesting.scheduledTask.taskType')" width="120">
           <template #default="scope">
@@ -107,19 +108,20 @@
           </template>
         </el-table-column>
       </el-table>
-    </div>
+      </div>
 
-    <!-- 分页 -->
-    <div class="pagination">
-      <el-pagination
-        v-model:current-page="pagination.current"
-        v-model:page-size="pagination.size"
-        :total="pagination.total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="loadTasks"
-        @current-change="loadTasks"
-      />
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="pagination.current"
+          v-model:page-size="pagination.size"
+          :total="pagination.total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="loadTasks"
+          @current-change="loadTasks"
+        />
+      </div>
     </div>
 
     <!-- 创建/编辑对话框 -->
@@ -696,31 +698,6 @@ const deleteTask = async (task) => {
 </script>
 
 <style scoped>
-.scheduled-tasks {
-  padding: var(--aitest-space-5);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.filters {
-  margin-bottom: var(--aitest-space-5);
-  background: var(--aitest-surface-subtle);
-  padding: var(--aitest-space-5);
-  border-radius: var(--aitest-radius-lg);
-}
-
-.task-list {
-  flex: 1;
-  overflow: hidden;
-}
-
-.pagination {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
-}
-
 .cron-help {
   margin-top: var(--aitest-space-2);
   font-size: var(--aitest-font-size-sm);

@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('testcase.title')">
       <template #actions>
         <el-button
@@ -67,7 +67,7 @@
     </PageHeader>
     
     <div class="card-container">
-      <div class="filter-bar">
+      <FilterBar>
         <el-row :gutter="20">
           <el-col :span="5">
             <el-input
@@ -117,12 +117,12 @@
             </el-select>
           </el-col>
         </el-row>
-      </div>
-      
+      </FilterBar>
+
       <div class="table-container">
-        <el-table 
-          :data="testcases" 
-          v-loading="loading" 
+        <el-table
+          :data="testcases"
+          v-loading="loading"
           style="width: 100%"
           height="100%"
           @selection-change="handleSelectionChange">
@@ -168,7 +168,7 @@
           </el-table-column>
           <el-table-column prop="priority" :label="$t('testcase.priority')" width="100">
             <template #default="{ row }">
-              <el-tag :class="`priority-tag ${row.priority}`">{{ getPriorityText(row.priority) }}</el-tag>
+              <el-tag size="small" :type="priorityType(row.priority)">{{ getPriorityText(row.priority) }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="test_type" :label="$t('testcase.testType')" width="120">
@@ -190,19 +190,19 @@
           </el-table-column>
         </el-table>
       </div>
-      
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[15, 25, 35, 50, 100]"
-          :total="total"
-          layout="total, sizes, prev, pager, next"
-          @current-change="handlePageChange"
-          @size-change="handleSizeChange"
-        />
+
+        <div class="pagination-container">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[15, 25, 35, 50, 100]"
+            :total="total"
+            layout="total, sizes, prev, pager, next"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+          />
+        </div>
       </div>
-    </div>
 
     <el-dialog
       v-model="importDialogVisible"
@@ -375,6 +375,7 @@ import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZenta
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 import PageHeader from '@/components/common/PageHeader.vue'
+import FilterBar from '@/components/common/FilterBar.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -791,6 +792,12 @@ const getPriorityText = (priority) => {
   return textMap[priority] || priority
 }
 
+// 优先级 → el-tag type（低=成功色 / 中=警告色 / 高、紧急=危险色）
+const priorityType = (priority) => {
+  const map = { low: 'success', medium: 'warning', high: 'danger', critical: 'danger' }
+  return map[priority] || 'info'
+}
+
 const getTypeText = (type) => {
   const textMap = {
     functional: t('testcase.functional'),
@@ -1088,61 +1095,16 @@ onBeforeUnmount(() => {
 
   .zentao-progress-text {
     margin: 12px 0 0;
-    font-size: 13px;
-    color: #909399;
+    font-size: var(--aitest-font-size-base);
+    color: var(--aitest-text-3);
     text-align: center;
   }
 }
 
-.page-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.card-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.filter-bar {
-  padding: 20px;
-  border-bottom: 1px solid var(--aitest-border);
-  flex-shrink: 0;
-}
-
-.table-container {
-  flex: 1;
-  overflow: hidden;
-  padding: 0 20px;
-  
-  :deep(.el-table) {
-    height: 100% !important;
-  }
-  
-  :deep(.el-table__body-wrapper) {
-    overflow-y: auto !important;
-  }
-}
-
-.pagination-container {
-  padding: 20px;
-  border-top: 1px solid var(--aitest-border);
-  display: flex;
-  justify-content: center;
-  flex-shrink: 0;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
 .import-alert {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .import-upload {
@@ -1152,13 +1114,6 @@ onBeforeUnmount(() => {
   :deep(.el-upload-dragger) {
     width: 100%;
   }
-}
-
-.priority-tag {
-  &.low { color: var(--el-color-success); }
-  &.medium { color: var(--el-color-warning); }
-  &.high { color: var(--el-color-danger); }
-  &.critical { color: var(--el-color-danger); font-weight: bold; }
 }
 
 .version-tags {
@@ -1172,39 +1127,9 @@ onBeforeUnmount(() => {
 }
 
 .no-version {
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  color: var(--aitest-text-3);
+  font-size: var(--aitest-font-size-sm);
   font-style: italic;
-}
-
-@media (max-width: 1200px) {
-  .page-container {
-    height: auto;
-    min-height: 100vh;
-    overflow-y: auto;
-  }
-  
-  .card-container {
-    min-height: 600px;
-  }
-  
-  .table-container {
-    min-height: 400px;
-  }
-}
-
-@media (max-width: 768px) {
-  .page-container {
-    padding: 10px;
-  }
-
-  .filter-bar {
-    padding: 15px;
-  }
-
-  .pagination-container {
-    padding: 15px;
-  }
 }
 
 .step-content {
@@ -1214,7 +1139,7 @@ onBeforeUnmount(() => {
 .preview-info {
   padding: 15px;
   background-color: var(--aitest-canvas);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius);
 
   p {
     margin: 5px 0;

@@ -274,6 +274,7 @@ export default {
     cancelGeneration: '取消生成',
     generationCancelled: '生成已取消',
     statusGenerating: '正在编写测试用例...',
+    statusRetrieving: '正在检索知识库…',
     statusReviewing: '正在评审测试用例...',
     statusRevising: '正在生成最终版用例...',
     statusCompleted: '生成完成！',
@@ -375,6 +376,7 @@ export default {
     // Status Display
     statusPending: '需求分析中',
     statusGenerating: '用例编写中',
+    statusRetrieving: '知识检索中',
     statusReviewing: '用例评审中',
     statusCompleted: '已完成',
     statusFailed: '失败',
@@ -734,6 +736,7 @@ export default {
     // 状态
     statusPending: '需求分析中',
     statusGenerating: '用例编写中',
+    statusRetrieving: '知识检索中',
     statusReviewing: '用例评审中',
     statusCompleted: '已完成',
     statusFailed: '失败',

@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader title="缺陷列表">
       <template #actions>
         <el-button @click="exportList">
@@ -112,48 +112,51 @@
         <el-button size="small" type="primary" @click="submitBatchAction">执行</el-button>
       </div>
 
-      <el-table
-        :data="defects"
-        v-loading="loading"
-        style="width: 100%"
-        @selection-change="selectedRows = $event"
-      >
-        <el-table-column type="selection" width="48" />
-        <el-table-column prop="code" label="编号" width="150">
-          <template #default="{ row }">
-            <el-link type="primary" @click="router.push(`/defects/${row.id}`)">{{ row.code || `#${row.id}` }}</el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="title" label="标题" min-width="260" show-overflow-tooltip />
-        <el-table-column prop="severity" label="严重级别" width="110">
-          <template #default="{ row }">
-            <el-tag :type="getOptionType(severityOptions, row.severity)">{{ getOptionLabel(severityOptions, row.severity) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="priority" label="优先级" width="90">
-          <template #default="{ row }">
-            <el-tag :type="getOptionType(priorityOptions, row.priority)">{{ getOptionLabel(priorityOptions, row.priority) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="110">
-          <template #default="{ row }">
-            <el-tag :type="getOptionType(statusOptions, row.status)">{{ getOptionLabel(statusOptions, row.status) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="module" label="模块" width="130" show-overflow-tooltip />
-        <el-table-column label="处理人" width="120">
-          <template #default="{ row }">{{ getUserName(row.assignee) }}</template>
-        </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" width="170">
-          <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="170" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" @click="router.push(`/defects/${row.id}`)">详情</el-button>
-            <el-button size="small" type="primary" @click="router.push(`/defects/${row.id}/edit`)">编辑</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="table-container">
+        <el-table
+          :data="defects"
+          v-loading="loading"
+          style="width: 100%"
+          height="100%"
+          @selection-change="selectedRows = $event"
+        >
+          <el-table-column type="selection" width="48" />
+          <el-table-column prop="code" label="编号" width="150">
+            <template #default="{ row }">
+              <el-link type="primary" @click="router.push(`/defects/${row.id}`)">{{ row.code || `#${row.id}` }}</el-link>
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" label="标题" min-width="260" show-overflow-tooltip />
+          <el-table-column prop="severity" label="严重级别" width="110">
+            <template #default="{ row }">
+              <el-tag :type="getOptionType(severityOptions, row.severity)">{{ getOptionLabel(severityOptions, row.severity) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="priority" label="优先级" width="90">
+            <template #default="{ row }">
+              <el-tag :type="getOptionType(priorityOptions, row.priority)">{{ getOptionLabel(priorityOptions, row.priority) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态" width="110">
+            <template #default="{ row }">
+              <el-tag :type="getOptionType(statusOptions, row.status)">{{ getOptionLabel(statusOptions, row.status) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="module" label="模块" width="130" show-overflow-tooltip />
+          <el-table-column label="处理人" width="120">
+            <template #default="{ row }">{{ getUserName(row.assignee) }}</template>
+          </el-table-column>
+          <el-table-column prop="created_at" label="创建时间" width="170">
+            <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
+          </el-table-column>
+          <el-table-column label="操作" width="170" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" @click="router.push(`/defects/${row.id}`)">详情</el-button>
+              <el-button size="small" type="primary" @click="router.push(`/defects/${row.id}/edit`)">编辑</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
       <div class="pagination-container">
         <el-pagination
@@ -369,15 +372,16 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
+
 .batch-bar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: var(--aitest-space-3);
 }
 
 .filter-bar {
-  margin-bottom: var(--aitest-space-4);
-
   // 筛选项在窄屏下会折成多行，el-row 的 gutter 只产生水平间距，
   // 折行后行与行之间没有纵向间距会“挤到一起”，这里补一个 row-gap
   :deep(.el-row) {
@@ -402,11 +406,5 @@ onMounted(() => {
 
 .batch-input {
   width: 160px;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--aitest-space-5);
 }
 </style>

@@ -141,6 +141,8 @@ export default {
     availableModelsHint: '{total} models fetched, {count} remain after filtering by current input. Click one to fill it in',
     noFilteredModels: 'No model matches the current input. Please keep typing or fill it manually',
     maxTokens: 'Max Tokens',
+    maxTokensHint: 'Leave empty = unlimited (model output cap applies)',
+    unlimited: 'Unlimited',
     temperature: 'Temperature',
     topP: 'Top P',
     enableConfig: 'Enable this config',

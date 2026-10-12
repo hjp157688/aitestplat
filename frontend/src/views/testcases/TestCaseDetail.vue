@@ -2,7 +2,7 @@
   <div class="page-container">
     <PageHeader :title="$t('testcase.detail')">
       <template #actions>
-        <el-button @click="$router.back()">{{ $t('common.back') }}</el-button>
+        <el-button @click="backToList">{{ $t('common.back') }}</el-button>
         <el-button type="primary" @click="editTestCase">{{ $t('common.edit') }}</el-button>
       </template>
     </PageHeader>
@@ -11,7 +11,7 @@
       <el-descriptions :column="2" border>
         <el-descriptions-item :label="$t('testcase.caseTitle')" :span="2">{{ testcase.title }}</el-descriptions-item>
         <el-descriptions-item :label="$t('testcase.priority')">
-          <el-tag :class="`priority-tag ${testcase.priority}`">{{ getPriorityText(testcase.priority) }}</el-tag>
+          <el-tag size="small" :type="priorityType(testcase.priority)">{{ getPriorityText(testcase.priority) }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item :label="$t('testcase.testType')">{{ getTypeText(testcase.test_type) }}</el-descriptions-item>
         <el-descriptions-item :label="$t('testcase.project')">{{ testcase.project?.name || $t('testcase.noProject') }}</el-descriptions-item>
@@ -86,6 +86,10 @@ const fetchTestCase = async () => {
   }
 }
 
+const backToList = () => {
+  router.push('/ai-generation/testcases')
+}
+
 const editTestCase = () => {
   router.push(`/ai-generation/testcases/${route.params.id}/edit`)
 }
@@ -98,6 +102,12 @@ const getPriorityText = (priority) => {
     critical: t('testcase.critical')
   }
   return textMap[priority] || priority
+}
+
+// 优先级 → el-tag type（低=成功色 / 中=警告色 / 高、紧急=危险色）
+const priorityType = (priority) => {
+  const map = { low: 'success', medium: 'warning', high: 'danger', critical: 'danger' }
+  return map[priority] || 'info'
 }
 
 const getTypeText = (type) => {
@@ -152,26 +162,19 @@ onMounted(() => {
   }
 }
 
-.priority-tag {
-  &.low { color: var(--el-color-success); }
-  &.medium { color: var(--el-color-warning); }
-  &.high { color: var(--el-color-danger); }
-  &.critical { color: var(--el-color-danger); font-weight: bold; }
-}
-
 .version-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  
+  gap: var(--aitest-space-2);
+
   .version-tag {
     margin: 0;
   }
 }
 
 .no-version {
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
+  color: var(--aitest-text-3);
+  font-size: var(--aitest-font-size-sm);
   font-style: italic;
 }
 

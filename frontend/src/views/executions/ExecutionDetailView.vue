@@ -1,5 +1,6 @@
 <template>
-  <div class="execution-detail">
+  <div class="page-container execution-detail">
+    <div class="card-container">
     <!-- 页面头部：扁平、克制，Grafana 式仪表盘标题区 -->
     <header class="plan-header">
       <div class="plan-header__title-row">
@@ -178,6 +179,7 @@
     <!-- 空态 -->
     <div v-else-if="loaded" class="empty-state">
       {{ $t('execution.noRuns') }}
+    </div>
     </div>
 
     <!-- 历史记录对话框 -->
@@ -521,9 +523,6 @@ onMounted(() => {
   --font-display: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
 
-  padding: var(--aitest-space-6);
-  background: var(--aitest-canvas);
-  min-height: 100vh;
   font-family: var(--font-body);
   color: var(--aitest-text-1);
 }
@@ -843,9 +842,6 @@ onMounted(() => {
 
 /* —— 响应式 —— */
 @media (max-width: 768px) {
-  .execution-detail {
-    padding: var(--aitest-space-4);
-  }
   .plan-header,
   .run-card {
     padding: var(--aitest-space-4);

@@ -1,5 +1,5 @@
 <template>
-  <div class="scheduled-tasks">
+  <div class="page-container page-container--full scheduled-tasks">
     <div class="header">
       <h3>{{ $t('uiAutomation.scheduledTask.title') }}</h3>
       <el-button type="primary" @click="handleCreateClick">
@@ -9,7 +9,8 @@
     </div>
 
     <!-- 筛选条件 -->
-    <div class="filters">
+    <div class="card-container">
+      <div class="filter-bar">
       <el-row :gutter="20">
         <el-col :span="6">
           <el-select v-model="filters.task_type" :placeholder="$t('uiAutomation.scheduledTask.taskType')" clearable>
@@ -37,11 +38,11 @@
           <el-button type="primary" @click="loadTasks">{{ $t('uiAutomation.common.search') }}</el-button>
         </el-col>
       </el-row>
-    </div>
+      </div>
 
     <!-- 任务列表 -->
-    <div class="task-list">
-      <el-table :data="tasks" v-loading="loading">
+    <div class="table-container">
+      <el-table :data="tasks" v-loading="loading" height="100%">
         <el-table-column prop="name" :label="$t('uiAutomation.scheduledTask.taskName')" min-width="200" />
         <el-table-column prop="task_type" :label="$t('uiAutomation.scheduledTask.taskType')" width="120">
           <template #default="scope">
@@ -120,7 +121,7 @@
     </div>
 
     <!-- 分页 -->
-    <div class="pagination">
+    <div class="pagination-container">
       <el-pagination
         v-model:current-page="pagination.current"
         v-model:page-size="pagination.size"
@@ -130,6 +131,7 @@
         @size-change="loadTasks"
         @current-change="loadTasks"
       />
+    </div>
     </div>
 
     <!-- 创建/编辑对话框 -->
@@ -710,36 +712,13 @@ const deleteTask = async (task) => {
 </script>
 
 <style scoped>
-.scheduled-tasks {
-  padding: var(--aitest-space-5);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--aitest-space-5);
-}
-
-.filters {
-  margin-bottom: var(--aitest-space-5);
-  background: var(--aitest-surface-subtle);
-  padding: var(--aitest-space-5);
-  border-radius: var(--aitest-radius-lg);
-}
-
-.task-list {
-  flex: 1;
-  overflow: hidden;
-}
-
-.pagination {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
 }
 
 .cron-help {

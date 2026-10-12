@@ -1,5 +1,5 @@
 <template>
-  <div class="data-factory-container">
+  <div class="page-container data-factory-container">
     <PageHeader :title="$t('dataFactory.title')">
       <template #actions>
         <el-button-group>
@@ -26,7 +26,7 @@
     </PageHeader>
 
     <!-- 工具分类视图 -->
-    <div v-if="viewMode === 'category'" class="category-view">
+    <div v-if="viewMode === 'category'" class="category-view card-container">
       <div
         v-for="category in filteredCategories()"
         :key="category.category"
@@ -72,7 +72,7 @@
     </div>
 
     <!-- 场景视图 -->
-    <div v-else class="scenario-view">
+    <div v-else class="scenario-view card-container">
       <el-row :gutter="20">
         <el-col :span="8" v-for="scenario in scenarios" :key="scenario.scenario">
           <el-card class="scenario-card" @click="filterByScenario(scenario)">
@@ -2183,10 +2183,9 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+/* 工具页：主工具区包全局 .card-container（普通滚动）；历史/工具执行均为弹窗内表格，不走列表骨架 */
 .data-factory-container {
-  padding: 20px;
   min-height: calc(100vh - 60px);
-  background: var(--aitest-canvas);
 }
 
 .category-view {
@@ -2221,8 +2220,8 @@ onMounted(async () => {
 
       .tool-item {
         background: var(--aitest-surface-subtle);
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
+        border: 1px solid var(--aitest-border);
+        border-radius: var(--aitest-radius-lg);
         padding: 15px;
         cursor: pointer;
         transition: all 0.3s;
@@ -2231,17 +2230,17 @@ onMounted(async () => {
         gap: 12px;
 
         &:hover {
-          background: #fff;
+          background: var(--aitest-surface);
           border-color: var(--el-color-primary);
-          box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+          box-shadow: var(--aitest-shadow-sm);
           transform: translateY(-2px);
         }
 
         .tool-icon {
           width: 40px;
           height: 40px;
-          background: #e6f7ff;
-          border-radius: 8px;
+          background: var(--aitest-primary-subtle);
+          border-radius: var(--aitest-radius-lg);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2253,22 +2252,22 @@ onMounted(async () => {
           flex: 1;
 
           .tool-name {
-            font-size: 14px;
+            font-size: var(--aitest-font-size-md);
             font-weight: 600;
             margin: 0 0 5px 0;
-            color: #2c3e50;
+            color: var(--aitest-text-1);
           }
 
           .tool-desc {
-            font-size: 12px;
-            color: #7f8c8d;
+            font-size: var(--aitest-font-size-sm);
+            color: var(--aitest-text-3);
             margin: 0;
             line-height: 1.4;
           }
         }
 
         .tool-arrow {
-          color: #c0c4cc;
+          color: var(--aitest-text-3);
           transition: transform 0.3s;
         }
 
@@ -2288,7 +2287,7 @@ onMounted(async () => {
     transition: all 0.3s;
 
     &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: var(--aitest-shadow-md);
       transform: translateY(-5px);
     }
 
@@ -2306,12 +2305,12 @@ onMounted(async () => {
         font-size: 18px;
         font-weight: 600;
         margin: 0 0 10px 0;
-        color: #2c3e50;
+        color: var(--aitest-text-1);
       }
 
       .scenario-desc {
-        font-size: 14px;
-        color: #7f8c8d;
+        font-size: var(--aitest-font-size-md);
+        color: var(--aitest-text-3);
         margin: 0 0 15px 0;
         line-height: 1.5;
       }
@@ -2337,11 +2336,11 @@ onMounted(async () => {
     margin-bottom: 20px;
     padding: 15px;
     background: var(--aitest-surface-subtle);
-    border-radius: 8px;
+    border-radius: var(--aitest-radius-lg);
 
     .form-tip {
       margin-left: 10px;
-      font-size: 12px;
+      font-size: var(--aitest-font-size-sm);
       color: var(--el-text-color-secondary);
     }
   }
@@ -2351,29 +2350,29 @@ onMounted(async () => {
 
     .form-tip {
       margin-left: 10px;
-      font-size: 12px;
+      font-size: var(--aitest-font-size-sm);
       color: var(--el-text-color-secondary);
     }
   }
 
   .tool-result {
     background: var(--aitest-surface-subtle);
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
+    border: 1px solid var(--aitest-border);
+    border-radius: var(--aitest-radius-lg);
     padding: 15px;
 
     h4 {
       margin: 0 0 10px 0;
-      font-size: 14px;
+      font-size: var(--aitest-font-size-md);
       font-weight: 600;
-      color: #2c3e50;
+      color: var(--aitest-text-1);
     }
 
     pre {
       margin: 0;
       padding: 10px;
-      background: #fff;
-      border-radius: 4px;
+      background: var(--aitest-surface);
+      border-radius: var(--aitest-radius-sm);
       overflow-x: auto;
       max-height: 400px;
       overflow-y: auto;
@@ -2389,21 +2388,21 @@ onMounted(async () => {
         justify-content: center;
         align-items: center;
         padding: 20px;
-        background: #fff;
-        border-radius: 8px;
+        background: var(--aitest-surface);
+        border-radius: var(--aitest-radius-lg);
         border: 2px dashed var(--el-border-color-lighter);
         min-height: 200px;
 
         img {
           max-width: 100%;
           max-height: 400px;
-          border-radius: 4px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          border-radius: var(--aitest-radius-sm);
+          box-shadow: var(--aitest-shadow-sm);
         }
 
         .no-image {
           color: var(--el-text-color-secondary);
-          font-size: 14px;
+          font-size: var(--aitest-font-size-md);
         }
       }
 
@@ -2413,8 +2412,8 @@ onMounted(async () => {
         align-items: center;
         gap: 15px;
         padding: 10px;
-        background: #fff;
-        border-radius: 8px;
+        background: var(--aitest-surface);
+        border-radius: var(--aitest-radius-lg);
       }
     }
   }
@@ -2494,9 +2493,9 @@ onMounted(async () => {
   }
   
   .card-header-title {
-    font-size: 16px;
+    font-size: var(--aitest-font-size-lg);
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--aitest-text-1);
   }
   
   .stat-item {
@@ -2513,8 +2512,8 @@ onMounted(async () => {
 
       .stat-label {
         width: 100px;
-        font-size: 14px;
-        color: #2c3e50;
+        font-size: var(--aitest-font-size-md);
+        color: var(--aitest-text-1);
         font-weight: 500;
         flex-shrink: 0;
       }
@@ -2522,7 +2521,7 @@ onMounted(async () => {
       .stat-count {
         width: 50px;
         text-align: right;
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
         color: var(--el-color-primary);
         font-weight: 600;
         flex-shrink: 0;
@@ -2537,18 +2536,18 @@ onMounted(async () => {
     
     h4 {
       margin: 0 0 10px 0;
-      font-size: 14px;
+      font-size: var(--aitest-font-size-md);
       font-weight: 600;
-      color: #2c3e50;
+      color: var(--aitest-text-1);
     }
   }
   
   .json-input-panel {
     h4 {
       margin: 0 0 10px 0;
-      font-size: 14px;
+      font-size: var(--aitest-font-size-md);
       font-weight: 600;
-      color: #2c3e50;
+      color: var(--aitest-text-1);
     }
   }
 }
@@ -2567,26 +2566,26 @@ onMounted(async () => {
       margin-bottom: 10px;
       padding: 10px;
       background: var(--aitest-canvas);
-      border-radius: 6px;
+      border-radius: var(--aitest-radius);
       
       h4 {
         margin: 0;
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--aitest-text-1);
       }
       
       .input-stats,
       .output-stats {
         display: flex;
         gap: 15px;
-        font-size: 12px;
+        font-size: var(--aitest-font-size-sm);
         color: var(--el-text-color-regular);
         
         span {
           padding: 2px 8px;
-          background: #fff;
-          border-radius: 4px;
+          background: var(--aitest-surface);
+          border-radius: var(--aitest-radius-sm);
           border: 1px solid var(--el-border-color-lighter);
         }
       }
@@ -2598,7 +2597,7 @@ onMounted(async () => {
       overflow-x: auto;
       padding: 10px;
       background: var(--aitest-canvas);
-      border-radius: 6px;
+      border-radius: var(--aitest-radius);
       border: 1px solid var(--el-border-color-lighter);
       display: flex;
       flex-direction: column;
@@ -2607,9 +2606,9 @@ onMounted(async () => {
       pre {
         margin: 0;
         font-family: 'Courier New', monospace;
-        font-size: 13px;
+        font-size: var(--aitest-font-size-base);
         line-height: 1.5;
-        color: #2c3e50;
+        color: var(--aitest-text-1);
         white-space: pre;
         word-wrap: normal;
         min-width: fit-content;
@@ -2624,7 +2623,7 @@ onMounted(async () => {
       justify-content: center;
       min-height: 200px;
       background: var(--aitest-canvas);
-      border-radius: 6px;
+      border-radius: var(--aitest-radius);
       border: 1px solid var(--el-border-color-lighter);
     }
   }
@@ -2639,15 +2638,15 @@ onMounted(async () => {
       gap: 10px;
       margin-bottom: 10px;
       padding-bottom: 10px;
-      border-bottom: 1px solid #e9ecef;
+      border-bottom: 1px solid var(--aitest-border);
     }
     
     .json-tree {
       flex: 1;
       overflow: auto;
       overflow-x: auto;
-      background: #fff;
-      border-radius: 4px;
+      background: var(--aitest-surface);
+      border-radius: var(--aitest-radius-sm);
       padding: 10px;
       max-height: 280px;
       min-width: fit-content;
@@ -2664,7 +2663,7 @@ onMounted(async () => {
       
       :deep(.el-tree-node__label) {
         font-family: 'Courier New', monospace;
-        font-size: 13px;
+        font-size: var(--aitest-font-size-base);
         white-space: nowrap;
       }
     }
@@ -2708,7 +2707,7 @@ onMounted(async () => {
     margin-top: 15px;
     padding: 15px;
     background: var(--aitest-surface-subtle);
-    border-radius: 8px;
+    border-radius: var(--aitest-radius-lg);
     
     .options-bar {
       display: flex;
@@ -2722,7 +2721,7 @@ onMounted(async () => {
         gap: 8px;
         
         .option-label {
-          font-size: 14px;
+          font-size: var(--aitest-font-size-md);
           color: var(--el-text-color-regular);
           font-weight: 500;
         }
@@ -2737,9 +2736,9 @@ onMounted(async () => {
     
     h4 {
       margin: 0 0 10px 0;
-      font-size: 14px;
+      font-size: var(--aitest-font-size-md);
       font-weight: 600;
-      color: #2c3e50;
+      color: var(--aitest-text-1);
     }
   }
   
@@ -2747,7 +2746,7 @@ onMounted(async () => {
     margin-top: 15px;
     padding: 15px;
     background: var(--aitest-surface-subtle);
-    border-radius: 8px;
+    border-radius: var(--aitest-radius-lg);
   }
 }
 
@@ -2765,21 +2764,21 @@ onMounted(async () => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 2px dashed #d9d9d9;
-    border-radius: 8px;
+    border: 2px dashed var(--aitest-border-strong);
+    border-radius: var(--aitest-radius-lg);
     background: var(--aitest-surface-subtle);
     transition: all 0.3s;
     
     &:hover {
       border-color: var(--el-color-primary);
-      background: #f0f9ff;
+      background: var(--aitest-info-bg);
     }
   }
   
   .el-upload__tip {
     margin-top: 10px;
     color: var(--el-text-color-secondary);
-    font-size: 12px;
+    font-size: var(--aitest-font-size-sm);
   }
 }
 
@@ -2797,14 +2796,14 @@ onMounted(async () => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 2px dashed #d9d9d9;
-    border-radius: 8px;
+    border: 2px dashed var(--aitest-border-strong);
+    border-radius: var(--aitest-radius-lg);
     background: var(--aitest-surface-subtle);
     transition: all 0.3s;
     
     &:hover {
       border-color: var(--el-color-primary);
-      background: #f0f9ff;
+      background: var(--aitest-info-bg);
     }
   }
   
@@ -2817,17 +2816,17 @@ onMounted(async () => {
     
     .upload-icon {
       font-size: 48px;
-      color: #c0c4cc;
+      color: var(--aitest-text-3);
     }
     
     .upload-text {
-      font-size: 14px;
+      font-size: var(--aitest-font-size-md);
       color: var(--el-text-color-regular);
       font-weight: 500;
     }
     
     .upload-tip {
-      font-size: 12px;
+      font-size: var(--aitest-font-size-sm);
       color: var(--el-text-color-secondary);
     }
   }
@@ -2872,7 +2871,7 @@ onMounted(async () => {
       }
       
       span {
-        font-size: 14px;
+        font-size: var(--aitest-font-size-md);
       }
     }
   }
@@ -2882,7 +2881,7 @@ onMounted(async () => {
   width: 100%;
   max-width: 400px;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
   margin-top: 10px;
   
@@ -2899,9 +2898,9 @@ onMounted(async () => {
     
     h4 {
       margin: 0 0 10px 0;
-      font-size: 14px;
+      font-size: var(--aitest-font-size-md);
       font-weight: 600;
-      color: #2c3e50;
+      color: var(--aitest-text-1);
     }
   }
   
@@ -2910,9 +2909,9 @@ onMounted(async () => {
     
     h4 {
       margin: 0 0 10px 0;
-      font-size: 14px;
+      font-size: var(--aitest-font-size-md);
       font-weight: 600;
-      color: #2c3e50;
+      color: var(--aitest-text-1);
     }
   }
   
@@ -2920,8 +2919,8 @@ onMounted(async () => {
     height: 100%;
     min-height: 300px;
     background: var(--aitest-surface-subtle);
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
+    border: 1px solid var(--aitest-border);
+    border-radius: var(--aitest-radius-lg);
     padding: 15px;
     overflow: auto;
     overflow-x: auto;
@@ -2932,10 +2931,10 @@ onMounted(async () => {
     pre {
       margin: 0;
       padding: 10px;
-      background: #fff;
-      border-radius: 4px;
+      background: var(--aitest-surface);
+      border-radius: var(--aitest-radius-sm);
       max-height: 280px;
-      font-size: 13px;
+      font-size: var(--aitest-font-size-base);
       line-height: 1.4;
       white-space: pre;
       word-wrap: normal;
@@ -2962,15 +2961,15 @@ onMounted(async () => {
       gap: 10px;
       margin-bottom: 10px;
       padding-bottom: 10px;
-      border-bottom: 1px solid #e9ecef;
+      border-bottom: 1px solid var(--aitest-border);
     }
     
     .json-tree {
       flex: 1;
       overflow: auto;
       overflow-x: auto;
-      background: #fff;
-      border-radius: 4px;
+      background: var(--aitest-surface);
+      border-radius: var(--aitest-radius-sm);
       padding: 10px;
       max-height: 280px;
       min-width: fit-content;
@@ -2987,7 +2986,7 @@ onMounted(async () => {
       
       :deep(.el-tree-node__label) {
         font-family: 'Courier New', monospace;
-        font-size: 13px;
+        font-size: var(--aitest-font-size-base);
         white-space: nowrap;
       }
     }

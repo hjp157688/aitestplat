@@ -1215,6 +1215,9 @@ def _execute_task(task, selected_knowledge):
                             '任务 %s 未关联 WeKnora 绑定(project=%s, default_agent=%r)，跳过知识注入',
                             task.task_id, task.project_id, _cfg.default_agent_id)
                     else:
+                        # 进入知识检索阶段：SSE/前端据此显示「正在检索知识库…」
+                        task.status = 'retrieving'
+                        task.save(update_fields=['status'])
                         _client = WeKnoraClient(_cfg.base_url, _cfg.api_key, _cfg.timeout)
                         _result = _client.agent_answer(
                             task.requirement_text, _binding.agent_id,
@@ -1234,6 +1237,11 @@ def _execute_task(task, selected_knowledge):
                                         task.task_id, _binding.agent_id, _ctx_project or 'default')
             except Exception as e:
                 logger.warning('任务 %s WeKnora 知识注入失败(跳过): %s', task.task_id, e)
+            finally:
+                # 检索阶段结束(无论成败)恢复 generating，供 SSE/前端正确显示生成阶段
+                if task.status == 'retrieving':
+                    task.status = 'generating'
+                    task.save(update_fields=['status'])
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -2926,15 +2934,16 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                 completed=Count('id', filter=models.Q(status='completed')),
                 pending=Count('id', filter=models.Q(status='pending')),
                 generating=Count('id', filter=models.Q(status='generating')),
+                retrieving=Count('id', filter=models.Q(status='retrieving')),
                 reviewing=Count('id', filter=models.Q(status='reviewing')),
                 revising=Count('id', filter=models.Q(status='revising')),
                 failed=Count('id', filter=models.Q(status='failed')),
                 cancelled=Count('id', filter=models.Q(status='cancelled'))
             )
 
-            # 计算运行中的任务（pending + generating + reviewing + revising）
+            # 计算运行中的任务（pending + generating + retrieving + reviewing + revising）
             stats['running'] = (
-                    stats['pending'] + stats['generating'] +
+                    stats['pending'] + stats['generating'] + stats['retrieving'] +
                     stats['reviewing'] + stats['revising']
             )
 
@@ -2945,6 +2954,7 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                 'failed': stats['failed'],
                 'pending': stats['pending'],
                 'generating': stats['generating'],
+                'retrieving': stats['retrieving'],
                 'reviewing': stats['reviewing'],
                 'revising': stats['revising'],
                 'cancelled': stats['cancelled']

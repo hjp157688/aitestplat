@@ -1,5 +1,5 @@
 <template>
-  <div class="ui-flow-case-list">
+  <div class="page-container page-container--full ui-flow-case-list">
     <!-- 页面标题 -->
     <PageHeader :title="$t('appAutomation.testCase.title')">
       <template #actions>
@@ -15,9 +15,10 @@
       </template>
     </PageHeader>
 
-    <!-- 设备和应用选择 -->
-    <el-card class="device-card">
-      <el-form :model="form" label-width="100px" size="small">
+    <div class="card-container">
+      <!-- 设备和应用选择 -->
+      <div class="filter-bar">
+        <el-form :model="form" label-width="100px" size="small">
         <el-row :gutter="16">
           <el-col :span="5">
             <el-form-item :label="$t('appAutomation.testCase.belongProject')">
@@ -95,28 +96,30 @@
           </el-col>
         </el-row>
       </el-form>
-    </el-card>
+      </div>
 
-    <!-- 批量操作栏 -->
-    <div v-if="selectedCases.length > 0" class="batch-bar">
-      <span>{{ $t('appAutomation.testCase.selectedCasesCount', { count: selectedCases.length }) }}</span>
-      <el-button type="success" size="small" @click="batchRun">
-        {{ $t('appAutomation.testCase.batchRun') }}
-      </el-button>
-      <el-button size="small" @click="clearSelection">
-        {{ $t('appAutomation.testCase.cancelSelection') }}
-      </el-button>
-    </div>
+      <!-- 批量操作栏 -->
+      <div v-if="selectedCases.length > 0" class="batch-bar">
+        <span>{{ $t('appAutomation.testCase.selectedCasesCount', { count: selectedCases.length }) }}</span>
+        <el-button type="success" size="small" @click="batchRun">
+          {{ $t('appAutomation.testCase.batchRun') }}
+        </el-button>
+        <el-button size="small" @click="clearSelection">
+          {{ $t('appAutomation.testCase.cancelSelection') }}
+        </el-button>
+      </div>
 
-    <!-- 测试用例列表 -->
-    <el-table
-      ref="tableRef"
-      v-loading="loading"
-      :data="testCases"
-      style="width: 100%; margin-top: 16px"
-      :empty-text="$t('appAutomation.testCase.noTestCases')"
-      @selection-change="handleSelectionChange"
-    >
+      <!-- 测试用例列表 -->
+      <div class="table-container">
+        <el-table
+          ref="tableRef"
+          v-loading="loading"
+          :data="testCases"
+          style="width: 100%"
+          height="100%"
+          :empty-text="$t('appAutomation.testCase.noTestCases')"
+          @selection-change="handleSelectionChange"
+        >
       <el-table-column type="selection" width="50" />
       <el-table-column prop="name" :label="$t('appAutomation.testCase.caseName')" min-width="200" />
       <el-table-column :label="$t('appAutomation.testCase.sceneDescription')" min-width="250">
@@ -143,19 +146,21 @@
         </template>
       </el-table-column>
     </el-table>
+      </div>
 
-    <!-- 分页 -->
-    <el-pagination
-      v-show="caseTotal > 0"
-      v-model:current-page="caseCurrentPage"
-      v-model:page-size="casePageSize"
-      :page-sizes="[10, 20, 30, 50]"
-      :total="caseTotal"
-      layout="total, sizes, prev, pager, next, jumper"
-      style="margin-top: 16px; text-align: right"
-      @size-change="handleCaseSizeChange"
-      @current-change="handleCasePageChange"
-    />
+      <!-- 分页 -->
+      <div v-show="caseTotal > 0" class="pagination-container">
+        <el-pagination
+          v-model:current-page="caseCurrentPage"
+          v-model:page-size="casePageSize"
+          :page-sizes="[10, 20, 30, 50]"
+          :total="caseTotal"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleCaseSizeChange"
+          @current-change="handleCasePageChange"
+        />
+      </div>
+    </div>
 
     <!-- 测试执行记录 -->
     <el-card class="execution-card" style="margin-top: 20px">
@@ -804,35 +809,25 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.ui-flow-case-list {
-  padding: 0;
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
+.filter-bar :deep(.el-form-item) {
+  margin-bottom: 0;
 }
 
 .batch-bar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: var(--aitest-space-3);
+  margin: var(--aitest-space-3) var(--aitest-card-padding) 0;
   padding: var(--aitest-space-3) var(--aitest-space-4);
-  margin-top: var(--aitest-space-3);
   background: var(--el-color-primary-light-9);
-  border: 1px solid #b3d8ff;
+  border: 1px solid var(--el-color-primary-light-7);
   border-radius: var(--aitest-radius-sm);
   font-size: var(--aitest-font-size-md);
 
   strong {
     color: var(--el-color-primary);
-  }
-}
-
-.device-card {
-  margin-bottom: var(--aitest-space-4);
-
-  :deep(.el-card__body) {
-    padding: var(--aitest-space-5);
-  }
-
-  :deep(.el-form-item) {
-    margin-bottom: 0;
   }
 }
 
@@ -854,6 +849,8 @@ onBeforeUnmount(() => {
 }
 
 .execution-card {
+  flex-shrink: 0;
+
   .card-header {
     display: flex;
     justify-content: space-between;
@@ -895,7 +892,7 @@ onBeforeUnmount(() => {
 
 // 响应式设计
 @media screen and (max-width: 1366px) {
-  .device-card :deep(.el-form-item__label) {
+  .filter-bar :deep(.el-form-item__label) {
     font-size: var(--aitest-font-size-base);
   }
 }

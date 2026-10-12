@@ -274,6 +274,7 @@ export default {
     cancelGeneration: 'Cancel Generation',
     generationCancelled: 'Generation cancelled',
     statusGenerating: 'Writing test cases...',
+    statusRetrieving: 'Retrieving knowledge base...',
     statusReviewing: 'Reviewing test cases...',
     statusRevising: 'Generating final test cases...',
     statusCompleted: 'Generation complete!',
@@ -375,6 +376,7 @@ export default {
     // Status Display
     statusPending: 'Analyzing',
     statusGenerating: 'Writing',
+    statusRetrieving: 'Retrieving Knowledge',
     statusReviewing: 'Reviewing',
     statusCompleted: 'Completed',
     statusFailed: 'Failed',

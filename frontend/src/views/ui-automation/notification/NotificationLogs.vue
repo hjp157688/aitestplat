@@ -1,8 +1,9 @@
 <template>
-  <div class="notification-logs-container">
+  <div class="page-container page-container--full notification-logs">
     <!-- 页面操作栏 -->
-    <div class="page-actions">
-      <el-row :gutter="20" class="filter-row">
+    <div class="card-container">
+      <div class="filter-bar">
+      <el-row :gutter="20">
         <el-col :span="6">
           <el-input
               v-model="searchForm.taskName"
@@ -54,16 +55,17 @@
           </el-button>
         </el-col>
       </el-row>
-    </div>
+      </div>
 
     <!-- 通知列表 -->
-    <div class="logs-table-container">
+    <div class="table-container">
       <el-table
           :data="logsData"
           v-loading="loading"
           :element-loading-text="$t('uiAutomation.notification.logs.messages.loading')"
           stripe
           style="width: 100%"
+          height="100%"
           @sort-change="handleSortChange"
       >
         <el-table-column
@@ -142,6 +144,7 @@
           </template>
         </el-table-column>
       </el-table>
+    </div>
 
       <!-- 分页 -->
       <div class="pagination-container">
@@ -552,34 +555,14 @@ export default {
 </script>
 
 <style scoped>
-.notification-logs-container {
-  padding: var(--aitest-space-5);
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
+
+.notification-content-parsed {
   background: var(--aitest-surface);
   border-radius: var(--aitest-radius-lg);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.page-actions {
-  margin-bottom: var(--aitest-space-5);
   padding: var(--aitest-space-5);
-  background: var(--aitest-surface-subtle);
-  border-radius: var(--aitest-radius);
-}
-
-.filter-row {
-  display: flex;
-  align-items: center;
-  gap: var(--aitest-space-4);
-}
-
-.logs-table-container {
-  margin-top: var(--aitest-space-5);
-}
-
-.pagination-container {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
+  border: 1px solid var(--aitest-border);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .notification-detail-form :deep(.el-form-item) {
@@ -588,14 +571,6 @@ export default {
 
 .notification-content {
   width: 100%;
-}
-
-.notification-content-parsed {
-  background: var(--aitest-surface);
-  border-radius: var(--aitest-radius-lg);
-  padding: var(--aitest-space-5);
-  border: 1px solid var(--aitest-border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .content-item {

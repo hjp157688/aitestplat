@@ -1,12 +1,12 @@
 <template>
-  <div class="weknora-config">
+  <div class="weknora-config page-container">
     <PageHeader title="WeKnora 知识库配置" />
 
     <div v-if="loading" class="loading-container">
       <el-skeleton :rows="4" animated />
     </div>
 
-    <div v-else>
+    <div v-else class="card-container">
       <!-- 连接配置 -->
       <el-card class="section-card" shadow="never">
         <template #header>
@@ -370,8 +370,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* 非表格配置页：主体包进 card-container，普通滚动；页面留白由全局 .page-container 提供 */
 .weknora-config {
-  padding: var(--aitest-space-5);
   max-width: 1100px;
   margin: 0 auto;
 }
@@ -380,6 +380,9 @@ onMounted(async () => {
 }
 .section-card {
   margin-bottom: var(--aitest-space-5);
+}
+.section-card:last-child {
+  margin-bottom: 0;
 }
 .section-header {
   display: flex;
@@ -404,14 +407,14 @@ onMounted(async () => {
   gap: var(--aitest-space-2);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   padding: var(--aitest-space-1) var(--aitest-space-3);
   margin: 0 var(--aitest-space-2) var(--aitest-space-2) 0;
 }
 .agent-chip code,
 .agent-id {
   color: var(--aitest-text-3);
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
 }
 .muted {
   color: var(--aitest-text-3);

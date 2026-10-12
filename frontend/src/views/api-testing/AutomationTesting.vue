@@ -1,5 +1,5 @@
 <template>
-  <div class="automation-testing">
+  <div class="page-container page-container--full automation-testing">
     <PageHeader :title="$t('apiTesting.automation.title')">
       <template #actions>
         <el-button type="primary" @click="showCreateSuiteDialog = true">
@@ -9,7 +9,7 @@
       </template>
     </PageHeader>
 
-    <div class="content-layout">
+    <div class="card-container content-layout">
       <!-- 左侧项目选择和测试套件列表 -->
       <div class="sidebar">
         <div class="project-selector">
@@ -990,13 +990,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.automation-testing {
-  padding: var(--aitest-space-5);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
 .content-layout {
   display: flex;
   flex: 1;
@@ -1070,9 +1063,7 @@ onMounted(() => {
 
 .main-content {
   flex: 1;
-  background: var(--aitest-surface);
-  border-radius: var(--aitest-radius);
-  border: 1px solid var(--aitest-border);
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1194,12 +1185,12 @@ onMounted(() => {
 .req-label {
   flex-shrink: 0;
   min-width: 64px;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-2);
 }
 
 .req-value {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-1);
   word-break: break-all;
 }
@@ -1218,7 +1209,7 @@ onMounted(() => {
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
   border-radius: var(--aitest-radius);
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-all;

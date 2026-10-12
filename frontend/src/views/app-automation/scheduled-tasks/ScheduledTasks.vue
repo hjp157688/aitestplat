@@ -1,5 +1,5 @@
 <template>
-  <div class="scheduled-tasks">
+  <div class="page-container page-container--full scheduled-tasks">
     <PageHeader :title="$t('appAutomation.scheduledTask.title')">
       <template #actions>
         <el-button type="primary" @click="handleCreate">
@@ -9,9 +9,10 @@
       </template>
     </PageHeader>
 
-    <!-- 筛选 -->
-    <div class="filters">
-      <el-row :gutter="20">
+    <div class="card-container">
+      <!-- 筛选 -->
+      <div class="filter-bar">
+        <el-row :gutter="20">
         <el-col :span="5">
           <el-select v-model="filters.project" :placeholder="$t('appAutomation.scheduledTask.allProjects')" clearable filterable>
             <el-option v-for="p in projectList" :key="p.id" :label="p.name" :value="p.id" />
@@ -43,10 +44,11 @@
           <el-button type="primary" @click="loadTasks">{{ $t('appAutomation.common.query') }}</el-button>
         </el-col>
       </el-row>
-    </div>
+      </div>
 
-    <!-- 列表 -->
-    <el-table :data="tasks" v-loading="loading" border>
+      <!-- 列表 -->
+      <div class="table-container">
+        <el-table :data="tasks" v-loading="loading" border height="100%">
       <el-table-column prop="name" :label="$t('appAutomation.scheduledTask.taskName')" min-width="180" />
       <el-table-column prop="task_type" :label="$t('appAutomation.scheduledTask.taskType')" width="120">
         <template #default="{ row }">
@@ -114,18 +116,20 @@
         </template>
       </el-table-column>
     </el-table>
+    </div>
 
-    <!-- 分页 -->
-    <div class="pagination">
-      <el-pagination
-        v-model:current-page="pagination.current"
-        v-model:page-size="pagination.size"
-        :total="pagination.total"
-        :page-sizes="[10, 20, 50]"
-        layout="total, sizes, prev, pager, next"
-        @size-change="loadTasks"
-        @current-change="loadTasks"
-      />
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="pagination.current"
+          v-model:page-size="pagination.size"
+          :total="pagination.total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          @size-change="loadTasks"
+          @current-change="loadTasks"
+        />
+      </div>
     </div>
 
     <!-- 创建/编辑对话框 -->
@@ -436,9 +440,7 @@ const formatDateTime = (s) => {
 </script>
 
 <style scoped>
-.scheduled-tasks { padding: var(--aitest-space-5); display: flex; flex-direction: column; height: 100%; }
-.filters { margin-bottom: var(--aitest-space-5); background: var(--aitest-surface-subtle); padding: var(--aitest-space-5); border-radius: var(--aitest-radius-lg); }
-.pagination { margin-top: var(--aitest-space-5); display: flex; justify-content: flex-end; }
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 .cron-help { margin-top: var(--aitest-space-2); font-size: var(--aitest-font-size-sm); }
 .unit { margin-left: var(--aitest-space-2); color: var(--el-text-color-regular); }
 </style>

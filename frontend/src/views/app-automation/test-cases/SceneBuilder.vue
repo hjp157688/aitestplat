@@ -1,5 +1,5 @@
 <template>
-    <div class="ui-test-scene-builder">
+    <div class="page-container ui-test-scene-builder">
         <PageHeader :title="$t('appAutomation.sceneBuilder.header.title')">
             <template #actions>
                 <el-button
@@ -769,8 +769,9 @@
             destroy-on-close
         >
             <div class="element-selector-container">
+                <div class="card-container">
                 <!-- 筛选条件 -->
-                <div class="element-selector-filter">
+                <div class="filter-bar">
                     <el-space wrap>
                         <el-radio-group v-model="elementFilterType" @change="loadElementsForSelector">
                             <el-radio-button value="">{{ $t('appAutomation.common.all') }}</el-radio-button>
@@ -878,16 +879,18 @@
                 </el-table>
 
                 <!-- 分页 -->
-                <el-pagination
-                    v-model:current-page="elementCurrentPage"
-                    v-model:page-size="elementPageSize"
-                    :total="elementTotal"
-                    :page-sizes="[10, 20, 50]"
-                    layout="total, sizes, prev, pager, next"
-                    @current-change="loadElementsForSelector"
-                    @size-change="loadElementsForSelector"
-                    style="margin-top: 15px; justify-content: flex-end"
-                />
+                <div class="pagination-container">
+                    <el-pagination
+                        v-model:current-page="elementCurrentPage"
+                        v-model:page-size="elementPageSize"
+                        :total="elementTotal"
+                        :page-sizes="[10, 20, 50]"
+                        layout="total, sizes, prev, pager, next"
+                        @current-change="loadElementsForSelector"
+                        @size-change="loadElementsForSelector"
+                    />
+                </div>
+                </div>
             </div>
 
             <template #footer>
@@ -2896,8 +2899,9 @@ defineExpose({
 </script>
 
 <style scoped>
+/* 根容器使用全局 .page-container（页面留白）；元素选择器列表区使用全局 .card-container */
 .ui-test-scene-builder {
-    padding: var(--aitest-space-4);
+    min-height: 100%;
 }
 
 .scene-config {
@@ -3227,10 +3231,9 @@ defineExpose({
     gap: var(--aitest-space-4);
 }
 
-.element-selector-filter {
-    padding: var(--aitest-space-3);
-    background-color: var(--aitest-canvas);
-    border-radius: var(--aitest-radius-sm);
+.pagination-container {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .preview-image {

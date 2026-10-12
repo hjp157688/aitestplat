@@ -301,9 +301,9 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .pagination-container {
-  margin-top: var(--aitest-space-5);
+  margin-top: var(--aitest-space-4);
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 /* 窄屏：弹窗防溢出 */

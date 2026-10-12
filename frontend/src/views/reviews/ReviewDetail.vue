@@ -8,7 +8,7 @@
       </template>
     </PageHeader>
 
-    <div v-if="review" class="content-container">
+    <div v-if="review" class="content-container card-container">
       <!-- 评审基本信息 -->
       <el-card class="info-card">
         <template #header>
@@ -532,6 +532,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+/* 详情页：主内容区包全局 .card-container（普通滚动），内部布局不变 */
 .content-container {
   display: flex;
   flex-direction: column;

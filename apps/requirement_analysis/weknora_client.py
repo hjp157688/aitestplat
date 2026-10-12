@@ -40,6 +40,15 @@ class WeKnoraClient:
         self.api_key = api_key or ''
         self.timeout = timeout or 30
 
+    def _http_timeout(self):
+        """connect 独立设短超时。
+
+        WeKnora 服务不可达（丢包不拒连）时，TCP 连接要等 OS 级 ~75s 才报
+        ETIMEDOUT，生成流程会卡死在知识注入阶段；connect 限 5s 快速失败降级，
+        read 沿用配置的完整超时（agent 检索+回答可能较慢）。
+        """
+        return httpx.Timeout(self.timeout, connect=min(5.0, self.timeout))
+
     # ---------- 内部 ----------
     def _headers(self):
         return {
@@ -49,7 +58,7 @@ class WeKnoraClient:
 
     def _request(self, method, path, *, params=None, json=None):
         url = f'{self.base_url}{API_BASE}{path}'
-        with httpx.Client(timeout=self.timeout) as client:
+        with httpx.Client(timeout=self._http_timeout()) as client:
             resp = client.request(method, url, params=params, json=json, headers=self._headers())
         body = None
         try:
@@ -111,7 +120,7 @@ class WeKnoraClient:
 
         events = []
         try:
-            with httpx.Client(timeout=self.timeout) as client:
+            with httpx.Client(timeout=self._http_timeout()) as client:
                 with client.stream('POST', url, json=payload, headers=self._headers()) as resp:
                     if resp.status_code != 200:
                         # 非流式错误体：FatalError 常见于 key/空间/agent 校验失败
@@ -212,7 +221,7 @@ class WeKnoraClient:
 
     def _probe(self):
         url = f'{self.base_url}{API_BASE}/agents'
-        with httpx.Client(timeout=self.timeout) as client:
+        with httpx.Client(timeout=self._http_timeout()) as client:
             resp = client.get(url, headers=self._headers())
         body = None
         try:

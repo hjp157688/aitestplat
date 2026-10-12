@@ -1,5 +1,5 @@
 <template>
-  <div class="report-view">
+  <div class="page-container page-container--full report-view">
     <PageHeader :title="$t('uiAutomation.report.title')">
       <template #actions>
         <el-select v-model="selectedProject" :placeholder="$t('uiAutomation.common.selectProject')" style="width: 200px" @change="onProjectChange">
@@ -12,8 +12,9 @@
       </template>
     </PageHeader>
 
-    <div class="content">
-      <el-table :data="reports" v-loading="loading" style="width: 100%">
+    <div class="card-container">
+      <div class="table-container">
+      <el-table :data="reports" v-loading="loading" style="width: 100%" height="100%">
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="test_suite_name" :label="$t('uiAutomation.report.testSuite')" min-width="200" />
         <el-table-column prop="status" :label="$t('uiAutomation.common.status')" width="120">
@@ -77,6 +78,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <div class="pagination-container">
         <el-pagination
@@ -516,27 +518,7 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.report-view {
-  padding: var(--aitest-space-5);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: var(--aitest-canvas);
-}
-
-.content {
-  flex: 1;
-  overflow: auto;
-  background: white;
-  padding: var(--aitest-space-5);
-  border-radius: var(--aitest-radius-sm);
-}
-
-.pagination-container {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
-}
+/* 页面骨架使用全局 .page-container--full 变体（表体内部滚动），本地不覆盖 */
 
 // 报告详情样式
 .report-detail {
@@ -576,7 +558,7 @@ onMounted(async () => {
       }
 
       .stat-value {
-        font-size: 32px;
+        font-size: var(--aitest-font-size-2xl);
         font-weight: bold;
         color: var(--aitest-text-1);
       }
@@ -752,7 +734,7 @@ onMounted(async () => {
         max-width: 100%;
         border: 1px solid var(--el-border-color-lighter);
         border-radius: var(--aitest-radius-sm);
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--aitest-shadow-sm);
       }
 
       .screenshot-time {

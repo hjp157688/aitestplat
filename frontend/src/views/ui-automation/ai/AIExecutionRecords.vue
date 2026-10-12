@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('uiAutomation.ai.executionRecords.title')">
       <template #actions>
         <el-button
@@ -15,13 +15,15 @@
     </PageHeader>
 
     <div class="card-container">
-      <el-table
-        :data="records"
-        v-loading="loading"
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        ref="tableRef"
-      >
+      <div class="table-container">
+        <el-table
+          :data="records"
+          v-loading="loading"
+          style="width: 100%"
+          height="100%"
+          @selection-change="handleSelectionChange"
+          ref="tableRef"
+        >
         <el-table-column type="selection" width="55" />
         <el-table-column :label="$t('uiAutomation.ai.executionRecords.serialNumber')" width="80">
           <template #default="{ $index }">
@@ -55,6 +57,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <div class="pagination-container">
         <el-pagination
@@ -321,22 +324,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.page-container {
-  padding: var(--aitest-space-5);
-}
-
-.card-container {
-  background-color: var(--aitest-surface);
-  border-radius: var(--aitest-radius-sm);
-  padding: var(--aitest-space-5);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.pagination-container {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
-}
+/* 页面骨架使用全局 .page-container--full 变体（分页固定、表体内部滚动），本地不覆盖 */
 
 .record-detail {
   .detail-item {

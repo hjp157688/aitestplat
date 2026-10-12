@@ -33,6 +33,9 @@ TIMEOUT = httpx.Timeout(connect=60.0, read=900.0, write=60.0, pool=60.0)
 # 流式续写次数上限（与旧实现一致，防止死循环）
 MAX_CONTINUATIONS = 5
 
+# provider_extra 中不透传进请求体的保留键（api_version 供 Azure build_url/build_headers 使用）
+_PROVIDER_EXTRA_RESERVED = {'api_version'}
+
 # 逐行解析后的 usage 可能出现在最后一个 SSE chunk（部分提供商开启 include_usage 时才有）
 _ROLES_EMBEDDING_PROBE = ('tokenizer', 'embedding')
 
@@ -77,11 +80,20 @@ class AIClient:
         data = {
             'model': getattr(config, 'model_name', ''),
             'messages': messages,
-            'max_tokens': actual_max_tokens,
             'temperature': getattr(config, 'temperature', 0.7),
             'top_p': getattr(config, 'top_p', 0.9),
             'stream': stream,
         }
+        # max_tokens 为空/0 表示不限制：不传该字段，由服务端按模型输出上限
+        if actual_max_tokens:
+            data['max_tokens'] = actual_max_tokens
+        # provider_extra 其余键透传进请求体（如 SGLang/GLM 的 chat_template_kwargs、
+        # 深度思考开关等提供商私有参数），保留键除外
+        extra = getattr(config, 'provider_extra', None) or {}
+        if isinstance(extra, dict):
+            for k, v in extra.items():
+                if k not in _PROVIDER_EXTRA_RESERVED:
+                    data[k] = v
         return (
             provider,
             AIClient._provider_display(config),
@@ -135,7 +147,7 @@ class AIClient:
 
         try:
             logger.info(f"=== API调用详情 === url={url}, model={model_name}, "
-                        f"max_tokens={data['max_tokens']}, temperature={data['temperature']}, top_p={data['top_p']}")
+                        f"max_tokens={data.get('max_tokens', '不限')}, temperature={data['temperature']}, top_p={data['top_p']}")
             async with httpx.AsyncClient(timeout=TIMEOUT, http2=False) as client:
                 response = await client.post(url, headers=headers, json=data)
                 if response.status_code != 200:
@@ -171,10 +183,6 @@ class AIClient:
         provider_name = AIClient._provider_display(config)
         model_name = getattr(config, 'model_name', '')
         role = getattr(config, 'role', '')
-        api_key = getattr(config, 'api_key', None)
-        api_version = AIClient._api_version(config)
-        url = build_url(getattr(config, 'base_url', ''), '/chat/completions', provider, api_version)
-        headers = build_headers(provider, api_key, api_version)
         actual_max_tokens = max_tokens if max_tokens is not None else getattr(config, 'max_tokens', 4096)
 
         current_messages = list(messages)  # 浅拷贝
@@ -184,17 +192,14 @@ class AIClient:
         start = time.monotonic()
 
         while continuation_count <= MAX_CONTINUATIONS:
-            data = {
-                'model': model_name,
-                'messages': current_messages,
-                'max_tokens': actual_max_tokens,
-                'temperature': getattr(config, 'temperature', 0.7),
-                'top_p': getattr(config, 'top_p', 0.9),
-                'stream': True,
-            }
+            # 请求体统一走 _request_parts（含 provider_extra 透传）；messages 每轮随续写变化
+            _, _, url, headers, data = AIClient._request_parts(
+                config, current_messages, actual_max_tokens, stream=True)
 
             logger.info(f"发起流式请求 (第{continuation_count + 1}次), messages数量: {len(current_messages)}")
             chunk_content_buffer = ""
+            round_content_chars = 0   # 本轮可见输出字符数
+            round_reasoning_chars = 0  # 本轮思考(delta.reasoning/reasoning_content)字符数
             finish_reason = None
 
             try:
@@ -219,10 +224,17 @@ class AIClient:
                                         choice = chunk_data['choices'][0]
                                         delta = choice.get('delta', {})
                                         finish_reason = choice.get('finish_reason', None)
+                                        # 思考内容（GLM/SGLang 用 delta.reasoning，部分用
+                                        # reasoning_content）：属于推理过程，不计入可见输出
+                                        reasoning = (delta.get('reasoning')
+                                                     or delta.get('reasoning_content') or '')
+                                        if reasoning:
+                                            round_reasoning_chars += len(reasoning)
                                         content = delta.get('content', '')
 
                                         if content:
                                             chunk_content_buffer += content
+                                            round_content_chars += len(content)
                                             if callback:
                                                 await callback(content)
                                             yield content
@@ -241,6 +253,20 @@ class AIClient:
 
                 # 本次请求结束：检查 finish_reason
                 if finish_reason == 'length':
+                    if round_content_chars == 0:
+                        # max_tokens 预算被思考(reasoning)全部吃掉、零可见输出：
+                        # 续写只会重新思考再耗光预算（实测 GLM-5.3-flash 连续 6 次全零），
+                        # 直接报错并给出处置指引，而不是盲目续写 MAX_CONTINUATIONS 次。
+                        logger.error(
+                            f"流式生成被截断且零可见输出: reasoning_chars={round_reasoning_chars}, "
+                            f"max_tokens={actual_max_tokens}, model={model_name}")
+                        raise Exception(
+                            f"{provider_name} 流式生成耗尽 token 预算但没有任何可见输出"
+                            f"（思考消耗 {round_reasoning_chars} 字符，"
+                            f"max_tokens={'不限' if not actual_max_tokens else actual_max_tokens}）。"
+                            f"请在模型配置的「提供商扩展参数」中关闭思考，"
+                            f'例如 {{"chat_template_kwargs": {{"enable_thinking": false}}}}，'
+                            f"或调整 max_tokens 后重试。")
                     logger.warning(
                         f"检测到生成被截断 (finish_reason='length')，准备自动续写。当前已续写 {continuation_count} 次。")
                     continuation_count += 1
