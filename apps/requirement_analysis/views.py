@@ -1296,7 +1296,8 @@ def _execute_task(task, selected_knowledge):
                 if task.stream_buffer:
                     save_stream_buffer(task.stream_buffer)
 
-                task.generated_test_cases = generated_cases
+                # 续写重启会让模型重复输出同一条用例，落库前按标题去重
+                task.generated_test_cases = AIModelService.dedupe_test_cases(generated_cases)
                 task.progress = 60
                 task.save()
 
@@ -1466,7 +1467,8 @@ def _execute_task(task, selected_knowledge):
                     AIModelService.generate_test_cases(task, selected_knowledge=selected_knowledge)
                 )
 
-                task.generated_test_cases = generated_cases
+                # 续写重启会让模型重复输出同一条用例，落库前按标题去重
+                task.generated_test_cases = AIModelService.dedupe_test_cases(generated_cases)
                 task.progress = 60
                 task.save()
 
@@ -2446,13 +2448,22 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                             )
 
                 adopted_count = 0
+                skipped_count = 0
+                # 幂等：该任务此前已采纳的用例（按标题去重，跳过已存在的）
+                existing_titles = set(
+                    TestCase.objects.filter(source_generation_task=task).values_list('title', flat=True)
+                )
                 for test_case in test_cases:
                     import json as _json
+                    case_title = test_case.get('title') or test_case.get('scenario', '测试用例')
+                    if case_title in existing_titles:
+                        skipped_count += 1
+                        continue
                     parsed_steps = normalize_steps(test_case.get('steps', []))
                     TestCase.objects.create(
                         project=project,  # 使用统一的项目选择逻辑
                         author=task.created_by,
-                        title=test_case.get('title') or test_case.get('scenario', '测试用例'),
+                        title=case_title,
                         description=test_case.get('scenario', ''),  # 使用scenario作为描述
                         preconditions=test_case.get('precondition', ''),
                         steps=_json.dumps(parsed_steps, ensure_ascii=False),
@@ -2460,12 +2471,23 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                         test_type='functional',
                         status='draft',
                         requirement=_ensure_task_requirement(task),
+                        source_generation_task=task,
                     )
+                    existing_titles.add(case_title)
                     adopted_count += 1
 
+                if adopted_count == 0:
+                    message = f'已采纳过 {skipped_count} 条测试用例，请勿重复操作'
+                elif skipped_count > 0:
+                    message = f'新增采纳 {adopted_count} 条（跳过已存在 {skipped_count} 条）到项目 "{project.name}"'
+                else:
+                    message = f'成功采纳 {adopted_count} 条测试用例到项目 "{project.name}"'
+
                 return Response({
-                    'message': f'成功采纳 {adopted_count} 条测试用例到项目 "{project.name}"',
+                    'message': message,
                     'adopted_count': adopted_count,
+                    'skipped_count': skipped_count,
+                    'total_adopted': TestCase.objects.filter(source_generation_task=task).count(),
                     'project_name': project.name
                 }, status=status.HTTP_200_OK)
 
@@ -2541,13 +2563,21 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                             )
 
                 adopted_count = 0
+                skipped_count = 0
+                existing_titles = set(
+                    TestCase.objects.filter(source_generation_task=task).values_list('title', flat=True)
+                )
                 for case_data in test_cases_data:
                     import json as _json
+                    case_title = clean_text(case_data.get('title', '测试用例'))
+                    if case_title in existing_titles:
+                        skipped_count += 1
+                        continue
                     parsed_steps = normalize_steps(case_data.get('steps', []))
                     TestCase.objects.create(
                         project=project,  # 使用统一的项目选择逻辑
                         author=task.created_by,
-                        title=clean_text(case_data.get('title', '测试用例')),
+                        title=case_title,
                         description=clean_text(case_data.get('description', '')),
                         preconditions=clean_text(case_data.get('preconditions', '')),
                         steps=_json.dumps(parsed_steps, ensure_ascii=False),
@@ -2555,12 +2585,23 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                         test_type=case_data.get('test_type', 'functional'),
                         status=case_data.get('status', 'draft'),
                         requirement=_ensure_task_requirement(task),
+                        source_generation_task=task,
                     )
+                    existing_titles.add(case_title)
                     adopted_count += 1
 
+                if adopted_count == 0:
+                    message = f'已采纳过 {skipped_count} 条测试用例，请勿重复操作'
+                elif skipped_count > 0:
+                    message = f'新增采纳 {adopted_count} 条（跳过已存在 {skipped_count} 条）到项目 "{project.name}"'
+                else:
+                    message = f'成功采纳 {adopted_count} 条测试用例到项目 "{project.name}"'
+
                 return Response({
-                    'message': f'成功采纳 {adopted_count} 条测试用例到项目 "{project.name}"',
+                    'message': message,
                     'adopted_count': adopted_count,
+                    'skipped_count': skipped_count,
+                    'total_adopted': TestCase.objects.filter(source_generation_task=task).count(),
                     'project_name': project.name
                 }, status=status.HTTP_200_OK)
 

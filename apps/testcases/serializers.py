@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TestCase, TestCaseStep, TestCaseAttachment, TestCaseComment, TestCaseImportRecord
+from .models import TestCase, TestCaseStep, TestCaseAttachment, TestCaseComment, TestCaseImportRecord, TestCaseVersion
 from apps.users.serializers import UserSerializer
 from apps.versions.serializers import VersionSimpleSerializer
 
@@ -163,3 +163,20 @@ class TestCaseImportRecordDetailSerializer(TestCaseImportRecordListSerializer):
         if obj.failure_report_file:
             return obj.failure_report_file.url
         return None
+
+
+class TestCaseVersionSerializer(serializers.ModelSerializer):
+    """用例版本快照序列化"""
+    source_display = serializers.CharField(source='get_source_display', read_only=True)
+    created_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TestCaseVersion
+        fields = [
+            'id', 'version', 'title', 'description', 'preconditions', 'steps',
+            'priority', 'test_type', 'tags', 'source', 'source_display',
+            'note', 'created_by_name', 'created_at',
+        ]
+
+    def get_created_by_name(self, obj):
+        return obj.created_by.username if obj.created_by else ''

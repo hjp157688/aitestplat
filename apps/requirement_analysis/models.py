@@ -234,6 +234,8 @@ class PromptConfig(models.Model):
         ('api_testcase_generator', '接口测试用例生成'),
         ('browser_use_task', 'Browser Use-执行任务'),
         ('browser_use_breakdown', 'Browser Use-任务拆分'),
+        ('testcase_modifier', '用例AI定向修改'),
+        ('testcase_supplement', '用例AI补充生成'),
     ]
 
     name = models.CharField(max_length=100, verbose_name='配置名称')
@@ -1189,18 +1191,50 @@ class AIModelService:
         return '\n'.join(lines[:end])
 
     @staticmethod
+    def dedupe_test_cases(test_cases_content: str) -> str:
+        """按标题对 JSONL 用例去重（保留首条），不重新编号。
+
+        用于 generated_test_cases 落库：截断自动续写导致模型重复输出同一条用例
+        （逐字节相同的重复行），writer 原始内容先去重，评审/改进才不会在重复集上放大。
+        非 JSON 行原样保留。
+        """
+        if not test_cases_content:
+            return test_cases_content
+
+        seen_titles = set()
+        out_lines = []
+        for line in test_cases_content.split('\n'):
+            stripped = line.strip()
+            if not stripped:
+                continue
+            try:
+                obj = json.loads(stripped)
+            except (json.JSONDecodeError, ValueError):
+                out_lines.append(stripped)
+                continue
+            if isinstance(obj, dict) and obj.get('title'):
+                if obj['title'] in seen_titles:
+                    logger.info(f"dedupe_test_cases: 去重重复用例: {obj['title'][:40]!r}")
+                    continue
+                seen_titles.add(obj['title'])
+            out_lines.append(json.dumps(obj, ensure_ascii=False))
+        return '\n'.join(out_lines)
+
+    @staticmethod
     def renumber_test_cases(test_cases_content: str) -> str:
         """
-        按顺序重新编号 JSONL 测试用例，使编号连续。
+        去重（按标题保留首条）并重新编号 JSONL 测试用例，使编号连续。
 
-        保留每行的前缀与分隔符（如 LOGIN_ / TC- / IMMSG），位数与原有编号一致；
+        去重：截断自动续写会让模型无视"不要重复"指令重新输出已有用例（同一标题
+        x2/x3、逐字节相同的重复行），落库前按 title 去重，只保留首次出现。
+        编号：保留每行的前缀与分隔符（如 LOGIN_ / TC- / IMMSG），位数与原有编号一致；
         多前缀（如混合 LOGIN_* 与 REGISTER_*）各自独立连续编号；无数字编号的行保持不变。
 
         Args:
             test_cases_content: 测试用例内容（JSONL 字符串）
 
         Returns:
-            str: 重新编号后的测试用例内容
+            str: 去重并重新编号后的测试用例内容
         """
         if not test_cases_content:
             return test_cases_content
@@ -1221,6 +1255,7 @@ class AIModelService:
             return test_cases_content
 
         counters = {}  # 按 前缀+分隔符 分别计数，避免不同模块编号互相干扰
+        seen_titles = set()  # 续写重启会重复输出同一条用例，按标题保留首条
         out_lines = []
         for obj in entries:
             if not isinstance(obj, dict):
@@ -1230,6 +1265,12 @@ class AIModelService:
                     f"renumber_test_cases: 丢弃非对象 JSON 行: "
                     f"{json.dumps(obj, ensure_ascii=False)[:60]!r}")
                 continue
+            title = obj.get('title')
+            if title:
+                if title in seen_titles:
+                    logger.info(f"renumber_test_cases: 去重重复用例: {title[:40]!r}")
+                    continue
+                seen_titles.add(title)
             case_id = obj.get('case_id')
             m = _CASE_ID_PATTERN.match(str(case_id).strip()) if isinstance(case_id, str) else None
             if m:

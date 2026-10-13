@@ -11,6 +11,32 @@
           {{ $t('testcase.batchDelete') }} ({{ selectedTestCases.length }})
         </el-button>
 
+        <el-tooltip :content="$t('testcase.aiModifySelectFirst')" :disabled="selectedTestCases.length > 0">
+          <span class="ai-btn-wrap">
+            <el-button
+              type="success"
+              plain
+              :disabled="selectedTestCases.length === 0 || isAiTaskRunning"
+              @click="openAiDialog('modify')">
+              <el-icon><MagicStick /></el-icon>
+              {{ $t('testcase.aiModify') }}
+            </el-button>
+          </span>
+        </el-tooltip>
+
+        <el-tooltip :content="$t('testcase.aiSupplementSelectRequirement')" :disabled="!!requirementFilter">
+          <span class="ai-btn-wrap">
+            <el-button
+              type="success"
+              plain
+              :disabled="!requirementFilter || isAiTaskRunning"
+              @click="openAiDialog('supplement')">
+              <el-icon><MagicStick /></el-icon>
+              {{ $t('testcase.aiSupplement') }}
+            </el-button>
+          </span>
+        </el-tooltip>
+
         <el-dropdown @command="handleImportCommand">
           <el-button>
             <el-icon><Upload /></el-icon>
@@ -361,6 +387,44 @@
         </el-button>
       </template>
     </el-dialog>
+    <!-- AI 修改/补充弹窗（共用，随模式切换） -->
+    <el-dialog
+      v-model="aiDialogVisible"
+      :title="aiMode === 'modify' ? $t('testcase.aiTaskDialogTitle') : $t('testcase.aiSupplementDialogTitle')"
+      width="640px"
+      @closed="resetAiDialog">
+      <el-alert
+        v-if="aiMode === 'modify'"
+        :title="$t('testcase.aiModifySelectedHint', { count: selectedTestCases.length })"
+        type="info"
+        :closable="false"
+        class="ai-dialog-hint" />
+      <el-form label-position="top">
+        <el-form-item v-if="aiMode === 'supplement'" :label="$t('testcase.aiRequirementContext')">
+          <el-input
+            v-model="aiForm.requirementText"
+            type="textarea"
+            :rows="5" />
+        </el-form-item>
+        <el-form-item :label="$t('testcase.aiModifyTitle')">
+          <el-input
+            v-model="aiForm.note"
+            type="textarea"
+            :rows="4"
+            :placeholder="$t('testcase.aiModifyNotePlaceholder')" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="aiDialogVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button
+          type="primary"
+          :loading="isAiSubmitting"
+          :disabled="!aiForm.note.trim()"
+          @click="submitAiTask">
+          {{ isAiSubmitting ? $t('testcase.aiSubmitting') : $t('testcase.aiSubmit') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -369,9 +433,9 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search, Download, Delete, Upload, Position, Connection, ArrowDown, Tickets } from '@element-plus/icons-vue'
+import { Plus, Search, Download, Delete, Upload, Position, Connection, ArrowDown, Tickets, MagicStick } from '@element-plus/icons-vue'
 import api from '@/utils/api'
-import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getZentaoTask, getRequirements } from '@/api/requirement'
+import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getZentaoTask, getRequirements, aiModifyTestcases, aiSupplementTestcases, getTestCaseAiTask } from '@/api/requirement'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -418,6 +482,99 @@ const zentaoImportVisible = ref(false)
 const zentaoImporting = ref(false)
 const zentaoProjects = ref([])
 const scopeStories = ref([])
+
+// ==================== AI 修改/补充 ====================
+const aiDialogVisible = ref(false)
+const aiMode = ref('modify') // modify | supplement
+const aiForm = ref({ note: '', requirementText: '' })
+const isAiSubmitting = ref(false)
+const aiRunningTaskId = ref('')
+const aiTaskStatus = ref('')
+const aiPollTimer = ref(null)
+const isAiTaskRunning = computed(() => !!aiRunningTaskId.value)
+
+const openAiDialog = (mode) => {
+  aiMode.value = mode
+  aiForm.value = { note: '', requirementText: '' }
+  if (mode === 'supplement') {
+    // 预填所选需求的描述（可编辑，只影响本次补充）
+    const req = requirements.value.find(r => r.id === Number(requirementFilter.value))
+    aiForm.value.requirementText = req?.spec || ''
+  }
+  aiDialogVisible.value = true
+}
+
+const resetAiDialog = () => {
+  aiForm.value = { note: '', requirementText: '' }
+}
+
+const submitAiTask = async () => {
+  isAiSubmitting.value = true
+  try {
+    let res
+    if (aiMode.value === 'modify') {
+      res = await aiModifyTestcases({
+        case_ids: selectedTestCases.value.map(tc => tc.id),
+        note: aiForm.value.note.trim()
+      })
+    } else {
+      res = await aiSupplementTestcases({
+        requirement_id: Number(requirementFilter.value),
+        requirement_text: aiForm.value.requirementText.trim(),
+        note: aiForm.value.note.trim()
+      })
+    }
+    aiRunningTaskId.value = res.data.task_id
+    aiTaskStatus.value = res.data.status
+    aiDialogVisible.value = false
+    ElMessage.info(t('testcase.aiTaskRunning'))
+    startAiPolling()
+  } catch (error) {
+    ElMessage.error(error.response?.data?.error || t('testcase.aiTaskFailed'))
+  } finally {
+    isAiSubmitting.value = false
+  }
+}
+
+const startAiPolling = () => {
+  stopAiPolling()
+  aiPollTimer.value = setInterval(pollAiTask, 2000)
+}
+
+const stopAiPolling = () => {
+  if (aiPollTimer.value) {
+    clearInterval(aiPollTimer.value)
+    aiPollTimer.value = null
+  }
+}
+
+const pollAiTask = async () => {
+  if (!aiRunningTaskId.value) {
+    stopAiPolling()
+    return
+  }
+  try {
+    const res = await getTestCaseAiTask(aiRunningTaskId.value)
+    aiTaskStatus.value = res.data.status
+    if (res.data.status === 'succeeded') {
+      stopAiPolling()
+      if (aiMode.value === 'modify') {
+        ElMessage.success(t('testcase.aiTaskSucceededModify'))
+      } else {
+        ElMessage.success(t('testcase.aiTaskSucceededSupplement', { count: (res.data.created_cases || []).length }))
+      }
+      aiRunningTaskId.value = ''
+      fetchTestCases()
+    } else if (res.data.status === 'failed') {
+      stopAiPolling()
+      ElMessage.error(`${t('testcase.aiTaskFailed')}: ${res.data.error_message || ''}`)
+      aiRunningTaskId.value = ''
+    }
+  } catch (error) {
+    // 轮询失败不打断任务，下次重试
+    console.error(t('testcase.aiTaskPollError'), error)
+  }
+}
 const zentaoImportForm = ref({ scopeType: 'product', scopeId: '', storyIds: [], projectId: '' })
 const zentaoImportTimer = ref(null)
 const zentaoImportProgress = ref(0)
@@ -1086,6 +1243,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   stopZentaoExportPolling()
   stopZentaoImportPolling()
+  stopAiPolling()
 })
 </script>
 
@@ -1144,5 +1302,14 @@ onBeforeUnmount(() => {
   p {
     margin: 5px 0;
   }
+}
+
+.ai-btn-wrap {
+  display: inline-block;
+  margin-left: 12px;
+}
+
+.ai-dialog-hint {
+  margin-bottom: 16px;
 }
 </style>

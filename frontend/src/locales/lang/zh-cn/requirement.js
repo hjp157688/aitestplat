@@ -504,6 +504,7 @@ export default {
     // Adopt/Discard
     adoptConfirm: '确定要全部采纳任务 "{title}" 的所有用例吗？',
     adoptSuccess: '采纳成功',
+    adoptedCount: '已采纳 {count} 条',
     adoptFailed: '采纳失败',
     discardConfirm: '确定要弃用任务 "{title}" 的所有用例吗？',
     discardSuccess: '弃用成功',

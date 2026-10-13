@@ -11,14 +11,18 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 
 from .models import (
-    TestCase, TestCaseStep, TestCaseAttachment, TestCaseComment, TestCaseImportRecord, ZentaoSyncTask
+    TestCase, TestCaseStep, TestCaseAttachment, TestCaseComment, TestCaseImportRecord, ZentaoSyncTask,
+    TestCaseVersion, TestCaseAiTask
 )
 from .serializers import (
     TestCaseSerializer, TestCaseListSerializer, TestCaseCreateSerializer, TestCaseUpdateSerializer,
-    TestCaseImportRecordListSerializer, TestCaseImportRecordDetailSerializer
+    TestCaseImportRecordListSerializer, TestCaseImportRecordDetailSerializer, TestCaseVersionSerializer
 )
 from apps.projects.models import Project
-from .services import TestCaseImportTemplateService, TestCaseExcelImportService, execute_import_record
+from .services import (
+    TestCaseImportTemplateService, TestCaseExcelImportService, execute_import_record,
+    snapshot_case_version, CASE_CONTENT_FIELDS
+)
 from .tasks import import_testcases_from_excel
 
 logger = logging.getLogger(__name__)
@@ -138,7 +142,13 @@ class TestCaseDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         user = self.request.user
         project_id = self.request.data.get('project_id')
-        
+
+        # 快照用例编辑前的内容，保存后比较决定是否落版本
+        from .services import case_content_dict, snapshot_case_version, ensure_baseline_version
+        content_before = case_content_dict(serializer.instance)
+        # 存量老用例无版本记录时，先补录初版 v1（编辑前内容），保证可对比
+        ensure_baseline_version(serializer.instance, created_by=user)
+
         if project_id:
             # 检查指定的项目是否存在且用户有权限
             accessible_projects = self.get_user_accessible_projects(user)
@@ -151,6 +161,15 @@ class TestCaseDetailView(generics.RetrieveUpdateDestroyAPIView):
         else:
             # 没有指定项目，保持原项目不变
             serializer.save()
+
+        # 内容字段有变化才落版本（只改发布版本关联等不产生新版本）
+        if case_content_dict(serializer.instance) != content_before:
+            snapshot_case_version(
+                serializer.instance,
+                source='manual_edit',
+                note=self.request.data.get('version_note', '') or '',
+                created_by=user,
+            )
 
 
 class TestCaseImportTemplateDownloadView(APIView):
@@ -601,3 +620,164 @@ def _run_zentao_import(task):
         status='succeeded', progress=100, completed_at=timezone.now(),
         result={'created': created, 'updated': updated, 'failed': len(failures), 'failures': failures},
     )
+
+
+class TestCaseVersionsListView(APIView):
+    """用例版本历史时间线"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        accessible_projects = get_user_accessible_projects(self.request.user)
+        return TestCase.objects.filter(project__in=accessible_projects)
+
+    def get(self, request, pk):
+        testcase = self.get_object_or_404(pk)
+        # 存量老用例查历史时懒初始化：补录初版 v1
+        from .services import ensure_baseline_version
+        ensure_baseline_version(testcase, created_by=request.user)
+        versions = testcase.version_history.order_by('version')
+        serializer = TestCaseVersionSerializer(versions, many=True)
+        return Response(serializer.data)
+
+    def get_object_or_404(self, pk):
+        from django.shortcuts import get_object_or_404
+        return get_object_or_404(self.get_queryset(), pk=pk)
+
+
+class TestCaseVersionRestoreView(APIView):
+    """回退用例到历史版本（回退动作本身落一条 restore 版本）"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk, version):
+        accessible_projects = get_user_accessible_projects(request.user)
+        testcase = generics.get_object_or_404(TestCase, pk=pk, project__in=accessible_projects)
+        try:
+            target = testcase.version_history.get(version=version)
+        except TestCaseVersion.DoesNotExist:
+            return Response({'error': f'版本 v{version} 不存在'}, status=status.HTTP_404_NOT_FOUND)
+
+        latest = testcase.version_history.order_by('-version').first()
+        if latest and latest.version == target.version:
+            return Response({'error': f'已是最新版本 v{version}，无需回退'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 老用例无版本记录时先补录初版（覆盖前的内容）
+        from .services import ensure_baseline_version
+        ensure_baseline_version(testcase, created_by=request.user)
+
+        # 用目标版本内容覆盖用例，再落一条 restore 版本（内容=回退后状态）
+        for field in CASE_CONTENT_FIELDS:
+            setattr(testcase, field, getattr(target, field))
+        testcase.save()
+
+        new_version = snapshot_case_version(
+            testcase,
+            source='restore',
+            note=request.data.get('note', '') or f'回退到 v{version}',
+            created_by=request.user,
+        )
+        return Response(TestCaseVersionSerializer(new_version).data, status=status.HTTP_200_OK)
+
+
+class TestCaseAiModifyView(APIView):
+    """AI 修改：勾选用例 + 修改意见 → 创建后台任务"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        case_ids = request.data.get('case_ids') or []
+        note = (request.data.get('note') or '').strip()
+        if not case_ids or not note:
+            return Response({'error': '请选择要修改的用例并填写修改意见'}, status=status.HTTP_400_BAD_REQUEST)
+
+        accessible_projects = get_user_accessible_projects(request.user)
+        cases = list(TestCase.objects.filter(id__in=case_ids, project__in=accessible_projects))
+        if len(cases) != len(set(case_ids)):
+            return Response({'error': '存在无权访问或不存在用例'}, status=status.HTTP_400_BAD_REQUEST)
+
+        task = TestCaseAiTask.objects.create(
+            task_id=uuid.uuid4().hex[:32],
+            mode='modify',
+            note=note,
+            project=cases[0].project,
+            case_ids=list({c.id for c in cases}),
+            created_by=request.user,
+        )
+        from .ai_tasks import start_ai_task
+        start_ai_task(task)
+        return Response({'task_id': task.task_id, 'status': task.status}, status=status.HTTP_201_CREATED)
+
+
+class TestCaseAiSupplementView(APIView):
+    """AI 补充：基于需求上下文 + 已有用例，生成新增用例"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        requirement_id = request.data.get('requirement_id')
+        note = (request.data.get('note') or '').strip()
+        if not requirement_id:
+            return Response({'error': '请先选择需求'}, status=status.HTTP_400_BAD_REQUEST)
+
+        from apps.requirement_analysis.models import Requirement
+        requirement = Requirement.objects.filter(id=requirement_id).first()
+        if not requirement:
+            return Response({'error': '需求不存在'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 需求上下文：默认取需求描述，允许请求里覆盖（发起弹窗可编辑）
+        requirement_text = (request.data.get('requirement_text') or requirement.spec or '').strip()
+        if not requirement_text:
+            return Response({'error': '需求描述为空，请填写需求上下文'}, status=status.HTTP_400_BAD_REQUEST)
+
+        task = TestCaseAiTask.objects.create(
+            task_id=uuid.uuid4().hex[:32],
+            mode='supplement',
+            note=note,
+            requirement_text=requirement_text,
+            requirement=requirement,
+            project=requirement.project,
+            created_by=request.user,
+        )
+        from .ai_tasks import start_ai_task
+        start_ai_task(task)
+        return Response({'task_id': task.task_id, 'status': task.status}, status=status.HTTP_201_CREATED)
+
+
+class TestCaseAiTaskDetailView(APIView):
+    """AI 任务进度查询（前端轮询）"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, task_id):
+        task = TestCaseAiTask.objects.filter(task_id=task_id).first()
+        if not task:
+            return Response({'error': '任务不存在'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({
+            'task_id': task.task_id,
+            'mode': task.mode,
+            'status': task.status,
+            'note': task.note,
+            'case_ids': task.case_ids,
+            'created_cases': task.created_cases,
+            'error_message': task.error_message,
+            'completed_at': task.completed_at,
+        })
+
+
+class TestCaseVersionDeleteView(APIView):
+    """删除历史版本（最新版不可删；编号不重排）"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk, version):
+        accessible_projects = get_user_accessible_projects(request.user)
+        testcase = generics.get_object_or_404(TestCase, pk=pk, project__in=accessible_projects)
+        try:
+            target = testcase.version_history.get(version=version)
+        except TestCaseVersion.DoesNotExist:
+            return Response({'error': f'版本 v{version} 不存在'}, status=status.HTTP_404_NOT_FOUND)
+
+        latest = testcase.version_history.order_by('-version').first()
+        if latest and latest.version == target.version:
+            return Response(
+                {'error': f'v{version} 是当前内容对应的最新版本，不可删除'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        target.delete()
+        return Response({'message': f'已删除 v{version}'}, status=status.HTTP_200_OK)

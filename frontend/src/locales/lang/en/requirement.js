@@ -504,6 +504,7 @@ export default {
     // Adopt/Discard
     adoptConfirm: 'Are you sure to adopt all cases for task "{title}"?',
     adoptSuccess: 'Adopted successfully',
+    adoptedCount: '{count} adopted',
     adoptFailed: 'Adopt failed',
     discardConfirm: 'Are you sure to discard all cases for task "{title}"?',
     discardSuccess: 'Discarded successfully',

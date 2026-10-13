@@ -40,6 +40,85 @@ _PROVIDER_EXTRA_RESERVED = {'api_version'}
 _ROLES_EMBEDDING_PROBE = ('tokenizer', 'embedding')
 
 
+class _OverlapTrimmer:
+    """续写轮重叠消除器。
+
+    截断自动续写时，模型常无视"不要重复"指令从中间重发已有内容（逐字节一致）。
+    本类缓冲续写轮开头 ANCHOR 字符作锚点，在前文全文中定位模型实际恢复点，
+    裁掉重叠部分后放行——callback 与 yield 拿到的都是裁剪后内容。
+
+    - 锚点匹配到 → 进入跳过/放行状态（重叠可能长于已缓冲部分，跨 chunk 跳完）
+    - 缓冲 MAX_BUFFER 仍无锚点 → 判定全新内容，整段放行
+    - 流结束 flush() 放行残余缓冲，保证不丢内容
+
+    重发内容与已有内容并非逐字节一致时锚点会 miss（漏裁），落库侧的
+    dedupe_test_cases 标题级去重仍是最后防线。
+    """
+
+    ANCHOR = 30       # 恢复点判定所需的最小匹配长度（{"case_id":" 仅13字符，30可带到用例标识）
+    MAX_BUFFER = 150  # 无锚点时最多缓冲这么多字符就按全新内容放行（干净续写的延迟上限）
+
+    def __init__(self, previous_text: str = ''):
+        self.emitted = previous_text or ''
+        self._buffer = ''
+        self._expect_pos = None   # 校验模式：chunk 字符应与 emitted[_expect_pos] 一致
+        self._pass_through = False
+
+    def feed(self, chunk: str) -> str:
+        """喂入一个 chunk，返回应放行的文本（可能为空串）。"""
+        if self._pass_through:
+            self.emitted += chunk
+            return chunk
+        if self._expect_pos is not None:
+            return self._feed_verifying(chunk)
+        self._buffer += chunk
+        if len(self._buffer) < self.ANCHOR:
+            return ''
+        anchor = self._buffer[:self.ANCHOR]
+        p = self.emitted.rfind(anchor)
+        if p >= 0:
+            # 校验式跳过：锚点起逐字符比对前文，分叉立即转为放行
+            # （模型可能只重发到前文中途就分叉，重叠长度不可信，逐字符校验才安全）
+            self._expect_pos = p + self.ANCHOR
+            rest = self._buffer[self.ANCHOR:]
+            self._buffer = ''
+            return self._feed_verifying(rest) if rest else ''
+        if len(self._buffer) >= self.MAX_BUFFER:
+            emit = self._buffer
+            self.emitted += emit
+            self._buffer = ''
+            self._pass_through = True
+            return emit
+        return ''
+
+    def _feed_verifying(self, text: str) -> str:
+        """校验模式：与 emitted[_expect_pos] 逐字符比对，一致则吞掉（属重叠），
+        首个不一致处（或越过前文末尾）起全部放行。"""
+        out = []
+        i = 0
+        while i < len(text):
+            if self._expect_pos < len(self.emitted) and text[i] == self.emitted[self._expect_pos]:
+                self._expect_pos += 1
+                i += 1
+                continue
+            rest = text[i:]
+            self.emitted += rest
+            out.append(rest)
+            self._pass_through = True
+            self._expect_pos = None
+            break
+        return ''.join(out)
+
+    def flush(self) -> str:
+        """流结束时放行残余缓冲（本轮内容短于锚点/上限且未匹配到锚点）。"""
+        if self._pass_through or not self._buffer:
+            return ''
+        emit = self._buffer
+        self.emitted += emit
+        self._buffer = ''
+        return emit
+
+
 class AIClient:
     """统一 AI 模型客户端。"""
 
@@ -186,6 +265,7 @@ class AIClient:
         actual_max_tokens = max_tokens if max_tokens is not None else getattr(config, 'max_tokens', 4096)
 
         current_messages = list(messages)  # 浅拷贝
+        emitted_text = ''  # 跨续写轮累计已放行的可见内容（供重叠裁剪定位恢复点）
         continuation_count = 0
         final_prompt_tokens = None
         final_completion_tokens = None
@@ -201,6 +281,9 @@ class AIClient:
             round_content_chars = 0   # 本轮可见输出字符数
             round_reasoning_chars = 0  # 本轮思考(delta.reasoning/reasoning_content)字符数
             finish_reason = None
+            # 续写轮启用重叠裁剪：模型常无视"不要重复"指令重发已有内容，
+            # callback/yield 只放行裁剪后内容（首轮无前文，直接放行）
+            trimmer = _OverlapTrimmer(emitted_text) if continuation_count > 0 else None
 
             try:
                 async with httpx.AsyncClient(timeout=TIMEOUT, http2=False) as client:
@@ -235,9 +318,11 @@ class AIClient:
                                         if content:
                                             chunk_content_buffer += content
                                             round_content_chars += len(content)
-                                            if callback:
-                                                await callback(content)
-                                            yield content
+                                            emit = trimmer.feed(content) if trimmer else content
+                                            if emit:
+                                                if callback:
+                                                    await callback(emit)
+                                                yield emit
 
                                         if finish_reason:
                                             pass  # 末尾统一处理
@@ -250,6 +335,17 @@ class AIClient:
                                             final_completion_tokens = usage['completion_tokens']
                                 except json.JSONDecodeError:
                                     continue
+
+                # 本轮流结束：放行裁剪器残余缓冲，维护跨轮已放行全文
+                if trimmer:
+                    tail = trimmer.flush()
+                    if tail:
+                        if callback:
+                            await callback(tail)
+                        yield tail
+                    emitted_text = trimmer.emitted
+                else:
+                    emitted_text += chunk_content_buffer
 
                 # 本次请求结束：检查 finish_reason
                 if finish_reason == 'length':

@@ -303,6 +303,8 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
     writer_prompt_name = serializers.CharField(source='writer_prompt_config.name', read_only=True)
     reviewer_prompt_name = serializers.CharField(source='reviewer_prompt_config.name', read_only=True)
     granularity_display = serializers.CharField(source='get_granularity_display', read_only=True)
+    adopted_count = serializers.SerializerMethodField()
+    case_count = serializers.SerializerMethodField()
 
     class Meta:
         model = TestCaseGenerationTask
@@ -314,11 +316,26 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
                  'review_feedback', 'final_test_cases', 'generation_log', 'error_message',
                  'weknora_answer', 'weknora_references', 'weknora_steps',
                  'created_by', 'created_by_name', 'created_at', 'updated_at', 'completed_at',
-                 'case_type', 'granularity', 'granularity_display']
+                 'case_type', 'granularity', 'granularity_display', 'adopted_count', 'case_count']
         read_only_fields = ['task_id', 'status', 'progress', 'generated_test_cases',
                           'review_feedback', 'final_test_cases', 'generation_log',
                           'error_message', 'weknora_answer', 'weknora_references', 'weknora_steps',
                           'created_by', 'completed_at']
+
+    def get_adopted_count(self, obj):
+        """该任务已采纳入库的用例数（测试用例通过 source_generation_task 回链）"""
+        return obj.adopted_cases.count()
+
+    def get_case_count(self, obj):
+        """final_test_cases 实际用例条数（后端权威解析，前端不再自行计数）"""
+        if not obj.final_test_cases:
+            return 0
+        # 函数内导入避免 serializers→views 循环依赖
+        from apps.requirement_analysis.views import TestCaseGenerationTaskViewSet
+        try:
+            return len(TestCaseGenerationTaskViewSet()._parse_test_cases_content(obj.final_test_cases))
+        except Exception:
+            return 0
 
     def create(self, validated_data):
         # 自动设置创建者和任务ID

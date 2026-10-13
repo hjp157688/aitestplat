@@ -107,9 +107,16 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('generatedTestCases.caseCount')" width="90" align="center">
+        <el-table-column :label="$t('generatedTestCases.caseCount')" width="120" align="center">
           <template #default="scope">
             <span class="count-badge">{{ getTestCaseCount(scope.row) }}</span>
+            <el-tag
+              v-if="scope.row.adopted_count > 0"
+              size="small"
+              type="success"
+              class="adopted-badge">
+              {{ $t('generatedTestCases.adoptedCount', { count: scope.row.adopted_count }) }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column :label="$t('generatedTestCases.generationTime')" width="165">
@@ -126,6 +133,7 @@
                 link
                 type="success"
                 size="small"
+                :disabled="scope.row.adopted_count >= getTestCaseCount(scope.row) && getTestCaseCount(scope.row) > 0"
                 @click="batchAdoptTask(scope.row)">
                 {{ $t('generatedTestCases.batchAdopt') }}
               </el-button>
@@ -565,6 +573,11 @@ export default {
 
     // 获取测试用例条数
     getTestCaseCount(task) {
+      // 优先用后端权威解析的 case_count（JSONL/表格等格式都由后端统一解析）
+      if (typeof task.case_count === 'number') {
+        return task.case_count
+      }
+
       if (!task.final_test_cases) {
         return 0
       }
@@ -630,10 +643,9 @@ export default {
       }
 
       try {
-        // 调用后端API批量采纳该任务的所有测试用例
-        // await api.post(`/requirement-analysis/testcase-generation/${task.task_id}/batch-adopt/`)
-        await api.post(`/requirement-analysis/testcase-generation/${task.task_id}/batch_adopt/`)
-        ElMessage.success(this.$t('generatedTestCases.adoptSuccess'))
+        // 调用后端API批量采纳该任务的所有测试用例（幂等：已采过的按标题跳过）
+        const response = await api.post(`/requirement-analysis/testcase-generation/${task.task_id}/batch_adopt/`)
+        ElMessage.success(response.data?.message || this.$t('generatedTestCases.adoptSuccess'))
         this.loadTasks()
       } catch (error) {
         console.error(this.$t('generatedTestCases.adoptFailed'), error)
@@ -943,6 +955,14 @@ export default {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   display: inline-block;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+/* 采纳数徽标：不覆盖 el-tag 原生 inline-flex 居中，只做对齐与间距 */
+.adopted-badge {
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 /* 生成选项 chip */

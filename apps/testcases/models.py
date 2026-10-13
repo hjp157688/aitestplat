@@ -42,6 +42,10 @@ class TestCase(models.Model):
         'requirement_analysis.Requirement', on_delete=models.SET_NULL,
         null=True, blank=True, related_name='testcases', verbose_name='关联需求'
     )
+    source_generation_task = models.ForeignKey(
+        'requirement_analysis.TestCaseGenerationTask', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='adopted_cases', verbose_name='来源生成任务'
+    )
     zentao_case_id = models.CharField(
         max_length=50, null=True, blank=True, unique=True, verbose_name='禅道用例ID'
     )
@@ -198,3 +202,91 @@ class TestCaseImportRecord(models.Model):
 
     def __str__(self):
         return self.import_no
+
+
+class TestCaseVersion(models.Model):
+    """测试用例版本历史（内容变更快照，只增不改；与发布版本 TestCase.versions 无关）"""
+
+    SOURCE_CHOICES = [
+        ('created', '创建'),
+        ('manual_edit', '手动编辑'),
+        ('ai_modified', 'AI修改'),
+        ('ai_supplemented', 'AI补充新增'),
+        ('zentao_sync', '禅道同步'),
+        ('restore', '回退'),
+    ]
+
+    testcase = models.ForeignKey(
+        TestCase, on_delete=models.CASCADE,
+        related_name='version_history', verbose_name='测试用例'
+    )
+    version = models.PositiveIntegerField(verbose_name='版本号')
+    title = models.CharField(max_length=500, verbose_name='用例标题')
+    description = models.TextField(blank=True, verbose_name='用例描述')
+    preconditions = models.TextField(blank=True, verbose_name='前置条件')
+    steps = models.TextField(blank=True, verbose_name='操作步骤')
+    priority = models.CharField(max_length=20, blank=True, default='medium', verbose_name='优先级')
+    test_type = models.CharField(max_length=20, blank=True, default='functional', verbose_name='测试类型')
+    tags = models.JSONField(default=list, blank=True, verbose_name='标签')
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='created', verbose_name='变更来源')
+    note = models.CharField(max_length=500, blank=True, default='', verbose_name='版本说明')
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name='操作人'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+
+    class Meta:
+        db_table = 'testcase_versions'
+        verbose_name = '用例版本'
+        verbose_name_plural = '用例版本'
+        ordering = ['version']
+        unique_together = ['testcase', 'version']
+
+    def __str__(self):
+        return f"{self.testcase_id} v{self.version} ({self.source})"
+
+
+class TestCaseAiTask(models.Model):
+    """用例 AI 修改/补充后台任务（复用禅道同步任务的后台执行+轮询模式）"""
+
+    MODE_CHOICES = [
+        ('modify', 'AI修改'),
+        ('supplement', 'AI补充'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', '等待中'),
+        ('running', '进行中'),
+        ('succeeded', '已完成'),
+        ('failed', '失败'),
+    ]
+
+    task_id = models.CharField(max_length=32, unique=True, verbose_name='任务ID')
+    mode = models.CharField(max_length=20, choices=MODE_CHOICES, verbose_name='任务类型')
+    note = models.TextField(blank=True, default='', verbose_name='修改/补充意见')
+    # supplement 模式：需求上下文（预填 Requirement.spec，发起时可编辑覆盖）
+    requirement_text = models.TextField(blank=True, default='', verbose_name='需求上下文')
+    requirement = models.ForeignKey(
+        'requirement_analysis.Requirement', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='ai_tasks', verbose_name='关联需求'
+    )
+    project = models.ForeignKey(
+        Project, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='case_ai_tasks', verbose_name='关联项目'
+    )
+    case_ids = models.JSONField(default=list, blank=True, verbose_name='目标用例ID列表')
+    created_cases = models.JSONField(default=list, blank=True, verbose_name='新建用例ID列表')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='状态')
+    error_message = models.TextField(blank=True, default='', verbose_name='错误信息')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='case_ai_tasks', verbose_name='创建者')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name='完成时间')
+
+    class Meta:
+        db_table = 'testcase_ai_tasks'
+        verbose_name = '用例AI任务'
+        verbose_name_plural = '用例AI任务'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.task_id} ({self.mode} {self.status})"
