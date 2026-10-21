@@ -190,6 +190,12 @@
             {{ $t('taskDetail.batchAdopt', { count: selectedCases.length }) }}
           </el-button>
           <el-button
+            type="warning"
+            :disabled="selectedCases.length === 0"
+            @click="batchConvertToAutomation">
+            {{ $t('automation.convertBtn') }} ({{ selectedCases.length }})
+          </el-button>
+          <el-button
             type="danger"
             plain
             :disabled="selectedCases.length === 0"
@@ -810,6 +816,47 @@ export default {
       } catch (error) {
         console.error('Batch adopt failed:', error)
         ElMessage.error(this.$t('taskDetail.batchAdoptFailed') + ': ' + (error.response?.data?.message || error.message))
+      }
+    },
+
+    // 批量转为自动化用例（AI 转写）
+    async batchConvertToAutomation() {
+      if (this.selectedCases.length === 0) {
+        ElMessage.warning(this.$t('taskDetail.pleaseSelectFirst', { action: this.$t('automation.convertBtn') }))
+        return
+      }
+
+      try {
+        await ElMessageBox.confirm(
+          this.$t('automation.convertConfirm', { count: this.selectedCases.length }),
+          this.$t('automation.convertBtn'),
+          {
+            confirmButtonText: this.$t('taskDetail.btnConfirm'),
+            cancelButtonText: this.$t('taskDetail.btnCancelOperation'),
+            type: 'warning'
+          }
+        )
+      } catch {
+        return
+      }
+
+      try {
+        const casesData = this.selectedCases.map(testCase => ({
+          title: testCase.scenario || testCase.caseId || '',
+          precondition: testCase.precondition || '',
+          steps: testCase.steps || '',
+          expected_result: testCase.expected || ''
+        }))
+        const { data } = await api.post('/requirement-analysis/automation-cases/batch-convert/', {
+          source_type: 'generated',
+          task_id: this.taskId,
+          cases: casesData
+        })
+        ElMessage.success(
+          this.$t('automation.convertResult', { created: data.created_count, skipped: data.skipped_count }))
+      } catch (error) {
+        console.error('Batch convert to automation failed:', error)
+        ElMessage.error(this.$t('common.error') + ': ' + (error.response?.data?.detail || error.message))
       }
     },
 

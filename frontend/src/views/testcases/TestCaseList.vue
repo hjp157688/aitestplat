@@ -11,6 +11,15 @@
           {{ $t('testcase.batchDelete') }} ({{ selectedTestCases.length }})
         </el-button>
 
+        <el-button
+          v-if="selectedTestCases.length > 0"
+          type="warning"
+          @click="convertToAutomation"
+          :disabled="isConverting">
+          <el-icon><MagicStick /></el-icon>
+          {{ $t('automation.convertBtn') }} ({{ selectedTestCases.length }})
+        </el-button>
+
         <el-tooltip :content="$t('testcase.aiModifySelectFirst')" :disabled="selectedTestCases.length > 0">
           <span class="ai-btn-wrap">
             <el-button
@@ -436,6 +445,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Download, Delete, Upload, Position, Connection, ArrowDown, Tickets, MagicStick } from '@element-plus/icons-vue'
 import api from '@/utils/api'
 import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getZentaoTask, getRequirements, aiModifyTestcases, aiSupplementTestcases, getTestCaseAiTask } from '@/api/requirement'
+import { batchConvertToAutomation } from '@/api/requirement-analysis'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -936,6 +946,41 @@ const batchDeleteTestCases = async () => {
     }
   } finally {
     isDeleting.value = false
+  }
+}
+
+// 批量转为自动化用例
+const isConverting = ref(false)
+
+const convertToAutomation = async () => {
+  if (selectedTestCases.value.length === 0) return
+
+  try {
+    await ElMessageBox.confirm(
+      t('automation.convertConfirm', { count: selectedTestCases.value.length }),
+      t('common.warning'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }
+    )
+  } catch {
+    return
+  }
+
+  isConverting.value = true
+  try {
+    const { data } = await batchConvertToAutomation({
+      source_type: 'testcase',
+      ids: selectedTestCases.value.map(c => c.id)
+    })
+    ElMessage.success(t('automation.convertResult', { created: data.created_count, skipped: data.skipped_count }))
+  } catch (error) {
+    console.error('Convert to automation failed:', error)
+    ElMessage.error(t('common.error') + ': ' + (error.message || ''))
+  } finally {
+    isConverting.value = false
   }
 }
 
