@@ -1599,12 +1599,22 @@ class BaseBrowserAgent:
             session = getattr(self, 'browser_session', None)
             if session is None:
                 return None
-            return await session.get_storage_state()
+            # browser-use 0.10.1 BrowserSession 的真实方法名是 export_storage_state（返回 dict）；
+            # get_storage_state 仅作别名兼容（旧版本/测试 fake）
+            exporter = getattr(session, 'export_storage_state', None) or getattr(session, 'get_storage_state', None)
+            if exporter is None:
+                return None
+            state = await exporter()
+            if isinstance(state, str):
+                state = json.loads(state)
+            return state
         except Exception:
             logger.warning('导出 storage_state 失败', exc_info=True)
             return None
 
     async def run_task(self, task_description: str, planned_tasks=None, callback=None, should_stop=None):
+        # 每次执行先重置会话引用，避免上一次执行的旧会话被 export_storage_state 误读
+        self.browser_session = None
         await self._verify_execution_llm()
 
         # Cleanup potential zombie processes before starting
@@ -2027,6 +2037,9 @@ class BaseBrowserAgent:
                 last_processed_step = len(history)
 
         try:
+            # 交接：browser-use Agent 内部才持有真正的 BrowserSession（ai_base 不经 __init__ 创建），
+            # 挂到 self 供 export_storage_state 导出登录态；失败不影响后续执行
+            self.browser_session = getattr(agent, 'browser_session', None)
             # Try to pass callback
             import inspect
             sig = inspect.signature(agent.run)
