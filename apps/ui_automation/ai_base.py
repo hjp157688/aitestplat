@@ -1013,10 +1013,11 @@ from browser_use.browser.profile import BrowserProfile
 
 
 class BaseBrowserAgent:
-    def __init__(self, execution_mode='text', enable_gif=True, case_name=None):
+    def __init__(self, execution_mode='text', enable_gif=True, case_name=None, storage_state=None):
         self.execution_mode = 'text'
         self.enable_gif = enable_gif  # GIF录制开关
         self.case_name = case_name or "Adhoc Task"  # 用例名称
+        self.storage_state = storage_state  # 登录态注入（browser-use storage_state：dict/路径）
 
         # Load Config from DB（统一走 apps.ai.ConfigResolver，按 role='browser_use_text' 取活跃配置）
         from apps.ai.resolver import ConfigResolver
@@ -1576,6 +1577,10 @@ class BaseBrowserAgent:
                 '--remote-debugging-port=9222',
             ])
 
+        profile_kwargs = {}
+        if getattr(self, 'storage_state', None):
+            # browser-use 0.10.1：storage_state 支持 dict/路径，与 user_data_dir 互斥（本项目未用后者）
+            profile_kwargs['storage_state'] = self.storage_state
         return BrowserProfile(
             headless=(system == 'Linux'),  # Linux 使用无头模式，其他系统使用显示模式
             disable_security=True,
@@ -1584,8 +1589,20 @@ class BaseBrowserAgent:
             wait_for_network_idle_page_load_time=0.2,
             minimum_wait_page_load_time=0.05,
             wait_between_actions=0.1,
-            enable_default_extensions=False
+            enable_default_extensions=False,
+            **profile_kwargs
         )
+
+    async def export_storage_state(self):
+        """导出当前浏览器会话的登录态（cookies + localStorage），失败返回 None。"""
+        try:
+            session = getattr(self, 'browser_session', None)
+            if session is None:
+                return None
+            return await session.get_storage_state()
+        except Exception:
+            logger.warning('导出 storage_state 失败', exc_info=True)
+            return None
 
     async def run_task(self, task_description: str, planned_tasks=None, callback=None, should_stop=None):
         await self._verify_execution_llm()

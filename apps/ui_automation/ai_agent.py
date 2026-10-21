@@ -9,10 +9,10 @@ class BrowserAgent(BaseBrowserAgent):
     Standard Browser Agent for Text Mode.
     Inherits all base functionality without applying dangerous visual patches.
     """
-    def __init__(self, execution_mode='text', enable_gif=True, case_name=None):
+    def __init__(self, execution_mode='text', enable_gif=True, case_name=None, storage_state=None):
         self.enable_gif = enable_gif
         self.case_name = case_name or "Adhoc Task"
-        super().__init__(execution_mode='text')
+        super().__init__(execution_mode='text', storage_state=storage_state)
 
 # ============================================================================
 # EXPORTED FUNCTIONS (FACTORY)
