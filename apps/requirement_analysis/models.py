@@ -310,8 +310,8 @@ class GenerationConfig(models.Model):
 
     @classmethod
     def get_active_config(cls):
-        """获取活跃的生成配置"""
-        return cls.objects.filter(is_active=True).first()
+        """获取活跃的生成配置（加稳定排序：历史数据若存在多份启用，取最近更新的那份）"""
+        return cls.objects.filter(is_active=True).order_by('-updated_at', '-id').first()
 
 
 class TestCaseGenerationTask(models.Model):

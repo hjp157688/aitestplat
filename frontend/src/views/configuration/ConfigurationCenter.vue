@@ -22,7 +22,7 @@
 
 .content-area {
   height: 100%;
-  padding: var(--aitest-space-5);
+  /* 页面留白由子页 .page-container 提供，这里不再加 padding，避免双重内边距 */
   overflow-y: auto;
 }
 

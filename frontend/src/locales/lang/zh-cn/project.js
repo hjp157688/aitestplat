@@ -63,7 +63,21 @@ export default {
     no: '否',
     fetchDetailFailed: '获取项目详情失败',
     memberDeleteSuccess: '成员删除成功',
-    memberDeleteFailed: '删除成员失败'
+    memberDeleteFailed: '删除成员失败',
+    selectUser: '请选择用户',
+    searchUser: '搜索用户名',
+    roleOwner: '负责人',
+    roleAdmin: '管理员',
+    roleDeveloper: '开发者',
+    roleTester: '测试者',
+    roleViewer: '观察者',
+    roleRequired: '请选择角色',
+    memberAddSuccess: '成员添加成功',
+    memberAddFailed: '添加成员失败',
+    envNameRequired: '请输入环境名称',
+    envUrlRequired: '请输入基础URL',
+    envAddSuccess: '环境添加成功',
+    envAddFailed: '添加环境失败'
   },
   home: {
     // Header

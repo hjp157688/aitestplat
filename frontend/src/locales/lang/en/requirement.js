@@ -570,6 +570,11 @@ export default {
     reviewerPrompt: 'Test Case Reviewer Prompt',
     apiTestCaseGenerator: 'API Test Case Generator',
     apiTestCaseGeneratorTab: 'API Test Case',
+    requirementParse: 'Requirement Parsing Prompt',
+    browserUseTask: 'Browser Use - Task Execution',
+    browserUseBreakdown: 'Browser Use - Task Breakdown',
+    testcaseModifier: 'Test Case AI Modification',
+    testcaseSupplement: 'Test Case AI Supplement',
     defaultApiTestCaseName: 'Default API Test Case Generator Prompt',
     isActive: 'Enable',
     promptContent: 'Prompt Content',
@@ -682,6 +687,7 @@ export default {
     defaultConfigName: 'Default Generation Config',
     enableThisConfig: 'Enable this config',
     enableHint: 'Note: Only one config can be enabled. Enabling this will automatically disable other configs',
+    activateHint: 'New configs start disabled. Enable one via the switch on its card (only one can be active at a time)',
 
     // Output Mode
     outputModeSettings: 'Output Mode Settings',
@@ -713,6 +719,8 @@ export default {
     saveFailed: 'Failed to save',
     enableSuccess: 'Configuration enabled',
     enableFailed: 'Failed to enable',
+    disableSuccess: 'Configuration disabled',
+    disableFailed: 'Failed to disable',
     deleteSuccess: 'Configuration deleted successfully',
     deleteFailed: 'Failed to delete',
     deleteConfirm: 'Are you sure to delete this configuration?'

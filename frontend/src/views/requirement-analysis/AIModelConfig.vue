@@ -920,7 +920,7 @@ export default {
 .role-badge.writer { background: var(--aitest-success-bg); color: var(--aitest-success); }
 .role-badge.reviewer { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
 .role-badge.tokenizer { background: var(--aitest-vendor-sky-bg); color: var(--aitest-vendor-sky); }
-.role-badge.browser_use_text { background: var(--aitest-neutral-bg); color: var(--aitest-neutral); }
+.role-badge.browser_use_text { background: #F5F3FF; color: #7C3AED; }
 .role-badge.embedding { background: var(--aitest-vendor-pink-bg); color: var(--aitest-vendor-pink); }
 .role-badge.api_testcase_generator { background: var(--aitest-info-bg); color: var(--aitest-info); }
 

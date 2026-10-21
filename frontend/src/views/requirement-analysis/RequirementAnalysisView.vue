@@ -111,8 +111,18 @@
           </el-tab-pane>
         </el-tabs>
 
-        <!-- 统一生成条：输出模式 + 生成按钮 -->
+        <!-- 统一生成条：特定生成要求（通栏）+ 输出模式/颗粒度/生成按钮 -->
         <div class="generate-bar">
+          <div class="case-type-field">
+            <span class="output-mode-label">{{ $t('requirementAnalysis.caseTypeLabel') }}</span>
+            <input
+              v-model="caseType"
+              type="text"
+              class="form-input case-type-input"
+              maxlength="120"
+              :placeholder="$t('requirementAnalysis.caseTypePlaceholder')">
+          </div>
+          <div class="generate-controls">
           <div class="output-mode-compact">
             <span class="output-mode-label">{{ $t('requirementAnalysis.outputModeDesc') }}</span>
             <div class="segmented" role="radiogroup" :aria-label="$t('requirementAnalysis.outputModeTitle')">
@@ -137,15 +147,6 @@
                 {{ $t('requirementAnalysis.completeOutput') }}
               </button>
             </div>
-          </div>
-          <div class="case-type-field">
-            <span class="output-mode-label">{{ $t('requirementAnalysis.caseTypeLabel') }}</span>
-            <input
-              v-model="caseType"
-              type="text"
-              class="form-input case-type-input"
-              maxlength="120"
-              :placeholder="$t('requirementAnalysis.caseTypePlaceholder')">
           </div>
 
           <div class="granularity-field">
@@ -190,6 +191,7 @@
             <span v-if="isGenerating">{{ $t('requirementAnalysis.generating') }}</span>
             <span v-else><el-icon class="btn-icon"><Lightning /></el-icon> {{ $t('requirementAnalysis.generateButton') }}</span>
           </button>
+          </div>
         </div>
       </div>
 
@@ -982,7 +984,8 @@ export default {
         return
       }
 
-      const requirementText = `${this.$t('requirementAnalysis.requirementTitle')}: ${this.manualInput.title}\n\n${this.$t('requirementAnalysis.requirementDescription')}:\n${this.manualInput.description}`
+      // 需求详情只保留描述内容（标题单独存任务 title，不再拼接"需求标题/需求描述"前缀）
+      const requirementText = (this.manualInput.description || '').trim() || this.manualInput.title
 
       await this.startGeneration(
         this.manualInput.title,
@@ -1788,15 +1791,25 @@ export default {
 }
 
 /* ---------- 统一生成条 ---------- */
+/* 两行结构：第一行特定生成要求通栏，第二行输出模式/颗粒度/生成按钮 */
 .generate-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: var(--aitest-space-4);
-  flex-wrap: wrap;
   margin-top: var(--aitest-space-5);
   padding-top: var(--aitest-space-5);
   border-top: 1px solid var(--aitest-surface-subtle);
+}
+
+.generate-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--aitest-space-4);
+  flex-wrap: wrap;
+}
+
+.generate-controls .generate-manual-btn {
+  margin-left: auto;
 }
 
 .output-mode-compact {
@@ -1870,8 +1883,7 @@ export default {
   display: flex;
   align-items: center;
   gap: var(--aitest-space-3);
-  flex: 1;
-  min-width: 340px;
+  width: 100%;
 }
 
 .case-type-input {
@@ -1879,6 +1891,7 @@ export default {
   flex: 1;
   padding: var(--aitest-space-3) var(--aitest-space-4);
   font-size: var(--aitest-font-size-md);
+  min-width: 0;
 }
 
 .granularity-field {

@@ -5,9 +5,9 @@
     <div class="card-container">
     <!-- 统计概览 -->
     <div class="stats-grid">
-      <div v-for="s in statCards" :key="s.key" class="stat-card" :class="s.tone || ''">
-        <div class="stat-label">{{ s.label }}</div>
-        <div class="stat-value">{{ s.value }}</div>
+      <div v-for="s in statCards" :key="s.key" class="stat-card" :class="s.tone ? 'stat-card--accent-' + s.tone : ''">
+        <div class="stat-card__label">{{ s.label }}</div>
+        <div class="stat-card__value">{{ s.value }}</div>
       </div>
     </div>
 
@@ -46,8 +46,8 @@
         </template>
       </el-table-column>
       <el-table-column prop="model_name" :label="$t('configuration.aiCallRecords.colModel')" min-width="140" />
-      <el-table-column prop="role" :label="$t('configuration.aiCallRecords.colRole')" min-width="120" />
-      <el-table-column prop="scenario" :label="$t('configuration.aiCallRecords.colScenario')" min-width="140" />
+      <el-table-column prop="role" :label="$t('configuration.aiCallRecords.colRole')" :formatter="formatRole" min-width="120" />
+      <el-table-column prop="scenario" :label="$t('configuration.aiCallRecords.colScenario')" :formatter="formatScenario" min-width="140" />
       <el-table-column :label="$t('configuration.aiCallRecords.colStatus')" width="90">
         <template #default="{ row }">
           <el-tag :type="row.status === 'success' ? 'success' : 'danger'" size="small">
@@ -134,10 +134,12 @@ export default {
         { value: 'other', label: '其他' }
       ],
       roleOptions: [
-        { value: 'writer', label: 'writer' },
-        { value: 'reviewer', label: 'reviewer' },
-        { value: 'browser_use_text', label: 'browser_use_text' },
-        { value: 'api_testcase_generator', label: 'api_testcase_generator' }
+        { value: 'writer', label: this.$t('configuration.aiCallRecords.roleWriter') },
+        { value: 'reviewer', label: this.$t('configuration.aiCallRecords.roleReviewer') },
+        { value: 'browser_use_text', label: this.$t('configuration.aiCallRecords.roleBrowserUseText') },
+        { value: 'api_testcase_generator', label: this.$t('configuration.aiCallRecords.roleApiTestCaseGenerator') },
+        { value: 'embedding', label: this.$t('configuration.aiCallRecords.roleEmbedding') },
+        { value: 'tokenizer', label: this.$t('configuration.aiCallRecords.roleTokenizer') }
       ]
     }
   },
@@ -163,6 +165,34 @@ export default {
       const d = new Date(value)
       const pad = n => String(n).padStart(2, '0')
       return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+    },
+    formatRole(row) {
+      const labels = {
+        writer: this.$t('configuration.aiCallRecords.roleWriter'),
+        reviewer: this.$t('configuration.aiCallRecords.roleReviewer'),
+        browser_use_text: this.$t('configuration.aiCallRecords.roleBrowserUseText'),
+        api_testcase_generator: this.$t('configuration.aiCallRecords.roleApiTestCaseGenerator'),
+        embedding: this.$t('configuration.aiCallRecords.roleEmbedding'),
+        tokenizer: this.$t('configuration.aiCallRecords.roleTokenizer')
+      }
+      return labels[row.role] || row.role || '-'
+    },
+    formatScenario(row) {
+      const labels = {
+        writer: this.$t('configuration.aiCallRecords.scenarioWriter'),
+        review: this.$t('configuration.aiCallRecords.scenarioReview'),
+        requirement_parse: this.$t('configuration.aiCallRecords.scenarioRequirementParse'),
+        knowledge_structure: this.$t('configuration.aiCallRecords.scenarioKnowledgeStructure'),
+        knowledge_section: this.$t('configuration.aiCallRecords.scenarioKnowledgeSection'),
+        knowledge_rerank: this.$t('configuration.aiCallRecords.scenarioKnowledgeRerank'),
+        embedding: this.$t('configuration.aiCallRecords.roleEmbedding'),
+        api_testcase_generator: this.$t('configuration.aiCallRecords.roleApiTestCaseGenerator'),
+        browser_use_task: this.$t('configuration.aiCallRecords.scenarioBrowserUseTask'),
+        browser_use_breakdown: this.$t('configuration.aiCallRecords.scenarioBrowserUseBreakdown'),
+        list_models: this.$t('configuration.aiCallRecords.scenarioListModels'),
+        test_connection: this.$t('configuration.aiCallRecords.scenarioTestConnection')
+      }
+      return labels[row.scenario] || row.scenario || '-'
     },
     buildParams(page) {
       const params = { page }
@@ -212,25 +242,7 @@ export default {
   gap: var(--aitest-space-3);
   margin-bottom: var(--aitest-space-4);
 }
-.stat-card {
-  background: var(--aitest-canvas);
-  border: 1px solid var(--aitest-border);
-  border-radius: var(--aitest-radius-lg);
-  padding: var(--aitest-space-3) var(--aitest-space-4);
-}
-.stat-card.success .stat-value { color: var(--aitest-success); }
-.stat-card.danger .stat-value { color: var(--aitest-danger); }
-.stat-label {
-  font-size: var(--aitest-font-size-sm);
-  color: var(--aitest-text-2);
-  margin-bottom: var(--aitest-space-1);
-}
-.stat-value {
-  font-size: var(--aitest-font-size-2xl);
-  font-weight: 700;
-  color: var(--aitest-primary);
-  font-variant-numeric: tabular-nums;
-}
+/* 统计卡使用全局 .stat-card（含 --accent-* 变体），本地不再重复定义 */
 .filter-item { width: 170px; }
 .records-table { border: 1px solid var(--aitest-border); }
 .mono {

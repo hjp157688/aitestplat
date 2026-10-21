@@ -28,9 +28,11 @@
                 </div>
               </div>
               <div class="config-actions">
-                <el-button v-if="!config.is_active" size="small" type="success" plain @click="enableConfig(config.id)">
-                  {{ $t('generationConfig.enable') }}
-                </el-button>
+                <el-switch
+                  :model-value="config.is_active"
+                  :loading="config._toggling"
+                  @change="(val) => toggleActive(config, val)"
+                />
                 <el-button size="small" @click="editConfig(config)">{{ $t('generationConfig.edit') }}</el-button>
                 <el-button size="small" type="danger" plain @click="deleteConfig(config.id)">{{ $t('generationConfig.delete') }}</el-button>
               </div>
@@ -106,14 +108,8 @@
               :placeholder="$t('generationConfig.configNamePlaceholder')"
               required />
           </div>
-
-          <div class="form-group">
-            <el-checkbox v-model="configForm.is_active">
-              {{ $t('generationConfig.enableThisConfig') }}
-            </el-checkbox>
-            <div class="checkbox-hint">
-              {{ $t('generationConfig.enableHint') }}
-            </div>
+          <div class="checkbox-hint">
+            {{ $t('generationConfig.activateHint') }}
           </div>
         </div>
 
@@ -195,7 +191,7 @@ export default {
         default_output_mode: 'stream',
         enable_auto_review: true,
         review_timeout: 1500,
-        is_active: true
+        is_active: false
       }
     }
   },
@@ -225,9 +221,9 @@ export default {
 
         // 处理分页API响应格式
         if (response.data && response.data.results && Array.isArray(response.data.results)) {
-          this.configs = response.data.results
+          this.configs = response.data.results.map(c => ({ ...c, _toggling: false }))
         } else if (response.data && Array.isArray(response.data)) {
-          this.configs = response.data
+          this.configs = response.data.map(c => ({ ...c, _toggling: false }))
         } else {
           console.warn('Unexpected API response format:', response.data)
           this.configs = []
@@ -252,7 +248,7 @@ export default {
         default_output_mode: 'stream',
         enable_auto_review: true,
         review_timeout: 1500,
-        is_active: true
+        is_active: false
       }
     },
 
@@ -291,14 +287,17 @@ export default {
       }
     },
 
-    async enableConfig(configId) {
+    async toggleActive(config, val) {
+      config._toggling = true
       try {
-        await api.post(`/requirement-analysis/generation-config/${configId}/enable/`)
-        ElMessage.success(this.t('generationConfig.enableSuccess'))
+        await api.post(`/requirement-analysis/generation-config/${config.id}/${val ? 'enable' : 'disable'}/`)
+        ElMessage.success(val ? this.t('generationConfig.enableSuccess') : this.t('generationConfig.disableSuccess'))
         this.loadConfigs()
       } catch (error) {
-        console.error('Failed to enable config:', error)
-        ElMessage.error(this.t('generationConfig.enableFailed') + ': ' + (error.response?.data?.error || error.message))
+        console.error('Failed to toggle config:', error)
+        ElMessage.error((val ? this.t('generationConfig.enableFailed') : this.t('generationConfig.disableFailed')) + ': ' + (error.response?.data?.error || error.message))
+      } finally {
+        config._toggling = false
       }
     },
 
@@ -426,8 +425,9 @@ export default {
 
 .config-actions {
   display: flex;
+  align-items: center;
   gap: var(--aitest-space-2);
-  flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .config-details { margin-top: var(--aitest-space-4); }

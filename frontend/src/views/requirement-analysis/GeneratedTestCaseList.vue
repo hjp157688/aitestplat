@@ -80,7 +80,7 @@
             <span class="requirement-name">{{ scope.row.title }}</span>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('generatedTestCases.status')" width="130">
+        <el-table-column :label="$t('generatedTestCases.status')" width="130" align="center">
           <template #default="scope">
             <div class="status-cell">
               <span class="status-tag" :class="scope.row.status">
@@ -96,15 +96,24 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('generatedTestCases.genOptionsLabel')" width="170">
+        <el-table-column :label="$t('generatedTestCases.genGranularity')" width="110" align="center">
           <template #default="scope">
-            <span class="option-chip">
-              <template v-if="scope.row.granularity">
-                {{ $t('generatedTestCases.genGranularity') }}：{{ scope.row.granularity_display || scope.row.granularity }}
-              </template>
-              <template v-if="scope.row.case_type"><span class="option-type">{{ scope.row.case_type }}</span></template>
-              <template v-if="!scope.row.granularity && !scope.row.case_type">{{ $t('generatedTestCases.genOptionsEmpty') }}</template>
+            <span v-if="scope.row.granularity" class="granularity-chip">
+              {{ scope.row.granularity_display || scope.row.granularity }}
             </span>
+            <span v-else class="cell-empty">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('requirementAnalysis.caseTypeLabel')" width="200">
+          <template #default="scope">
+            <el-tooltip
+              v-if="scope.row.case_type"
+              :content="scope.row.case_type"
+              placement="top"
+              :show-after="200">
+              <span class="option-chip">{{ scope.row.case_type }}</span>
+            </el-tooltip>
+            <span v-else class="cell-empty">-</span>
           </template>
         </el-table-column>
         <el-table-column :label="$t('generatedTestCases.caseCount')" width="120" align="center">
@@ -895,7 +904,7 @@ export default {
 .status-cell {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--aitest-space-1);
 }
 
@@ -965,33 +974,51 @@ export default {
   vertical-align: middle;
 }
 
-/* 生成选项 chip */
-.option-chip {
+/* 颗粒度 chip：单行胶囊 */
+.granularity-chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--aitest-space-2);
+  font-size: var(--aitest-font-size-xs);
+  color: var(--aitest-info);
+  background: var(--aitest-info-bg);
+  border-radius: var(--aitest-radius-full);
+  padding: 2px var(--aitest-space-3);
+  white-space: nowrap;
+}
+
+/* 特定生成要求 chip：两行折行 + 超长省略，完整内容由 tooltip 展示 */
+.option-chip {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-all;
+  text-align: left;
+  line-height: 1.5;
   font-size: var(--aitest-font-size-xs);
   color: var(--aitest-text-2);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: var(--aitest-radius-full);
-  padding: 2px var(--aitest-space-3);
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  border-radius: var(--aitest-radius);
+  padding: 2px var(--aitest-space-2);
+  cursor: default;
 }
 
-.option-type {
+.cell-empty {
   color: var(--aitest-text-3);
-  font-family: var(--aitest-font-mono);
-  font-size: var(--aitest-font-size-xs);
 }
 
 .action-buttons {
   display: flex;
   align-items: center;
+  justify-content: center;
   white-space: nowrap;
+}
+
+/* 表格所有列的标题与内容统一居中（覆盖各列默认左对齐） */
+.testcases-section :deep(.el-table th.el-table__cell),
+.testcases-section :deep(.el-table td.el-table__cell) {
+  text-align: center;
 }
 
 /* 分页 */

@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 import requests
 import time
 import os
+import shutil
 import json
 import logging
 import uuid
@@ -1307,6 +1308,21 @@ class TestExecutionViewSet(viewsets.ReadOnlyModelViewSet):
                 models.Q(owner=user) | models.Q(members=user)
             )
         ).distinct()
+
+    def destroy(self, request, *args, **kwargs):
+        """删除执行记录（ReadOnly 视图集上显式开放 delete；结果为行内 JSONField，无子表级联负担）"""
+        execution = self.get_object()
+        try:
+            # 顺带清理 Allure 报告产物目录（可再生成，避免孤儿文件占盘）
+            for sub in ('allure-results', 'allure-reports'):
+                artifact_dir = os.path.join(settings.MEDIA_ROOT, 'api-testing', sub, f'execution_{execution.id}')
+                if os.path.isdir(artifact_dir):
+                    shutil.rmtree(artifact_dir, ignore_errors=True)
+            execution.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            logger.error(f"删除执行记录失败: {e}")
+            return Response({'error': '删除失败'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=True, methods=['post'], url_path='generate-allure-report')
     def generate_allure_report(self, request, pk=None):

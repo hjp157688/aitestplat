@@ -1,9 +1,29 @@
 <template>
-  <div class="zentao-config">
-    <PageHeader title="禅道配置" />
+  <div class="zentao-config page-container">
+    <PageHeader :title="$t('configuration.zentao.title')" :desc="$t('configuration.zentao.desc')">
+      <template #actions>
+        <el-button type="primary" @click="openEditDialog(null)">
+          <el-icon><Plus /></el-icon>
+          {{ $t('configuration.zentao.addConfig') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
     <div v-if="loading" class="loading-container">
       <el-skeleton :rows="3" animated />
+    </div>
+
+    <div v-else-if="configs.length === 0" class="card-container">
+      <div class="empty-state">
+        <div class="empty-icon"><el-icon><Connection /></el-icon></div>
+        <div class="empty-title">{{ $t('configuration.zentao.emptyTitle') }}</div>
+        <div class="empty-hint">{{ $t('configuration.zentao.emptyHint') }}</div>
+        <div class="empty-state__actions">
+          <el-button type="primary" @click="openEditDialog(null)">
+            {{ $t('configuration.zentao.addFirstConfig') }}
+          </el-button>
+        </div>
+      </div>
     </div>
 
     <div v-else class="configs-grid">
@@ -11,94 +31,62 @@
         v-for="config in configs"
         :key="config.id"
         class="config-card"
-        :class="{ active: config.is_active }"
       >
         <div class="card-header">
           <div class="card-title">
             <el-icon><Connection /></el-icon>
             <span>{{ config.name }}</span>
-            <el-tag :type="config.is_active ? 'success' : 'info'" size="small">
-              {{ config.is_active ? '已启用' : '已禁用' }}
-            </el-tag>
           </div>
-          <div class="card-actions">
-            <el-switch
-              :model-value="config.is_active"
-              @change="(val) => handleToggleEnable(config, val)"
-              :loading="config._toggling"
-            />
-            <el-button
-              size="small"
-              type="primary"
-              link
-              @click="handleTestConnection(config)"
-              :loading="config._testing"
-            >
-              测试连接
-            </el-button>
-            <el-button
-              size="small"
-              type="primary"
-              link
-              @click="openEditDialog(config)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              size="small"
-              type="danger"
-              link
-              @click="handleDelete(config)"
-            >
-              删除
-            </el-button>
-          </div>
+          <span class="status-tag" :class="config.is_active ? 'active' : 'inactive'">
+            <span class="status-tag__dot"></span>
+            {{ config.is_active ? $t('configuration.common.enabled') : $t('configuration.common.disabled') }}
+          </span>
+        </div>
+        <div class="card-actions">
+          <el-switch
+            :model-value="config.is_active"
+            @change="(val) => handleToggleEnable(config, val)"
+            :loading="config._toggling"
+          />
+          <el-button size="small" type="primary" link @click="handleTestConnection(config)" :loading="config._testing">
+            {{ $t('configuration.zentao.testConnection') }}
+          </el-button>
+          <el-button size="small" type="primary" link @click="openEditDialog(config)">
+            {{ $t('configuration.common.edit') }}
+          </el-button>
+          <el-button size="small" type="danger" link @click="handleDelete(config)">
+            {{ $t('configuration.common.delete') }}
+          </el-button>
         </div>
         <div class="card-body">
           <div class="info-row">
-            <span class="info-label">禅道地址：</span>
+            <span class="info-label">{{ $t('configuration.zentao.fieldUrl') }}</span>
             <span class="info-value">{{ config.zentao_url }}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">登录账号：</span>
+            <span class="info-label">{{ $t('configuration.zentao.fieldAccount') }}</span>
             <span class="info-value">{{ config.zentao_account }}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">密码：</span>
+            <span class="info-label">{{ $t('configuration.zentao.fieldPassword') }}</span>
             <span class="info-value">{{ config.password_masked || '******' }}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">创建时间：</span>
+            <span class="info-label">{{ $t('configuration.common.createdAt') }}</span>
             <span class="info-value">{{ formatDateTime(config.created_at) }}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">更新时间：</span>
+            <span class="info-label">{{ $t('configuration.common.updatedAt') }}</span>
             <span class="info-value">{{ formatDateTime(config.updated_at) }}</span>
           </div>
         </div>
       </div>
-
-      <div v-if="configs.length === 0" class="empty-state">
-        <el-icon :size="48"><Connection /></el-icon>
-        <p>暂无禅道配置</p>
-        <p class="empty-hint">请添加禅道配置以启用需求同步功能</p>
-        <el-button type="primary" @click="openEditDialog(null)">
-          添加第一个配置
-        </el-button>
-      </div>
-    </div>
-
-    <div class="add-btn-wrapper" v-if="configs.length > 0">
-      <el-button type="primary" @click="openEditDialog(null)">
-        <el-icon><Plus /></el-icon>
-        添加配置
-      </el-button>
     </div>
 
     <!-- 添加/编辑弹窗 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="isEditing ? '编辑禅道配置' : '添加禅道配置'"
+      :title="isEditing ? $t('configuration.zentao.dialogEditTitle') : $t('configuration.zentao.dialogAddTitle')"
       width="560px"
       :close-on-click-modal="false"
     >
@@ -109,30 +97,24 @@
         label-width="100px"
         label-position="right"
       >
-        <el-form-item label="配置名称" prop="name">
-          <el-input v-model="form.name" placeholder="例如：默认配置" />
+        <el-form-item :label="$t('configuration.zentao.fieldName')" prop="name">
+          <el-input v-model="form.name" :placeholder="$t('configuration.zentao.namePlaceholder')" />
         </el-form-item>
-        <el-form-item label="禅道地址" prop="zentao_url">
-          <el-input
-            v-model="form.zentao_url"
-            placeholder="https://zentao.example.com"
-          />
+        <el-form-item :label="$t('configuration.zentao.fieldUrl')" prop="zentao_url">
+          <el-input v-model="form.zentao_url" placeholder="https://zentao.example.com" />
         </el-form-item>
-        <el-form-item label="登录账号" prop="zentao_account">
-          <el-input
-            v-model="form.zentao_account"
-            placeholder="请输入禅道登录账号"
-          />
+        <el-form-item :label="$t('configuration.zentao.fieldAccount')" prop="zentao_account">
+          <el-input v-model="form.zentao_account" :placeholder="$t('configuration.zentao.accountPlaceholder')" />
         </el-form-item>
-        <el-form-item label="登录密码" prop="zentao_password">
+        <el-form-item :label="$t('configuration.zentao.fieldPassword')" prop="zentao_password">
           <el-input
             v-model="form.zentao_password"
             type="password"
             show-password
-            :placeholder="isEditing ? '不修改请保持原值不变' : '请输入禅道登录密码'"
+            :placeholder="isEditing ? $t('configuration.zentao.passwordKeepPlaceholder') : $t('configuration.zentao.passwordPlaceholder')"
           />
         </el-form-item>
-        <el-form-item label="是否启用">
+        <el-form-item :label="$t('configuration.common.isActive')">
           <el-switch v-model="form.is_active" />
         </el-form-item>
       </el-form>
@@ -146,11 +128,11 @@
             :loading="testingPreview"
             style="margin-right: auto;"
           >
-            测试连接
+            {{ $t('configuration.zentao.testConnection') }}
           </el-button>
-          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button @click="dialogVisible = false">{{ $t('configuration.common.cancel') }}</el-button>
           <el-button type="primary" @click="handleSave" :loading="saving">
-            保存配置
+            {{ $t('configuration.common.save') }}
           </el-button>
         </div>
       </template>
@@ -160,6 +142,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Connection, Plus } from '@element-plus/icons-vue'
 import {
@@ -172,6 +155,8 @@ import {
   disableZentaoConfig
 } from '@/api/requirement'
 import PageHeader from '@/components/common/PageHeader.vue'
+
+const { t } = useI18n()
 
 const configs = ref([])
 const loading = ref(true)
@@ -191,14 +176,14 @@ const form = reactive({
 })
 
 const formRules = {
-  name: [{ required: true, message: '请输入配置名称', trigger: 'blur' }],
-  zentao_url: [{ required: true, message: '请输入禅道地址', trigger: 'blur' }],
-  zentao_account: [{ required: true, message: '请输入登录账号', trigger: 'blur' }],
+  name: [{ required: true, message: () => t('configuration.zentao.ruleName'), trigger: 'blur' }],
+  zentao_url: [{ required: true, message: () => t('configuration.zentao.ruleUrl'), trigger: 'blur' }],
+  zentao_account: [{ required: true, message: () => t('configuration.zentao.ruleAccount'), trigger: 'blur' }],
   zentao_password: [
     {
       validator: (_rule, value, callback) => {
         if (!isEditing.value && !value) {
-          callback(new Error('请输入登录密码'))
+          callback(new Error(t('configuration.zentao.rulePassword')))
         } else {
           callback()
         }
@@ -225,7 +210,7 @@ async function loadConfigs() {
       _testing: false
     }))
   } catch (e) {
-    ElMessage.error(e.response?.data?.error || '加载配置失败')
+    ElMessage.error(e.response?.data?.error || t('configuration.zentao.loadFailed'))
   } finally {
     loading.value = false
   }
@@ -269,15 +254,15 @@ async function handleSave() {
     }
     if (isEditing.value) {
       await updateZentaoConfig(editingId.value, data)
-      ElMessage.success('配置更新成功')
+      ElMessage.success(t('configuration.zentao.updateSuccess'))
     } else {
       await createZentaoConfig(data)
-      ElMessage.success('配置添加成功')
+      ElMessage.success(t('configuration.zentao.addSuccess'))
     }
     dialogVisible.value = false
     loadConfigs()
   } catch (e) {
-    ElMessage.error(e.response?.data?.detail || e.response?.data?.error || '保存失败')
+    ElMessage.error(e.response?.data?.detail || e.response?.data?.error || t('configuration.zentao.saveFailed'))
   } finally {
     saving.value = false
   }
@@ -285,17 +270,17 @@ async function handleSave() {
 
 async function handleDelete(config) {
   try {
-    await ElMessageBox.confirm('确定要删除此配置吗？', '确认删除', {
+    await ElMessageBox.confirm(t('configuration.zentao.deleteConfirm'), t('configuration.zentao.deleteConfirmTitle'), {
       type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
+      confirmButtonText: t('configuration.common.delete'),
+      cancelButtonText: t('configuration.common.cancel')
     })
     await deleteZentaoConfig(config.id)
-    ElMessage.success('配置删除成功')
+    ElMessage.success(t('configuration.zentao.deleteSuccess'))
     loadConfigs()
   } catch (e) {
     if (e !== 'cancel') {
-      ElMessage.error(e.response?.data?.detail || '删除失败')
+      ElMessage.error(e.response?.data?.detail || t('configuration.zentao.deleteFailed'))
     }
   }
 }
@@ -308,10 +293,10 @@ async function handleToggleEnable(config, val) {
     } else {
       await disableZentaoConfig(config.id)
     }
-    ElMessage.success(`配置已${val ? '启用' : '禁用'}`)
+    ElMessage.success(t('configuration.zentao.toggleSuccess', { state: val ? t('configuration.zentao.stateEnabled') : t('configuration.zentao.stateDisabled') }))
     loadConfigs()
   } catch (e) {
-    ElMessage.error(e.response?.data?.detail || '操作失败')
+    ElMessage.error(e.response?.data?.detail || t('configuration.zentao.operateFailed'))
   } finally {
     config._toggling = false
   }
@@ -322,12 +307,12 @@ async function handleTestConnection(config) {
   try {
     const res = await testZentaoConnection(config.id)
     if (res.data?.success) {
-      ElMessage.success(`连接成功！Token: ${res.data.token}`)
+      ElMessage.success(t('configuration.zentao.testSuccess', { token: res.data.token }))
     } else {
-      ElMessage.error(res.data?.message || '连接失败')
+      ElMessage.error(res.data?.message || t('configuration.zentao.testFailed'))
     }
   } catch (e) {
-    ElMessage.error(e.response?.data?.message || '连接测试失败')
+    ElMessage.error(e.response?.data?.message || t('configuration.zentao.testError'))
   } finally {
     config._testing = false
   }
@@ -351,14 +336,14 @@ async function handleTestConnectionPreview() {
     if (newId) {
       const testRes = await testZentaoConnection(newId)
       if (testRes.data?.success) {
-        ElMessage.success(`连接成功！Token: ${testRes.data.token}`)
+        ElMessage.success(t('configuration.zentao.testSuccess', { token: testRes.data.token }))
       } else {
-        ElMessage.error(testRes.data?.message || '连接失败')
+        ElMessage.error(testRes.data?.message || t('configuration.zentao.testFailed'))
       }
       await deleteZentaoConfig(newId)
     }
   } catch (e) {
-    ElMessage.error(e.response?.data?.message || '连接测试失败')
+    ElMessage.error(e.response?.data?.message || t('configuration.zentao.testError'))
   } finally {
     testingPreview.value = false
   }
@@ -370,11 +355,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.zentao-config {
-  padding: var(--aitest-space-5);
-  max-width: 1200px;
-  margin: 0 auto;
-}
+/* 页面骨架：page-container + PageHeader + 卡片网格；留白由全局 .page-container 提供，根容器不私写 max-width */
 
 .loading-container {
   padding: var(--aitest-space-10);
@@ -388,29 +369,24 @@ onMounted(() => {
 
 .config-card {
   background: var(--aitest-surface);
-  border-radius: 12px;
-  padding: var(--aitest-space-5);
-  border: 1px solid var(--aitest-border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s;
-}
-
-.config-card.active {
-  border-color: var(--aitest-success);
-  box-shadow: 0 2px 12px rgba(34, 197, 94, 0.15);
+  border: 1px solid var(--aitest-card-border);
+  border-radius: var(--aitest-card-radius);
+  padding: var(--aitest-card-padding);
+  box-shadow: var(--aitest-card-shadow);
+  transition: box-shadow 0.2s;
 }
 
 .config-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-md);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--aitest-space-4);
+  margin-bottom: var(--aitest-space-3);
   padding-bottom: var(--aitest-space-3);
-  border-bottom: 1px solid var(--aitest-surface-subtle);
+  border-bottom: 1px solid var(--aitest-border);
 }
 
 .card-title {
@@ -418,13 +394,16 @@ onMounted(() => {
   align-items: center;
   gap: var(--aitest-space-2);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--aitest-font-size-md);
+  color: var(--aitest-text-1);
+  min-width: 0;
 }
 
 .card-actions {
   display: flex;
   align-items: center;
   gap: var(--aitest-space-1);
+  margin-bottom: var(--aitest-space-3);
 }
 
 .card-body {
@@ -435,12 +414,13 @@ onMounted(() => {
 
 .info-row {
   display: flex;
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-base);
+  line-height: var(--aitest-line-height-normal);
 }
 
 .info-label {
   color: var(--aitest-text-3);
-  min-width: 80px;
+  width: 88px;
   flex-shrink: 0;
 }
 
@@ -448,27 +428,6 @@ onMounted(() => {
   color: var(--aitest-text-2);
   word-break: break-all;
   min-width: 0;
-}
-
-.empty-state {
-  text-align: center;
-  padding: var(--aitest-space-16) var(--aitest-space-5);
-  color: var(--aitest-text-3);
-  grid-column: 1 / -1;
-}
-
-.empty-state p {
-  margin: var(--aitest-space-3) 0;
-}
-
-.empty-hint {
-  font-size: 0.9rem;
-  margin-bottom: var(--aitest-space-5);
-}
-
-.add-btn-wrapper {
-  margin-top: var(--aitest-space-5);
-  text-align: center;
 }
 
 .dialog-footer {

@@ -1,5 +1,7 @@
 <template>
   <div class="page-container page-container--full">
+    <PageHeader :title="$t('apiTesting.nav.notificationLogs')" />
+
     <div class="card-container">
     <!-- 页面操作栏 -->
     <div class="filter-bar">
@@ -280,6 +282,7 @@ import {ref, reactive, onMounted, computed} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {ElMessage} from 'element-plus'
 import axios from 'axios'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 export default {
   name: 'NotificationLogs',

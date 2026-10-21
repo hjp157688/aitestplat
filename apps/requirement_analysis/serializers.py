@@ -388,6 +388,21 @@ class GenerationConfigSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at']
 
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+        self._deactivate_others(instance)
+        return instance
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        self._deactivate_others(instance)
+        return instance
+
+    def _deactivate_others(self, instance):
+        """激活互斥：is_active=True 时禁用其他配置，保证同一时刻最多一个启用（与 enable action 行为一致）"""
+        if instance.is_active:
+            GenerationConfig.objects.exclude(pk=instance.pk).update(is_active=False)
+
 
 class ZentaoConfigSerializer(serializers.ModelSerializer):
     """禅道配置序列化器"""

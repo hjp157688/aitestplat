@@ -63,7 +63,21 @@ export default {
     no: 'No',
     fetchDetailFailed: 'Failed to fetch project details',
     memberDeleteSuccess: 'Member deleted successfully',
-    memberDeleteFailed: 'Failed to delete member'
+    memberDeleteFailed: 'Failed to delete member',
+    selectUser: 'Select user',
+    searchUser: 'Search username',
+    roleOwner: 'Owner',
+    roleAdmin: 'Admin',
+    roleDeveloper: 'Developer',
+    roleTester: 'Tester',
+    roleViewer: 'Viewer',
+    roleRequired: 'Please select a role',
+    memberAddSuccess: 'Member added',
+    memberAddFailed: 'Failed to add member',
+    envNameRequired: 'Please enter the environment name',
+    envUrlRequired: 'Please enter the base URL',
+    envAddSuccess: 'Environment added',
+    envAddFailed: 'Failed to add environment'
   },
   home: {
     // Header

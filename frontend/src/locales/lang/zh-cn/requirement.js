@@ -570,6 +570,11 @@ export default {
     reviewerPrompt: '测试用例评审提示词',
     apiTestCaseGenerator: '接口测试用例生成',
     apiTestCaseGeneratorTab: '接口测试用例',
+    requirementParse: '需求解析提示词',
+    browserUseTask: 'Browser Use-执行任务',
+    browserUseBreakdown: 'Browser Use-任务拆分',
+    testcaseModifier: '用例AI定向修改',
+    testcaseSupplement: '用例AI补充生成',
     defaultApiTestCaseName: '默认接口测试用例生成提示词',
     isActive: '是否启用',
     promptContent: '提示词内容',
@@ -681,6 +686,7 @@ export default {
     defaultConfigName: '默认生成配置',
     enableThisConfig: '启用此配置',
     enableHint: '注意：只能有一个启用的配置，启用此配置将自动禁用其他配置',
+    activateHint: '新建的配置默认未启用，保存后在列表卡片上用开关启用（同一时刻只能启用一个）',
 
     // Output Mode
     outputModeSettings: '输出模式设置',
@@ -712,6 +718,8 @@ export default {
     saveFailed: '保存失败',
     enableSuccess: '配置已启用',
     enableFailed: '启用失败',
+    disableSuccess: '配置已禁用',
+    disableFailed: '禁用失败',
     deleteSuccess: '配置删除成功',
     deleteFailed: '删除失败',
     deleteConfirm: '确定要删除此配置吗？'

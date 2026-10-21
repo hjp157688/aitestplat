@@ -3398,7 +3398,8 @@ class RequirementViewSet(viewsets.ModelViewSet):
         failed_titles = []
 
         for requirement in requirements:
-            requirement_text = f"需求标题: {requirement.title}\n\n需求描述:\n{requirement.spec or ''}"
+            # 需求详情只保留描述内容（标题已单独存任务 title，不拼接前缀）
+            requirement_text = requirement.spec or ''
             # 每条需求只使用其自身对应的业务知识作为生成上下文
             requirement_knowledge = selected_knowledge_map.get(
                 str(requirement.id), selected_knowledge_map.get(requirement.id, [])

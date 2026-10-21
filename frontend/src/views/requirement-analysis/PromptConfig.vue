@@ -246,7 +246,12 @@ export default {
       const labels = {
         writer: this.$t('promptConfig.writerPrompt'),
         reviewer: this.$t('promptConfig.reviewerPrompt'),
-        api_testcase_generator: this.$t('promptConfig.apiTestCaseGenerator')
+        api_testcase_generator: this.$t('promptConfig.apiTestCaseGenerator'),
+        requirement_parse: this.$t('promptConfig.requirementParse'),
+        browser_use_task: this.$t('promptConfig.browserUseTask'),
+        browser_use_breakdown: this.$t('promptConfig.browserUseBreakdown'),
+        testcase_modifier: this.$t('promptConfig.testcaseModifier'),
+        testcase_supplement: this.$t('promptConfig.testcaseSupplement')
       }
       return labels[promptType] || promptType
     },
@@ -613,6 +618,11 @@ export default {
 .type-badge.writer { background: var(--aitest-success-bg); color: var(--aitest-success); }
 .type-badge.reviewer { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
 .type-badge.api_testcase_generator { background: var(--aitest-info-bg); color: var(--aitest-info); }
+.type-badge.requirement_parse { background: var(--aitest-primary-subtle); color: var(--aitest-primary); }
+.type-badge.browser_use_task { background: #F5F3FF; color: #7C3AED; }
+.type-badge.browser_use_breakdown { background: #F0FDFA; color: #0D9488; }
+.type-badge.testcase_modifier { background: #FFF7ED; color: #EA580C; }
+.type-badge.testcase_supplement { background: #FDF2F8; color: #DB2777; }
 
 .status-badge { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
 .status-badge.active { background: var(--aitest-success-bg); color: var(--aitest-success); }
