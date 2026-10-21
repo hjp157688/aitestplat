@@ -29,6 +29,8 @@ export default {
     reviewTemplates: 'Review Templates',
     testPlan: 'Test Plan',
     testReport: 'Test Report',
+    automationCases: 'Automation Cases',
+    automationEnvs: 'Automation Environments',
 
     // API Testing
     dashboard: 'Dashboard',

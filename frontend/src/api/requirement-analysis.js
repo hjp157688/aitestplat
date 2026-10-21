@@ -147,3 +147,57 @@ export function deletePromptConfig(id) {
     method: 'delete'
   })
 }
+
+// ==================== 自动化用例（转化与执行） ====================
+
+export function getAutomationCases(params) {
+  return request({ url: '/requirement-analysis/automation-cases/', method: 'get', params })
+}
+
+export function updateAutomationCase(id, data) {
+  return request({ url: `/requirement-analysis/automation-cases/${id}/`, method: 'patch', data })
+}
+
+export function deleteAutomationCase(id) {
+  return request({ url: `/requirement-analysis/automation-cases/${id}/`, method: 'delete' })
+}
+
+export function batchConvertToAutomation(data) {
+  return request({ url: '/requirement-analysis/automation-cases/batch-convert/', method: 'post', data })
+}
+
+export function retryAutomationConvert(id) {
+  return request({ url: `/requirement-analysis/automation-cases/${id}/retry-convert/`, method: 'post' })
+}
+
+export function executeAutomationCase(id, data) {
+  return request({ url: `/requirement-analysis/automation-cases/${id}/execute/`, method: 'post', data })
+}
+
+export function batchExecuteAutomationCases(data) {
+  return request({ url: '/requirement-analysis/automation-cases/batch-execute/', method: 'post', data })
+}
+
+export function getAutomationEnvironments(params) {
+  return request({ url: '/requirement-analysis/automation-environments/', method: 'get', params })
+}
+
+export function createAutomationEnvironment(data) {
+  return request({ url: '/requirement-analysis/automation-environments/', method: 'post', data })
+}
+
+export function updateAutomationEnvironment(id, data) {
+  return request({ url: `/requirement-analysis/automation-environments/${id}/`, method: 'patch', data })
+}
+
+export function deleteAutomationEnvironment(id) {
+  return request({ url: `/requirement-analysis/automation-environments/${id}/`, method: 'delete' })
+}
+
+export function getAutomationExecutions(params) {
+  return request({ url: '/requirement-analysis/automation-executions/', method: 'get', params })
+}
+
+export function getAutomationSession(id) {
+  return request({ url: `/requirement-analysis/automation-execution-sessions/${id}/`, method: 'get' })
+}
