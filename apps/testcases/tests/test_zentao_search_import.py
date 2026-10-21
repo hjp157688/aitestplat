@@ -73,17 +73,21 @@ class ZentaoSearchEndpointTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual([c['id'] for c in resp.json()['cases']], ['case_103'])
 
-    @mock.patch('apps.requirement_analysis.views.ZentaoService.get_product_testcases')
     @mock.patch('apps.requirement_analysis.views.ZentaoConfig.get_active_config')
-    def test_search_scoped_to_product(self, mock_cfg, mock_cases):
+    @mock.patch('apps.requirement_analysis.views.ZentaoService.get_products')
+    @mock.patch('apps.requirement_analysis.views.ZentaoService.get_product_testcases')
+    def test_search_scoped_to_product(self, mock_cases, mock_products, mock_cfg):
         mock_cfg.return_value = mock.MagicMock()
         mock_cases.return_value = ZENTAO_CASES
+        mock_products.return_value = [{'id': 7, 'name': '演示产品'}]
 
         resp = self.client.get(
             '/api/requirement-analysis/zentao/testcases/search/?keyword=登录&product_id=7'
         )
         self.assertEqual(resp.status_code, 200)
         self.assertEqual([c['id'] for c in resp.json()['cases']], ['case_101'])
+        # 指定产品时也应补齐产品名（从 get_products 映射）
+        self.assertEqual(resp.json()['cases'][0]['product_name'], '演示产品')
         # 指定产品时不应遍历全部产品
         mock_cases.assert_called_once()
 

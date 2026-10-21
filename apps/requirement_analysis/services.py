@@ -698,8 +698,15 @@ class ZentaoService:
         if not kw:
             return []
 
+        # 产品名映射：指定单产品时 get_product_testcases 结果不含产品名，
+        # 统一从 get_products 建映射补齐（失败不阻断搜索，名称留空）
+        try:
+            name_map = {str(p.get('id')): p.get('name') or ''
+                        for p in ZentaoService.get_products(config)}
+        except Exception:
+            name_map = {}
         if product_id:
-            products = [{'id': product_id, 'name': ''}]
+            products = [{'id': product_id, 'name': name_map.get(str(product_id), '')}]
         else:
             products = ZentaoService.get_products(config)
 
@@ -721,7 +728,7 @@ class ZentaoService:
                     'id': c.get('id'),
                     'title': title,
                     'product_id': pid,
-                    'product_name': p.get('name') or '',
+                    'product_name': p.get('name') or name_map.get(str(pid), ''),
                     'story': c.get('story'),
                     'priority': c.get('pri') or c.get('priority'),
                     'type': c.get('type'),
