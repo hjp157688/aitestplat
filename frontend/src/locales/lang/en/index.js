@@ -53,6 +53,7 @@ export default {
   configGuide: requirementModule.configGuide,
   requirementManagement: requirementModule.requirementManagement,
   weknoraTrace: requirementModule.weknoraTrace,
+  automation: requirementModule.automation,
 
   // API Testing Module
   apiTesting: apiTestingModule,
