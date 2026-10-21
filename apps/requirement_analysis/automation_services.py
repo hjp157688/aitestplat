@@ -125,8 +125,16 @@ def build_case_task_description(case, environment):
 
 
 def build_login_task_description(environment):
-    """预置登录任务：不写死表单结构，交给 browser-use 自适应。"""
+    """预置登录任务：不写死表单结构，交给 browser-use 自适应。
+
+    明确「点可见元素」与「离开登录页才算成功」，避免 agent 点到隐藏的
+    同名元素（登录页常见多处「登录」字样）后误判任务完成。
+    """
     return (
-        f'打开登录页 {environment.login_url}，'
-        f'在登录表单中输入用户名 {environment.username}、密码 {environment.password} 并提交，完成登录。'
+        f'打开登录页 {environment.login_url}，在登录表单中输入账号 {environment.username}、'
+        f'密码 {environment.password}。然后点击页面上【可见的】登录提交元素完成登录'
+        f'（如文字为「立即登录」「登录」「Sign in」的按钮或可点击区域；如果某个元素'
+        f'点击后页面没有变化，说明它可能是隐藏元素，改点另一个可见的）。'
+        f'登录成功的判定标准：页面离开登录页（URL 或界面不再是登录页），进入系统主页。'
+        f'提交后等待页面跳转并确认已进入主页，再结束任务；若出现错误提示，如实报告错误内容。'
     )
