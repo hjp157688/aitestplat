@@ -23,6 +23,10 @@ from .views import (
     zentao_status,
     zentao_sync,
 )
+from .automation_views import (
+    AutomationCaseViewSet,
+    AutomationEnvironmentViewSet,
+)
 
 # 创建DRF路由器
 router = DefaultRouter()
@@ -39,6 +43,8 @@ router.register(r'zentao-config', ZentaoConfigViewSet, basename='zentaoconfig')
 router.register(r'requirements-manage', RequirementViewSet, basename='requirementmanage')
 router.register(r'weknora-config', WeKnoraConfigViewSet, basename='weknoraconfig')
 router.register(r'weknora-bindings', WeKnoraProjectBindingViewSet, basename='weknorabinding')
+router.register(r'automation-cases', AutomationCaseViewSet, basename='automationcase')
+router.register(r'automation-environments', AutomationEnvironmentViewSet, basename='automationenvironment')
 
 app_name = 'requirement_analysis'
 

@@ -2,7 +2,8 @@ from rest_framework import serializers
 from .models import (
     RequirementDocument, RequirementAnalysis,
     GeneratedTestCase, AnalysisTask, AIModelConfig, PromptConfig, TestCaseGenerationTask,
-    GenerationConfig, ZentaoConfig, Requirement, WeKnoraConfig, WeKnoraProjectBinding
+    GenerationConfig, ZentaoConfig, Requirement, WeKnoraConfig, WeKnoraProjectBinding,
+    AutomationCase, AutomationEnvironment
 )
 from apps.projects.models import Project
 
@@ -514,3 +515,81 @@ class WeKnoraProjectBindingSerializer(serializers.ModelSerializer):
             'agent_name': {'required': False},
             'knowledge_base_ids': {'required': False},
         }
+
+# ============ 自动化用例（转化与执行） ============
+
+
+class AutomationEnvironmentSerializer(serializers.ModelSerializer):
+    """环境序列化：password 只写不读，回显 has_password 布尔。"""
+
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    has_password = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AutomationEnvironment
+        fields = ['id', 'project', 'name', 'base_url', 'login_url', 'username', 'password',
+                  'has_password', 'variables', 'is_active', 'description', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+    def get_has_password(self, obj):
+        return bool(obj.password)
+
+    def validate_variables(self, value):
+        if value in (None, ''):
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError('variables 必须是数组')
+        for item in value:
+            if not isinstance(item, dict) or not str(item.get('key', '')).strip():
+                raise serializers.ValidationError('每个变量必须包含非空 key')
+        return value
+
+    def update(self, instance, validated_data):
+        # 未传 password 字段时保持原值，避免编辑其他字段把密码清空
+        if 'password' not in validated_data:
+            validated_data['password'] = instance.password
+        return super().update(instance, validated_data)
+
+
+class AutomationCaseSerializer(serializers.ModelSerializer):
+    source_type = serializers.SerializerMethodField()
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    requirement_title = serializers.CharField(source='requirement.title', read_only=True)
+    last_execution = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AutomationCase
+        fields = ['id', 'project', 'project_name', 'requirement', 'requirement_title',
+                  'source_generated_case', 'source_test_case', 'source_type', 'title',
+                  'precondition', 'steps', 'convert_status', 'convert_error',
+                  'created_at', 'updated_at', 'last_execution']
+        read_only_fields = ['project', 'requirement', 'source_generated_case', 'source_test_case',
+                            'convert_status', 'convert_error', 'created_at', 'updated_at']
+
+    def get_source_type(self, obj):
+        return obj.source_type
+
+    def get_last_execution(self, obj):
+        execution = obj.automation_executions.order_by('-id').first()
+        if not execution:
+            return None
+        return {'id': execution.id, 'status': execution.status,
+                'finished_at': execution.finished_at}
+
+    def validate_steps(self, value):
+        if value in (None, ''):
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError('steps 必须是数组')
+        normalized = []
+        for index, step in enumerate(value, start=1):
+            step = step or {}
+            action = str(step.get('action', '')).strip()
+            if not action:
+                continue
+            normalized.append({
+                'index': index,
+                'action': action,
+                'verify': str(step.get('verify', '')).strip(),
+            })
+        return normalized
