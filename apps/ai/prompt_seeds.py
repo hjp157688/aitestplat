@@ -219,6 +219,7 @@ PROMPT_SEEDS_TYPES = (
     'writer', 'reviewer', 'requirement_parse',
     'api_testcase_generator', 'browser_use_task', 'browser_use_breakdown',
     'testcase_modifier', 'testcase_supplement',
+    'automation_case_converter',
 )
 
 # ---------------------------------------------------------------------------
@@ -262,6 +263,17 @@ TESTCASE_SUPPLEMENT_PROMPT = """你是一位拥有10年经验的资深测试专�
 priority 取值：P0（最高）/ P1 / P2 / P3。
 只输出新增用例，不要输出已有用例，不要输出任何解释、开场白或代码块标记。如果没有可补充的用例，输出空。"""
 
+# 自动化用例转化（功能用例 → browser-use 操作指令序列；运行时用 raw 取用，含裸 JSON 花括号，不做 .format）
+AUTOMATION_CASE_CONVERTER_FALLBACK = """你是资深 Web 自动化测试工程师。把人工功能测试用例（标题、前置条件、测试步骤、预期结果）转写为 AI 浏览器智能体（browser-use）可直接执行的操作指令序列。
+
+要求：
+1. 每条 action 是一句具体的自然语言操作指令，有明确目标页面与动作，例如「打开 {{base_url}}/login」「在用户名输入框输入 {{username}}」。
+2. 系统地址用 {{base_url}} 占位；登录账号/密码用 {{username}}、{{password}} 占位；输入中列出的其他环境变量同样用 {{变量名}} 占位，不要编造具体域名或凭据。
+3. 需要校验的步骤在 verify 字段写清验证点（如「页面出现"创建成功"提示」）；无法验证则 verify 为空字符串。
+4. 原用例步骤含糊时，按被测系统最通用的实现合理补全，但不要发明原用例不存在的业务功能。
+5. 只输出 JSON 数组，不要输出任何解释、markdown 围栏或多余文字，格式：
+[{"action": "具体操作指令", "verify": "验证点或空字符串"}]"""
+
 SEEDS = {
     'writer': {
         'name': '默认用例编写提示词',
@@ -296,6 +308,10 @@ SEEDS = {
     'testcase_supplement': {
         'name': '默认用例补充生成提示词',
         'fallback': TESTCASE_SUPPLEMENT_PROMPT,
+    },
+    'automation_case_converter': {
+        'name': '功能用例转自动化操作步骤提示词',
+        'fallback': AUTOMATION_CASE_CONVERTER_FALLBACK,
     },
 }
 
