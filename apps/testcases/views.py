@@ -334,10 +334,13 @@ class TestCaseZentaoImportView(APIView):
         scope_type = request.data.get('scope_type')
         scope_id = request.data.get('scope_id')
         story_ids = request.data.get('story_ids', [])
+        case_ids = request.data.get('case_ids', [])
         project_id = request.data.get('project_id')
 
-        if not story_ids or not project_id:
-            return JsonResponse({'error': '缺少 story_ids 或 project_id'}, status=400)
+        if not story_ids and not case_ids:
+            return JsonResponse({'error': '缺少 story_ids 或 case_ids'}, status=400)
+        if not project_id:
+            return JsonResponse({'error': '缺少 project_id'}, status=400)
 
         config = ZentaoConfig.get_active_config()
         if not config:
@@ -359,6 +362,7 @@ class TestCaseZentaoImportView(APIView):
                 'scope_type': scope_type,
                 'scope_id': scope_id,
                 'story_ids': story_ids,
+                'case_ids': case_ids,
                 'project_id': project_id,
             },
             created_by=request.user if request.user.is_authenticated else None,
@@ -516,6 +520,11 @@ def _run_zentao_import(task):
     except P.DoesNotExist:
         raise Exception('项目不存在')
 
+    # 直接搜索模式：按禅道用例 id 逐条导入（case_ids 与 story_ids 二选一）
+    if params.get('case_ids') and not story_ids:
+        _run_zentao_import_by_cases(task, config, project, params['case_ids'])
+        return
+
     created = 0
     updated = 0
     failures = []
@@ -611,6 +620,107 @@ def _run_zentao_import(task):
                     failures.append({'case_id': case_id, 'error': str(e)})
         except Exception as e:
             failures.append({'story_id': story_id, 'error': str(e)})
+
+        ZentaoSyncTask.objects.filter(task_id=task.task_id).update(
+            result={'created': created, 'updated': updated, 'failed': len(failures), 'failures': failures},
+        )
+
+    ZentaoSyncTask.objects.filter(task_id=task.task_id).update(
+        status='succeeded', progress=100, completed_at=timezone.now(),
+        result={'created': created, 'updated': updated, 'failed': len(failures), 'failures': failures},
+    )
+
+
+def _run_zentao_import_by_cases(task, config, project, case_ids):
+    """直接搜索模式：按禅道用例 id 逐条导入，实时落进度与结果。
+
+    与 story 模式的差异：用例详情里 story 非空时才走"自动同步需求"逻辑；
+    story 为空/0 则跳过需求关联，TestCase.requirement 留空。
+    """
+    from apps.requirement_analysis.models import Requirement
+
+    created = 0
+    updated = 0
+    failures = []
+    total = len(case_ids)
+
+    for done, case_id in enumerate(case_ids, start=1):
+        progress = int(done * 100 / total) if total else 100
+        ZentaoSyncTask.objects.filter(task_id=task.task_id).update(
+            status='running', progress=progress,
+        )
+        try:
+            detail = ZentaoService.get_testcase_detail(config, case_id)
+            steps_json = ZentaoService.steps_from_zentao(detail.get('steps'))
+            title = detail.get('title') or f'禅道用例{case_id}'
+
+            req = None
+            story_id = detail.get('story') or 0
+            product_id = detail.get('product') or None
+            if story_id:
+                # 自动同步需求（若本地不存在则创建 Requirement）
+                try:
+                    story = ZentaoService.get_story_detail(config, story_id)
+                except Exception as e:
+                    failures.append({
+                        'case_id': case_id,
+                        'error': f'获取需求详情失败，跳过该用例(需先在禅道确认该需求存在且有权限): {e}',
+                    })
+                    continue
+                req = Requirement.objects.filter(zentao_id=story_id).first()
+                product_id = story.get('product') or product_id
+                if not req:
+                    req = Requirement.objects.create(
+                        project=project,
+                        source_type='zentao',
+                        zentao_id=story_id,
+                        product_id=product_id,
+                        module_id=story.get('module'),
+                        title=story.get('title', f'禅道需求{story_id}'),
+                        spec=story.get('spec', ''),
+                        status=story.get('status', 'active'),
+                        raw_data=story,
+                        synced_at=timezone.now(),
+                        created_by=task.created_by,
+                    )
+                else:
+                    req.product_id = req.product_id or product_id
+                    req.module_id = req.module_id or story.get('module')
+                    req.save(update_fields=['product_id', 'module_id'])
+
+            existing = TestCase.objects.filter(zentao_case_id=case_id).first()
+            if existing:
+                existing.title = title
+                existing.preconditions = detail.get('precondition') or ''
+                existing.steps = steps_json
+                existing.priority = ZentaoService.map_priority_from_zentao(detail.get('pri'))
+                existing.test_type = ZentaoService.map_type_from_zentao(detail.get('type'))
+                existing.requirement = req
+                existing.product_id = req.product_id if req else product_id
+                existing.module_id = req.module_id if req else detail.get('module')
+                existing.story_id = story_id or None
+                existing.save()
+                updated += 1
+            else:
+                TestCase.objects.create(
+                    project=project,
+                    author=task.created_by,
+                    title=title,
+                    description=title,
+                    preconditions=detail.get('precondition') or '',
+                    steps=steps_json,
+                    priority=ZentaoService.map_priority_from_zentao(detail.get('pri')),
+                    test_type=ZentaoService.map_type_from_zentao(detail.get('type')),
+                    status='draft',
+                    requirement=req,
+                    zentao_case_id=case_id,
+                    product_id=req.product_id if req else product_id,
+                    module_id=req.module_id if req else detail.get('module'),
+                    story_id=story_id or None,
+                )
+                created += 1
+        except Exception as e:
+            failures.append({'case_id': case_id, 'error': str(e)})
 
         ZentaoSyncTask.objects.filter(task_id=task.task_id).update(
             result={'created': created, 'updated': updated, 'failed': len(failures), 'failures': failures},

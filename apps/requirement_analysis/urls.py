@@ -20,6 +20,7 @@ from .views import (
     zentao_projects,
     zentao_product_stories,
     zentao_project_stories,
+    zentao_testcase_search,
     zentao_status,
     zentao_sync,
 )
@@ -65,6 +66,7 @@ urlpatterns = [
     path('zentao/projects/', zentao_projects, name='zentao-projects'),
     path('zentao/products/<int:product_id>/stories/', zentao_product_stories, name='zentao-product-stories'),
     path('zentao/projects/<int:project_id>/stories/', zentao_project_stories, name='zentao-project-stories'),
+    path('zentao/testcases/search/', zentao_testcase_search, name='zentao-testcase-search'),
     path('zentao/status/', zentao_status, name='zentao-status'),
     path('zentao/sync/', zentao_sync, name='zentao-sync'),
 ]

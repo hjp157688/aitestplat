@@ -682,6 +682,54 @@ class ZentaoService:
         cases = ZentaoService.get_product_testcases(config, product_id)
         return [c for c in cases if c.get('story') == story_id]
 
+    SEARCH_RESULT_LIMIT = 100
+
+    @staticmethod
+    def search_testcases(config, keyword: str, product_id=None) -> list:
+        """按关键词搜索禅道测试用例。
+
+        禅道 REST v1 无服务端关键词搜索，与 get_story_testcases 同模式：
+        拉产品全量用例后 Python 侧过滤。keyword 不区分大小写，匹配用例标题
+        或用例编号；product_id 给定则只查该产品，否则遍历全部产品。
+        返回字段：id/title/product_id/product_name/story/priority/type，
+        结果上限 100 条。
+        """
+        kw = str(keyword or '').strip().lower()
+        if not kw:
+            return []
+
+        if product_id:
+            products = [{'id': product_id, 'name': ''}]
+        else:
+            products = ZentaoService.get_products(config)
+
+        results = []
+        for p in products:
+            pid = p.get('id')
+            if not pid:
+                continue
+            try:
+                cases = ZentaoService.get_product_testcases(config, pid)
+            except Exception:
+                continue  # 单个产品拉取失败不阻断整体搜索
+            for c in cases:
+                title = str(c.get('title') or '')
+                case_no = str(c.get('id') or '')
+                if kw not in title.lower() and kw not in case_no.lower():
+                    continue
+                results.append({
+                    'id': c.get('id'),
+                    'title': title,
+                    'product_id': pid,
+                    'product_name': p.get('name') or '',
+                    'story': c.get('story'),
+                    'priority': c.get('pri') or c.get('priority'),
+                    'type': c.get('type'),
+                })
+                if len(results) >= ZentaoService.SEARCH_RESULT_LIMIT:
+                    return results
+        return results
+
     @staticmethod
     def get_testcase_detail(config, case_id) -> dict:
         """获取单个测试用例详情。

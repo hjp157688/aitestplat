@@ -3491,6 +3491,31 @@ def zentao_product_stories(request, product_id):
 
 
 @csrf_exempt
+def zentao_testcase_search(request):
+    """按关键词搜索禅道测试用例（GET keyword 必填，product_id 可选）"""
+    if request.method == 'GET':
+        config = ZentaoConfig.get_active_config()
+        if not config:
+            return JsonResponse(
+                {'error': '请先在配置中心配置禅道连接信息'}, status=400
+            )
+        keyword = (request.GET.get('keyword') or '').strip()
+        if not keyword:
+            return JsonResponse({'error': '缺少搜索关键词 keyword'}, status=400)
+        product_id = request.GET.get('product_id')
+        try:
+            product_id = int(product_id) if product_id else None
+        except (TypeError, ValueError):
+            return JsonResponse({'error': 'product_id 不合法'}, status=400)
+        try:
+            cases = ZentaoService.search_testcases(config, keyword, product_id)
+            return JsonResponse({'cases': cases})
+        except Exception as e:
+            return JsonResponse({'error': f'搜索用例失败: {str(e)}'}, status=400)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
 def zentao_project_stories(request, project_id):
     """获取禅道项目下的需求列表"""
     if request.method == 'GET':

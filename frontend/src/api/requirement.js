@@ -159,6 +159,17 @@ export function getZentaoProjectStories(projectId) {
 }
 
 /**
+ * 按关键词搜索禅道测试用例（keyword 必填，productId 可选）
+ */
+export function searchZentaoCases(params) {
+  return request({
+    url: '/requirement-analysis/zentao/testcases/search/',
+    method: 'get',
+    params
+  })
+}
+
+/**
  * 同步禅道需求到本地
  */
 export function syncZentaoRequirements(data) {

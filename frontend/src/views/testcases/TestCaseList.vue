@@ -362,6 +362,7 @@
           <el-radio-group v-model="zentaoImportForm.scopeType">
             <el-radio value="product">{{ $t('testcase.byProduct') }}</el-radio>
             <el-radio value="project">{{ $t('testcase.byProject') }}</el-radio>
+            <el-radio value="search">{{ $t('testcase.byKeyword') }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="zentaoImportForm.scopeType === 'product'" :label="$t('testcase.zentaoProduct')" required>
@@ -370,13 +371,43 @@
             <el-option v-for="p in zentaoProducts" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
-        <el-form-item v-else :label="$t('testcase.zentaoProject')" required>
+        <el-form-item v-else-if="zentaoImportForm.scopeType === 'project'" :label="$t('testcase.zentaoProject')" required>
           <el-select v-model="zentaoImportForm.scopeId" filterable style="width: 100%"
             :placeholder="$t('testcase.selectZentaoProject')" @change="loadScopeStories">
             <el-option v-for="p in zentaoProjects" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('testcase.zentaoStory')">
+        <template v-else>
+          <el-form-item :label="$t('testcase.zentaoProduct')">
+            <el-select v-model="zentaoSearchForm.productId" filterable clearable style="width: 100%"
+              :placeholder="$t('testcase.allZentaoProducts')">
+              <el-option v-for="p in zentaoProducts" :key="p.id" :label="p.name" :value="p.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="$t('testcase.keyword')">
+            <div class="zentao-search-row">
+              <el-input v-model="zentaoSearchForm.keyword" clearable
+                :placeholder="$t('testcase.searchCasePlaceholder')" @keyup.enter="searchZentaoCasesAction" />
+              <el-button type="primary" :loading="zentaoSearching" @click="searchZentaoCasesAction">
+                {{ $t('testcase.search') }}
+              </el-button>
+            </div>
+          </el-form-item>
+          <el-form-item v-if="zentaoSearchResults.length" :label="$t('testcase.searchResult')">
+            <el-table :data="zentaoSearchResults" max-height="260" class="zentao-search-table"
+              @selection-change="onZentaoSearchSelectionChange">
+              <el-table-column type="selection" width="42" />
+              <el-table-column prop="id" :label="$t('testcase.excelNumber')" width="110" />
+              <el-table-column prop="title" :label="$t('testcase.excelTitle')" show-overflow-tooltip />
+              <el-table-column prop="product_name" :label="$t('testcase.zentaoProduct')" width="120" show-overflow-tooltip />
+              <el-table-column :label="$t('testcase.zentaoStory')" width="90">
+                <template #default="{ row }">{{ row.story || '-' }}</template>
+              </el-table-column>
+              <el-table-column :label="$t('testcase.priority')" width="80" />
+            </el-table>
+          </el-form-item>
+        </template>
+        <el-form-item v-if="zentaoImportForm.scopeType !== 'search'" :label="$t('testcase.zentaoStory')">
           <el-select v-model="zentaoImportForm.storyIds" multiple filterable style="width: 100%"
             :placeholder="$t('testcase.selectZentaoStory')">
             <el-option v-for="s in scopeStories" :key="s.id" :label="s.title" :value="s.id" />
@@ -444,7 +475,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Download, Delete, Upload, Position, Connection, ArrowDown, Tickets, MagicStick } from '@element-plus/icons-vue'
 import api from '@/utils/api'
-import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getZentaoTask, getRequirements, aiModifyTestcases, aiSupplementTestcases, getTestCaseAiTask } from '@/api/requirement'
+import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, searchZentaoCases, exportCasesToZentao, importCasesFromZentao, getZentaoTask, getRequirements, aiModifyTestcases, aiSupplementTestcases, getTestCaseAiTask } from '@/api/requirement'
 import { batchConvertToAutomation } from '@/api/requirement-analysis'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
@@ -492,6 +523,10 @@ const zentaoImportVisible = ref(false)
 const zentaoImporting = ref(false)
 const zentaoProjects = ref([])
 const scopeStories = ref([])
+const zentaoSearchForm = ref({ keyword: '', productId: '' })
+const zentaoSearching = ref(false)
+const zentaoSearchResults = ref([])
+const zentaoSearchSelection = ref([])
 
 // ==================== AI 修改/补充 ====================
 const aiDialogVisible = ref(false)
@@ -758,6 +793,9 @@ const submitZentaoExport = async () => {
 const openZentaoImportDialog = async () => {
   zentaoImportForm.value = { scopeType: 'product', scopeId: '', storyIds: [], projectId: '' }
   scopeStories.value = []
+  zentaoSearchForm.value = { keyword: '', productId: '' }
+  zentaoSearchResults.value = []
+  zentaoSearchSelection.value = []
   try {
     const [prodRes, projRes] = await Promise.all([getZentaoProducts(), getZentaoProjects()])
     zentaoProducts.value = prodRes.data.products || []
@@ -783,24 +821,73 @@ const loadScopeStories = async () => {
   }
 }
 
+const onZentaoSearchSelectionChange = (rows) => {
+  zentaoSearchSelection.value = rows
+}
+
+const searchZentaoCasesAction = async () => {
+  const kw = zentaoSearchForm.value.keyword.trim()
+  if (!kw) {
+    ElMessage.warning(t('testcase.inputKeyword'))
+    return
+  }
+  zentaoSearching.value = true
+  try {
+    const params = { keyword: kw }
+    if (zentaoSearchForm.value.productId) params.product_id = zentaoSearchForm.value.productId
+    const res = await searchZentaoCases(params)
+    zentaoSearchResults.value = res.data.cases || []
+    zentaoSearchSelection.value = []
+    if (!zentaoSearchResults.value.length) ElMessage.info(t('testcase.noSearchResult'))
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || t('testcase.importZentaoFailed'))
+  } finally {
+    zentaoSearching.value = false
+  }
+}
+
 const submitZentaoImport = async () => {
-  if (!zentaoImportForm.value.scopeId || !zentaoImportForm.value.storyIds.length) {
+  const form = zentaoImportForm.value
+  if (form.scopeType === 'search') {
+    if (!zentaoSearchSelection.value.length) {
+      ElMessage.warning(t('testcase.selectZentaoCase'))
+      return
+    }
+    if (!form.projectId) {
+      ElMessage.warning(t('testcase.selectLocalProject'))
+      return
+    }
+    zentaoImporting.value = true
+    try {
+      const res = await importCasesFromZentao({
+        scope_type: 'search',
+        case_ids: zentaoSearchSelection.value.map(c => c.id),
+        project_id: form.projectId
+      })
+      startZentaoImportPolling(res.data.task_id, zentaoSearchSelection.value.length)
+    } catch (e) {
+      ElMessage.error(e.response?.data?.error || t('testcase.importZentaoFailed'))
+      zentaoImporting.value = false
+    }
+    return
+  }
+  if (!form.scopeId || !form.storyIds.length) {
     ElMessage.warning(t('testcase.selectZentaoStory'))
     return
   }
-  if (!zentaoImportForm.value.projectId) {
+  if (!form.projectId) {
     ElMessage.warning(t('testcase.selectLocalProject'))
     return
   }
   zentaoImporting.value = true
   try {
     const res = await importCasesFromZentao({
-      scope_type: zentaoImportForm.value.scopeType,
-      scope_id: zentaoImportForm.value.scopeId,
-      story_ids: zentaoImportForm.value.storyIds,
-      project_id: zentaoImportForm.value.projectId
+      scope_type: form.scopeType,
+      scope_id: form.scopeId,
+      story_ids: form.storyIds,
+      project_id: form.projectId
     })
-    startZentaoImportPolling(res.data.task_id, zentaoImportForm.value.storyIds.length)
+    startZentaoImportPolling(res.data.task_id, form.storyIds.length)
   } catch (e) {
     ElMessage.error(e.response?.data?.error || t('testcase.importZentaoFailed'))
     zentaoImporting.value = false
@@ -1356,5 +1443,15 @@ onBeforeUnmount(() => {
 
 .ai-dialog-hint {
   margin-bottom: 16px;
+}
+
+.zentao-search-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.zentao-search-table {
+  width: 100%;
 }
 </style>
