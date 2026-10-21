@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from apps.users.models import User
 from apps.projects.models import Project
+from apps.testcases.models import TestCase as ManualTestCase
 import json
 import re
 import httpx
@@ -629,6 +630,161 @@ class WeKnoraProjectBinding(models.Model):
 
     def __str__(self):
         return f'{self.project}: {self.agent_name or self.agent_id}'
+
+
+class AutomationCase(models.Model):
+    """由功能用例经 AI 转写得到的 browser-use 自动化用例。"""
+
+    CONVERT_STATUS_CHOICES = [
+        ('processing', '转写中'),
+        ('done', '转写成功'),
+        ('failed', '转写失败'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE,
+                                related_name='automation_cases', verbose_name='所属项目')
+    requirement = models.ForeignKey('Requirement', on_delete=models.SET_NULL,
+                                    null=True, blank=True, related_name='automation_cases',
+                                    verbose_name='关联需求')
+    source_generated_case = models.ForeignKey('GeneratedTestCase', on_delete=models.SET_NULL,
+                                              null=True, blank=True, related_name='automation_cases',
+                                              verbose_name='来源AI生成用例')
+    source_test_case = models.ForeignKey(ManualTestCase, on_delete=models.SET_NULL,
+                                         null=True, blank=True, related_name='automation_cases',
+                                         verbose_name='来源手动用例')
+    title = models.CharField(max_length=300, verbose_name='用例标题')
+    precondition = models.TextField(blank=True, default='', verbose_name='前置条件')
+    steps = models.JSONField(default=list, blank=True, verbose_name='自动化操作步骤')
+    convert_status = models.CharField(max_length=20, choices=CONVERT_STATUS_CHOICES,
+                                      default='processing', verbose_name='转写状态')
+    convert_error = models.TextField(blank=True, default='', verbose_name='转写失败原因')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='automation_cases_created', verbose_name='创建人')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        db_table = 'automation_cases'
+        ordering = ['-created_at']
+        verbose_name = '自动化用例'
+        verbose_name_plural = '自动化用例'
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def source_type(self):
+        if self.source_generated_case_id:
+            return 'generated'
+        if self.source_test_case_id:
+            return 'testcase'
+        return 'inline'
+
+
+class AutomationEnvironment(models.Model):
+    """自动化执行环境：系统地址、登录配置与通用变量（{{key}} 引用）。"""
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE,
+                                related_name='automation_environments', verbose_name='所属项目')
+    name = models.CharField(max_length=100, verbose_name='环境名称')
+    base_url = models.CharField(max_length=500, blank=True, default='', verbose_name='系统地址')
+    login_url = models.CharField(max_length=500, blank=True, default='', verbose_name='登录页地址')
+    username = models.CharField(max_length=200, blank=True, default='', verbose_name='登录账号')
+    password = models.CharField(max_length=200, blank=True, default='', verbose_name='登录密码')
+    variables = models.JSONField(default=list, blank=True, verbose_name='环境变量')
+    is_active = models.BooleanField(default=True, verbose_name='是否启用')
+    description = models.TextField(blank=True, default='', verbose_name='描述')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        db_table = 'automation_environments'
+        ordering = ['-created_at']
+        verbose_name = '自动化环境'
+        verbose_name_plural = '自动化环境'
+
+    def __str__(self):
+        return self.name
+
+
+class AutomationExecutionSession(models.Model):
+    """一次批量执行的会话：整批共享一次登录（storage_state 复用）。"""
+
+    STATUS_CHOICES = [
+        ('pending', '待执行'),
+        ('logging_in', '登录中'),
+        ('running', '执行中'),
+        ('done', '已完成'),
+        ('failed', '失败'),
+    ]
+    LOGIN_STATUS_CHOICES = [
+        ('not_required', '无需登录'),
+        ('success', '登录成功'),
+        ('failed', '登录失败'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE,
+                                related_name='automation_execution_sessions', verbose_name='所属项目')
+    environment = models.ForeignKey(AutomationEnvironment, on_delete=models.CASCADE,
+                                    related_name='execution_sessions', verbose_name='执行环境')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending',
+                              verbose_name='会话状态')
+    login_status = models.CharField(max_length=20, choices=LOGIN_STATUS_CHOICES,
+                                    default='not_required', verbose_name='登录状态')
+    storage_state = models.JSONField(null=True, blank=True, verbose_name='登录态')
+    error = models.TextField(blank=True, default='', verbose_name='错误信息')
+    triggered_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='automation_sessions_triggered', verbose_name='触发人')
+    started_at = models.DateTimeField(null=True, blank=True, verbose_name='开始时间')
+    finished_at = models.DateTimeField(null=True, blank=True, verbose_name='结束时间')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+
+    class Meta:
+        db_table = 'automation_execution_sessions'
+        ordering = ['-created_at']
+        verbose_name = '自动化执行会话'
+        verbose_name_plural = '自动化执行会话'
+
+    def __str__(self):
+        return f'执行会话#{self.pk}'
+
+
+class AutomationExecution(models.Model):
+    """单条自动化用例的执行记录。"""
+
+    STATUS_CHOICES = [
+        ('pending', '待执行'),
+        ('running', '执行中'),
+        ('success', '成功'),
+        ('failed', '失败'),
+        ('stopped', '已停止'),
+    ]
+
+    case = models.ForeignKey(AutomationCase, on_delete=models.CASCADE,
+                             related_name='automation_executions', verbose_name='自动化用例')
+    session = models.ForeignKey(AutomationExecutionSession, on_delete=models.CASCADE,
+                                related_name='executions', verbose_name='执行会话')
+    environment = models.ForeignKey(AutomationEnvironment, on_delete=models.CASCADE,
+                                    related_name='automation_executions', verbose_name='执行环境')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending',
+                              verbose_name='执行状态')
+    result_detail = models.JSONField(default=list, blank=True, verbose_name='逐步结果')
+    log = models.TextField(blank=True, default='', verbose_name='执行日志')
+    error = models.TextField(blank=True, default='', verbose_name='错误信息')
+    triggered_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='automation_executions_triggered', verbose_name='触发人')
+    started_at = models.DateTimeField(null=True, blank=True, verbose_name='开始时间')
+    finished_at = models.DateTimeField(null=True, blank=True, verbose_name='结束时间')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+
+    class Meta:
+        db_table = 'automation_executions'
+        ordering = ['-created_at']
+        verbose_name = '自动化执行记录'
+        verbose_name_plural = '自动化执行记录'
+
+    def __str__(self):
+        return f'执行记录#{self.pk}'
 
 
 class AIModelService:
