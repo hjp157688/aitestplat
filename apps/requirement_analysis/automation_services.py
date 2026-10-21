@@ -57,10 +57,19 @@ def parse_conversion_result(raw_text):
     if text.startswith('```'):
         text = re.sub(r'^```[a-zA-Z]*\n?', '', text)
         text = re.sub(r'\n?```$', '', text).strip()
-    start, end = text.find('['), text.rfind(']')
-    if start == -1 or end <= start:
-        raise ValueError('AI 返回内容中未找到步骤 JSON 数组')
-    steps = json.loads(text[start:end + 1])
+    # raw_decode 从每个 '[' 起点尝试解析首个合法 JSON 值，天然忽略数组前后的
+    # 噪声文本（AI 常在 JSON 后补解释文字，json.loads 会报 Extra data 失败）。
+    decoder = json.JSONDecoder()
+    steps = None
+    pos = text.find('[')
+    while pos != -1 and steps is None:
+        try:
+            candidate, _end = decoder.raw_decode(text[pos:])
+            steps = candidate
+        except json.JSONDecodeError:
+            pos = text.find('[', pos + 1)
+    if steps is None:
+        raise ValueError(f'AI 返回内容不是有效的步骤 JSON（原始输出开头：{text[:120]}）')
     if not isinstance(steps, list):
         raise ValueError('AI 返回的步骤不是数组')
     normalized = []

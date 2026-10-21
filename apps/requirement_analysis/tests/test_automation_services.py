@@ -66,6 +66,19 @@ class ParseConversionResultTests(TestCase):
         steps = parse_conversion_result(raw)
         self.assertEqual(steps, [{'index': 1, 'action': '打开登录页', 'verify': '出现表单'}])
 
+    def test_parse_with_trailing_text_after_array(self):
+        # AI 常在 JSON 数组后补解释文字，json.loads 会报 Extra data，解析须容忍
+        raw = (
+            '[\n'
+            '  {"action": "打开 {{base_url}}/users", "verify": "列表可见"},\n'
+            '  {"action": "点击新增", "verify": ""}\n'
+            ']\n'
+            '以上即为转写后的操作步骤，共 2 步，请查收。'
+        )
+        steps = parse_conversion_result(raw)
+        self.assertEqual(len(steps), 2)
+        self.assertEqual(steps[0]['action'], '打开 {{base_url}}/users')
+
     def test_invalid_json_marks_error_not_crash(self):
         with self.assertRaises(ValueError):
             parse_conversion_result('这不是 JSON')
