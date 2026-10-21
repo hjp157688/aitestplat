@@ -113,6 +113,57 @@ class BatchConvertApiTests(TestCase):
         self.assertEqual(case.convert_status, 'failed')
         self.assertIn('writer', case.convert_error)
 
+    @mock.patch('apps.requirement_analysis.automation_tasks.start_conversion_tasks')
+    def test_inline_convert_preserves_steps(self, mock_start):
+        task = TestCaseGenerationTask.objects.create(
+            task_id='T-conv-inline-2', title='步骤任务', requirement_text='步骤需求',
+            project=self.project, created_by=self.user, requirement=self.requirement,
+            status='completed')
+        resp = self.client.post(
+            CONVERT_URL,
+            {'source_type': 'generated', 'task_id': task.task_id,
+             'cases': [{'title': '下单流程', 'precondition': '购物车有商品',
+                        'steps': '1. 点击结算\n2. 确认支付', 'expected_result': '订单创建成功'}]},
+            format='json')
+        self.assertEqual(resp.status_code, 201)
+        case = AutomationCase.objects.get(title='下单流程')
+        # 转化前：steps 草稿保留原始步骤与预期文本
+        self.assertEqual(case.steps, [{'index': 1, 'action': '1. 点击结算\n2. 确认支付',
+                                       'verify': '订单创建成功'}])
+
+        from apps.requirement_analysis import automation_tasks
+        with mock.patch.object(automation_tasks.ConfigResolver, 'active', return_value=object()), \
+                mock.patch('apps.requirement_analysis.automation_tasks.AIClient.chat_sync') as mock_chat:
+            mock_chat.return_value = {'choices': [{'message': {
+                'content': '[{"index": 1, "action": "点击结算按钮", "verify": "跳转支付页"}]'}}]}
+            automation_tasks.run_conversion(case.pk)
+        case.refresh_from_db()
+        self.assertEqual(case.convert_status, 'done')
+        messages = mock_chat.call_args[0][1]
+        user_message = messages[-1]['content']
+        self.assertIn('1. 点击结算\n2. 确认支付', user_message)
+        self.assertIn('预期结果：订单创建成功', user_message)
+
+    def test_inline_conversion_includes_env_variables_and_expected(self):
+        from apps.requirement_analysis import automation_tasks
+        from apps.requirement_analysis.models import AutomationEnvironment
+        AutomationEnvironment.objects.create(
+            project=self.project, name='联调环境', variables=[{'key': 'product', 'value': '手机'}])
+        case = AutomationCase.objects.create(
+            project=self.project, requirement=self.requirement, title='内联步骤用例',
+            precondition='有商品', steps=[{'index': 1, 'action': '搜索商品', 'verify': '出现结果'}])
+        with mock.patch.object(automation_tasks.ConfigResolver, 'active', return_value=object()), \
+                mock.patch('apps.requirement_analysis.automation_tasks.AIClient.chat_sync') as mock_chat:
+            mock_chat.return_value = {'choices': [{'message': {
+                'content': '[{"index": 1, "action": "搜索商品", "verify": "出现结果"}]'}}]}
+            automation_tasks.run_conversion(case.pk)
+        messages = mock_chat.call_args[0][1]
+        user_message = messages[-1]['content']
+        self.assertIn('预期结果：出现结果', user_message)
+        self.assertIn('product', user_message)
+        case.refresh_from_db()
+        self.assertEqual(case.convert_status, 'done')
+
 
 class AutomationEnvironmentApiTests(TestCase):
     def setUp(self):

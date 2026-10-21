@@ -154,12 +154,18 @@ class AutomationCaseViewSet(viewsets.ModelViewSet):
                 title = str((item or {}).get('title') or '').strip()
                 if not title:
                     continue
+                # steps/expected 草稿文本保留进 steps 字段，供 run_conversion 内联分支作为 AI 转写输入
+                raw_steps = str((item or {}).get('steps') or '').strip()
+                raw_expected = str((item or {}).get('expected_result') or '').strip()
+                steps_draft = []
+                if raw_steps:
+                    steps_draft.append({'index': 1, 'action': raw_steps, 'verify': raw_expected})
                 case = AutomationCase.objects.create(
                     project=project,
                     requirement=requirement,
                     title=title,
                     precondition=str((item or {}).get('precondition') or ''),
-                    steps=[],
+                    steps=steps_draft,
                     convert_status='processing',
                     created_by=request.user,
                 )

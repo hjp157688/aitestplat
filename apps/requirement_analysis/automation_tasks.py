@@ -61,16 +61,25 @@ def run_conversion(case_id):
     elif source_type == 'testcase' and case.source_test_case:
         source_obj = case.source_test_case
     else:
-        # 内联转化的用例：内容已在前端提交的 steps 草稿里，直接按原文转写
+        # 内联转化的用例：steps 草稿由视图落在 steps 字段（{index, action, verify}），
+        # 直接按原文转写；预期作为 verify 行并入步骤文本，环境变量与 source_obj 路径一致
+        lines = []
+        for s in (case.steps or []):
+            line = f"{s.get('index')}. {s.get('action', '')}"
+            if s.get('verify'):
+                line += f"\n   预期结果：{s.get('verify')}"
+            lines.append(line)
         source_data = {
             'title': case.title,
             'precondition': case.precondition,
-            'steps_text': '\n'.join(
-                f"{s.get('index')}. {s.get('action', '')}" for s in (case.steps or [])) or '',
+            'steps_text': '\n'.join(lines),
             'expected_text': '',
             'priority': '',
         }
-        messages = automation_services.build_conversion_messages(source_data)
+        environment = (AutomationEnvironment.objects
+                       .filter(project=case.project, is_active=True).first())
+        variable_keys = [v.get('key') for v in (environment.variables if environment else []) if v.get('key')]
+        messages = automation_services.build_conversion_messages(source_data, variable_keys)
         _convert_with_ai(case, config, messages)
         return
 
