@@ -36,12 +36,14 @@
               <el-icon><Operation /></el-icon>
               <span>{{ $t('menu.versionManagement') }}</span>
             </el-menu-item>
-            <el-menu-item index="/ai-generation/automation-cases">
-              <el-icon><VideoPlay /></el-icon><span>{{ $t('menu.automationCases') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/ai-generation/automation-envs">
-              <el-icon><Setting /></el-icon><span>{{ $t('menu.automationEnvs') }}</span>
-            </el-menu-item>
+            <el-sub-menu index="automation">
+              <template #title>
+                <el-icon><VideoPlay /></el-icon>
+                <span>{{ $t('menu.automationTesting') }}</span>
+              </template>
+              <el-menu-item index="/ai-generation/automation-cases">{{ $t('menu.automationCases') }}</el-menu-item>
+              <el-menu-item index="/ai-generation/automation-envs">{{ $t('menu.automationEnvs') }}</el-menu-item>
+            </el-sub-menu>
             <el-sub-menu index="reviews">
               <template #title>
                 <el-icon><Check /></el-icon>
