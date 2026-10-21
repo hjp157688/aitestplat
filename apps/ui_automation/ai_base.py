@@ -1013,11 +1013,12 @@ from browser_use.browser.profile import BrowserProfile
 
 
 class BaseBrowserAgent:
-    def __init__(self, execution_mode='text', enable_gif=True, case_name=None, storage_state=None):
+    def __init__(self, execution_mode='text', enable_gif=True, case_name=None, storage_state=None, keep_alive=False):
         self.execution_mode = 'text'
         self.enable_gif = enable_gif  # GIF录制开关
         self.case_name = case_name or "Adhoc Task"  # 用例名称
         self.storage_state = storage_state  # 登录态注入（browser-use storage_state：dict/路径）
+        self.keep_alive = keep_alive  # 任务结束后保活浏览器会话（需要导出登录态时用）
 
         # Load Config from DB（统一走 apps.ai.ConfigResolver，按 role='browser_use_text' 取活跃配置）
         from apps.ai.resolver import ConfigResolver
@@ -1581,6 +1582,10 @@ class BaseBrowserAgent:
         if getattr(self, 'storage_state', None):
             # browser-use 0.10.1：storage_state 支持 dict/路径，与 user_data_dir 互斥（本项目未用后者）
             profile_kwargs['storage_state'] = self.storage_state
+        if getattr(self, 'keep_alive', False):
+            # 任务结束后保活浏览器会话：登录场景必须先导出 storage_state 再关闭，
+            # 否则 agent 自动 reset 会话后导出会因 CDP 已销毁而失败
+            profile_kwargs['keep_alive'] = True
         return BrowserProfile(
             headless=(system == 'Linux'),  # Linux 使用无头模式，其他系统使用显示模式
             disable_security=True,

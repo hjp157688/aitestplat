@@ -158,6 +158,7 @@ def run_session(session_id):
         ok, log, state = run_browser_task(
             automation_services.build_login_task_description(environment),
             case_name=f'登录-{environment.name}',
+            keep_alive=True,
         )
         if not ok:
             AutomationExecutionSession.objects.filter(pk=session_id).update(
@@ -210,16 +211,17 @@ def _run_single_execution(execution, environment, storage_state):
         finished_at=timezone.now())
 
 
-def run_browser_task(task_description, case_name, storage_state=None):
+def run_browser_task(task_description, case_name, storage_state=None, keep_alive=False):
     """同步执行一段 browser-use 任务。
 
-    运行、登录态导出与浏览器收尾收拢在同一个 asyncio 事件循环里：
-    storage_state 必须在浏览器会话存活时导出（跨 asyncio.run 会因事件循环
-    销毁而失效），任务结束后统一导出登录态。
+    运行、登录态导出与浏览器收尾收拢在同一个 asyncio 事件循环里。
+    keep_alive=True（登录执行）时浏览器会话在 agent 运行后保持存活，
+    导出 storage_state 之后再由 _cleanup_browser 显式关闭——否则 agent
+    运行结束会自动 reset 会话，CDP 连接销毁后导出必然失败。
     """
     from apps.ui_automation.ai_agent import BrowserAgent
 
-    agent = BrowserAgent(case_name=case_name, storage_state=storage_state)
+    agent = BrowserAgent(case_name=case_name, storage_state=storage_state, keep_alive=keep_alive)
     log_lines = []
 
     def callback(payload):
@@ -251,7 +253,9 @@ def run_browser_task(task_description, case_name, storage_state=None):
     async def _run_and_export():
         try:
             result = await agent.run_task(task_description, callback=callback)
-            state = await agent.export_storage_state()
+            # 仅 keep_alive 会话（登录执行）可导出：普通用例执行的会话随 agent
+            # 结束被 reset，导出只会拿到 None 且刷警告
+            state = await agent.export_storage_state() if keep_alive else None
             return result, state
         finally:
             await _cleanup_browser()

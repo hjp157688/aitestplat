@@ -222,10 +222,16 @@ class BrowserAgentSessionTests(TestCase):
 
     @mock.patch('apps.ui_automation.ai_agent.BrowserAgent')
     def test_run_browser_task_returns_exported_state_in_single_loop(self, mock_agent_cls):
-        """C1：运行与导出在同一事件循环，导出的 state 直接透传返回。"""
+        """C1：运行与导出在同一事件循环；仅 keep_alive 会话（登录执行）导出登录态。"""
         state = {'cookies': [{'name': 'sid'}]}
         mock_agent_cls.return_value = _FakeAgent(state=state)
-        ok, log, exported = automation_tasks.run_browser_task('任务', case_name='单测')
+        ok, log, exported = automation_tasks.run_browser_task('任务', case_name='单测', keep_alive=True)
         self.assertTrue(ok)
         self.assertEqual(exported, state)
-        mock_agent_cls.assert_called_once_with(case_name='单测', storage_state=None)
+        mock_agent_cls.assert_called_once_with(case_name='单测', storage_state=None, keep_alive=True)
+
+        # 普通用例执行（keep_alive=False）：会话随 agent 结束被 reset，不导出
+        mock_agent_cls.return_value = _FakeAgent(state=state)
+        ok2, _log, exported2 = automation_tasks.run_browser_task('任务', case_name='单测')
+        self.assertTrue(ok2)
+        self.assertIsNone(exported2)
