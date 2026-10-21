@@ -347,7 +347,8 @@
     <el-dialog
       v-model="zentaoImportVisible"
       :title="$t('testcase.importZentao')"
-      width="620px"
+      width="900px"
+      top="6vh"
       :close-on-click-modal="!zentaoImporting"
       :close-on-press-escape="!zentaoImporting"
     >
