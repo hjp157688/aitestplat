@@ -138,6 +138,17 @@ class ZentaoSearchImportTests(TestCase):
         )
         self.assertEqual(resp.status_code, 400)
 
+    @mock.patch('apps.testcases.views.ZentaoConfig.get_active_config')
+    def test_import_rejects_story_ids_and_case_ids_together(self, mock_cfg):
+        mock_cfg.return_value = mock.MagicMock()
+        resp = self.client.post(
+            '/api/testcases/zentao-import/',
+            {'story_ids': [55], 'case_ids': ['case_101'], 'project_id': self.project.id},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('不能同时提供', resp.json()['error'])
+
     @mock.patch('apps.testcases.views.ZentaoService.get_story_detail')
     @mock.patch('apps.testcases.views.ZentaoService.get_testcase_detail')
     @mock.patch('apps.testcases.views.ZentaoConfig.get_active_config')
@@ -192,6 +203,37 @@ class ZentaoSearchImportTests(TestCase):
         self.assertEqual(no_story.project_id, self.project.id)
 
         # Requirement 表只建了一条
+        self.assertEqual(Requirement.objects.count(), 1)
+
+    @mock.patch('apps.testcases.views.ZentaoService.get_story_detail')
+    @mock.patch('apps.testcases.views.ZentaoService.get_testcase_detail')
+    @mock.patch('apps.testcases.views.ZentaoConfig.get_active_config')
+    def test_import_runner_normalizes_story_dict(self, mock_cfg, mock_detail, mock_story):
+        """部分禅道版本 detail 的 story 返回对象（{"id": 55}），应归一为 int 再查需求"""
+        from apps.testcases.models import TestCase, ZentaoSyncTask
+        from apps.requirement_analysis.models import Requirement
+
+        mock_cfg.return_value = mock.MagicMock()
+        detail = _make_detail('case_101', story=55)
+        detail['story'] = {'id': 55}
+        mock_detail.return_value = detail
+        mock_story.return_value = {
+            'id': 55, 'product': 7, 'module': 3,
+            'title': '登录需求', 'spec': '', 'status': 'active',
+        }
+        task = ZentaoSyncTask.objects.create(
+            task_id='n00000000000000000000000000000', task_type='import',
+            input_params={'scope_type': 'search', 'case_ids': ['case_101'],
+                          'project_id': self.project.id},
+            created_by=self.user,
+        )
+
+        _run_zentao_task(task)
+
+        task.refresh_from_db()
+        self.assertEqual(task.result['created'], 1)
+        tc = TestCase.objects.get(zentao_case_id='case_101')
+        self.assertEqual(tc.requirement.zentao_id, 55)
         self.assertEqual(Requirement.objects.count(), 1)
 
     @mock.patch('apps.testcases.views.ZentaoService.get_story_detail')

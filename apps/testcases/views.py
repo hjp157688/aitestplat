@@ -339,6 +339,8 @@ class TestCaseZentaoImportView(APIView):
 
         if not story_ids and not case_ids:
             return JsonResponse({'error': '缺少 story_ids 或 case_ids'}, status=400)
+        if story_ids and case_ids:
+            return JsonResponse({'error': 'story_ids 与 case_ids 不能同时提供'}, status=400)
         if not project_id:
             return JsonResponse({'error': '缺少 project_id'}, status=400)
 
@@ -655,7 +657,14 @@ def _run_zentao_import_by_cases(task, config, project, case_ids):
             title = detail.get('title') or f'禅道用例{case_id}'
 
             req = None
-            story_id = detail.get('story') or 0
+            # 禅道部分版本 detail 的 story 可能返回对象（如 {"id": 55}），归一为 int
+            story_raw = detail.get('story')
+            if isinstance(story_raw, dict):
+                story_raw = story_raw.get('id')
+            try:
+                story_id = int(story_raw) if story_raw else 0
+            except (TypeError, ValueError):
+                story_id = 0
             product_id = detail.get('product') or None
             if story_id:
                 # 自动同步需求（若本地不存在则创建 Requirement）

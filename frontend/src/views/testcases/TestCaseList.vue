@@ -403,7 +403,7 @@
               <el-table-column :label="$t('testcase.zentaoStory')" width="90">
                 <template #default="{ row }">{{ row.story || '-' }}</template>
               </el-table-column>
-              <el-table-column :label="$t('testcase.priority')" width="80" />
+              <el-table-column prop="priority" :label="$t('testcase.priority')" width="80" />
             </el-table>
           </el-form-item>
         </template>
