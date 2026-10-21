@@ -3,7 +3,8 @@ from .models import (
     RequirementDocument, RequirementAnalysis,
     GeneratedTestCase, AnalysisTask, AIModelConfig, PromptConfig, TestCaseGenerationTask,
     GenerationConfig, ZentaoConfig, Requirement, WeKnoraConfig, WeKnoraProjectBinding,
-    AutomationCase, AutomationEnvironment
+    AutomationCase, AutomationEnvironment,
+    AutomationExecution, AutomationExecutionSession
 )
 from apps.projects.models import Project
 
@@ -593,3 +594,29 @@ class AutomationCaseSerializer(serializers.ModelSerializer):
                 'verify': str(step.get('verify', '')).strip(),
             })
         return normalized
+
+
+class AutomationExecutionSerializer(serializers.ModelSerializer):
+    case_title = serializers.CharField(source='case.title', read_only=True)
+
+    class Meta:
+        model = AutomationExecution
+        fields = ['id', 'case', 'case_title', 'session', 'environment', 'status',
+                  'result_detail', 'log', 'error', 'started_at', 'finished_at']
+
+
+class AutomationExecutionSessionSerializer(serializers.ModelSerializer):
+    environment_name = serializers.CharField(source='environment.name', read_only=True)
+    executions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AutomationExecutionSession
+        fields = ['id', 'project', 'environment', 'environment_name', 'status', 'login_status',
+                  'error', 'executions', 'started_at', 'finished_at']
+
+    def get_executions(self, obj):
+        return [
+            {'id': e.id, 'case_id': e.case_id, 'case_title': e.case.title,
+             'status': e.status, 'error': e.error}
+            for e in obj.executions.select_related('case').order_by('id')
+        ]

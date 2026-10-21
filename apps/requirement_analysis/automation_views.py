@@ -13,10 +13,17 @@ from . import automation_tasks
 from .models import (
     AutomationCase,
     AutomationEnvironment,
+    AutomationExecution,
+    AutomationExecutionSession,
     GeneratedTestCase,
     TestCaseGenerationTask,
 )
-from .serializers import AutomationCaseSerializer, AutomationEnvironmentSerializer
+from .serializers import (
+    AutomationCaseSerializer,
+    AutomationEnvironmentSerializer,
+    AutomationExecutionSerializer,
+    AutomationExecutionSessionSerializer,
+)
 from .views import _ensure_task_requirement
 
 logger = logging.getLogger(__name__)
@@ -178,3 +185,66 @@ class AutomationCaseViewSet(viewsets.ModelViewSet):
             convert_status='processing', convert_error='')
         automation_tasks.start_conversion_tasks([case.pk])
         return Response({'message': '已重新发起 AI 转写'}, status=status.HTTP_200_OK)
+
+    def _get_environment_for(self, request, environment_id):
+        """校验环境存在且属于用例所在项目；返回 (environment, error_response)。"""
+        environment = AutomationEnvironment.objects.filter(pk=environment_id).first()
+        if environment is None:
+            return None, Response({'error': '执行环境不存在'}, status=status.HTTP_400_BAD_REQUEST)
+        return environment, None
+
+    @action(detail=True, methods=['post'])
+    def execute(self, request, pk=None):
+        case = self.get_object()
+        environment_id = request.data.get('environment_id')
+        environment = AutomationEnvironment.objects.filter(pk=environment_id).first()
+        if environment is None:
+            return Response({'error': '执行环境不存在'}, status=status.HTTP_400_BAD_REQUEST)
+        if environment.project_id != case.project_id:
+            return Response({'error': '执行环境与用例不属于同一项目'}, status=status.HTTP_400_BAD_REQUEST)
+        session_id = automation_tasks.start_execution_tasks(
+            [case.pk], environment.pk, request.user.id)
+        return Response({'session_id': session_id}, status=status.HTTP_202_ACCEPTED)
+
+    @action(detail=False, methods=['post'], url_path='batch-execute')
+    def batch_execute(self, request):
+        ids = request.data.get('ids')
+        environment_id = request.data.get('environment_id')
+        if not isinstance(ids, list) or not ids:
+            return Response({'error': 'ids 不能为空'}, status=status.HTTP_400_BAD_REQUEST)
+        environment = AutomationEnvironment.objects.filter(pk=environment_id).first()
+        if environment is None:
+            return Response({'error': '执行环境不存在'}, status=status.HTTP_400_BAD_REQUEST)
+        invalid = (AutomationCase.objects.filter(pk__in=ids)
+                   .exclude(project_id=environment.project_id).count())
+        if invalid:
+            return Response({'error': '存在不属于该环境的项目的用例'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        session_id = automation_tasks.start_execution_tasks(
+            ids, environment.pk, request.user.id)
+        return Response({'session_id': session_id}, status=status.HTTP_202_ACCEPTED)
+
+
+class AutomationExecutionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = AutomationExecution.objects.select_related('case', 'environment', 'session')
+    serializer_class = AutomationExecutionSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        params = self.request.query_params
+        if params.get('case'):
+            queryset = queryset.filter(case_id=params['case'])
+        if params.get('session'):
+            queryset = queryset.filter(session_id=params['session'])
+        return queryset
+
+
+class AutomationExecutionSessionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = AutomationExecutionSession.objects.select_related('environment')
+    serializer_class = AutomationExecutionSessionSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.query_params.get('project'):
+            queryset = queryset.filter(project_id=self.request.query_params['project'])
+        return queryset

@@ -26,6 +26,8 @@ from .views import (
 from .automation_views import (
     AutomationCaseViewSet,
     AutomationEnvironmentViewSet,
+    AutomationExecutionSessionViewSet,
+    AutomationExecutionViewSet,
 )
 
 # 创建DRF路由器
@@ -45,6 +47,8 @@ router.register(r'weknora-config', WeKnoraConfigViewSet, basename='weknoraconfig
 router.register(r'weknora-bindings', WeKnoraProjectBindingViewSet, basename='weknorabinding')
 router.register(r'automation-cases', AutomationCaseViewSet, basename='automationcase')
 router.register(r'automation-environments', AutomationEnvironmentViewSet, basename='automationenvironment')
+router.register(r'automation-executions', AutomationExecutionViewSet, basename='automationexecution')
+router.register(r'automation-execution-sessions', AutomationExecutionSessionViewSet, basename='automationexecutionsession')
 
 app_name = 'requirement_analysis'
 
