@@ -173,7 +173,7 @@ const toggleActive = async (row, value) => {
 }
 
 const removeEnv = async (row) => {
-  await ElMessageBox.confirm(t('automation.deleteConfirm'), { type: 'warning' })
+  await ElMessageBox.confirm(t('automation.deleteEnvConfirm'), { type: 'warning' })
   await deleteAutomationEnvironment(row.id)
   ElMessage.success(t('automation.saveSuccess'))
   await loadEnvironments()

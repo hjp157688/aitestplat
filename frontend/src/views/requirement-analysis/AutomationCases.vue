@@ -295,7 +295,7 @@ const startPolling = (sessionId) => {
       ElMessage({
         type: data.status === 'done' ? 'success' : 'error',
         message: data.status === 'done'
-          ? t('automation.done') : (data.error || t('automation.failed')),
+          ? t('automation.execCompleted') : (data.error || t('automation.failed')),
       })
     }
   }, 3000)

@@ -24,6 +24,14 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
+def _mask_password(text, environment):
+    """脱敏文本中的环境登录密码（I1）。"""
+    password = getattr(environment, 'password', None) if environment else None
+    if text and password:
+        text = text.replace(password, '******')
+    return text
+
+
 def start_conversion_tasks(case_ids):
     """批量启动 AI 转写线程，每个用例一个 daemon 线程。"""
     for case_id in case_ids:
@@ -154,7 +162,18 @@ def run_session(session_id):
         if not ok:
             AutomationExecutionSession.objects.filter(pk=session_id).update(
                 status='failed', login_status='failed',
-                error=f'登录失败：{log}'[:2000], finished_at=timezone.now())
+                error=f'登录失败：{_mask_password(log, environment)}'[:2000],
+                finished_at=timezone.now())
+            AutomationExecution.objects.filter(session_id=session_id).update(
+                status='failed', error='会话登录失败，未执行', finished_at=timezone.now())
+            return
+        if state is None:
+            # 护栏：登录任务声称成功但登录态导出失败（跨事件循环失效/会话已关），
+            # 视为登录失败，整批不执行——不允许静默降级裸跑
+            AutomationExecutionSession.objects.filter(pk=session_id).update(
+                status='failed', login_status='failed',
+                error='登录态导出失败，请检查浏览器环境'[:2000],
+                finished_at=timezone.now())
             AutomationExecution.objects.filter(session_id=session_id).update(
                 status='failed', error='会话登录失败，未执行', finished_at=timezone.now())
             return
@@ -182,18 +201,21 @@ def _run_single_execution(execution, environment, storage_state):
             task_description, case_name=case.title, storage_state=storage_state)
     except Exception as exc:
         AutomationExecution.objects.filter(pk=execution.pk).update(
-            status='failed', error=str(exc)[:2000], finished_at=timezone.now())
+            status='failed', error=_mask_password(str(exc)[:2000], environment),
+            finished_at=timezone.now())
         return
     AutomationExecution.objects.filter(pk=execution.pk).update(
         status='success' if ok else 'failed',
-        log=(log or '')[:20000],
+        log=_mask_password((log or '')[:20000], environment),
         finished_at=timezone.now())
 
 
 def run_browser_task(task_description, case_name, storage_state=None):
     """同步执行一段 browser-use 任务。
 
-    返回 (是否成功, 日志文本, storage_state)。storage_state 仅在任务成功后尝试导出。
+    运行、登录态导出与浏览器收尾收拢在同一个 asyncio 事件循环里：
+    storage_state 必须在浏览器会话存活时导出（跨 asyncio.run 会因事件循环
+    销毁而失效），任务结束后统一导出登录态。
     """
     from apps.ui_automation.ai_agent import BrowserAgent
 
@@ -210,11 +232,34 @@ def run_browser_task(task_description, case_name, storage_state=None):
         if message:
             log_lines.append(str(message))
 
+    async def _cleanup_browser():
+        # browser_use 0.10.1 关闭 API（已核对源码）：BrowserSession.kill() 杀掉
+        # 浏览器进程、stop() 仅保留进程重置状态；Agent.close() 会按 keep_alive
+        # 决定是否 kill。BrowserAgent 只把 browser_session 暴露在实例上，故在此
+        # 优先 kill，其次 stop，避免残留 chrome 进程。
+        session = getattr(agent, 'browser_session', None)
+        if session is None:
+            return
+        closer = getattr(session, 'kill', None) or getattr(session, 'stop', None)
+        if not callable(closer):
+            return
+        try:
+            await closer()
+        except Exception as exc:
+            log_lines.append(f'浏览器清理异常: {exc}')
+
+    async def _run_and_export():
+        try:
+            result = await agent.run_task(task_description, callback=callback)
+            state = await agent.export_storage_state()
+            return result, state
+        finally:
+            await _cleanup_browser()
+
     try:
-        result = asyncio.run(agent.run_task(task_description, callback=callback))
+        result, state = asyncio.run(_run_and_export())
     except Exception as exc:
         return False, '\n'.join(log_lines + [f'执行异常: {exc}']), None
-    state = asyncio.run(agent.export_storage_state())
     # run_task 返回 browser-use 的 AgentHistoryList：is_successful() / is_done() 是方法，
     # is_successful() 在未完成时返回 None，此时按 is_done() 判定（未完成视为失败）
     is_success = None

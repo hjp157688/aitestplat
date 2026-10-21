@@ -856,7 +856,7 @@ export default {
           this.$t('automation.convertResult', { created: data.created_count, skipped: data.skipped_count }))
       } catch (error) {
         console.error('Batch convert to automation failed:', error)
-        ElMessage.error(this.$t('common.error') + ': ' + (error.response?.data?.detail || error.message))
+        ElMessage.error(this.$t('common.error') + ': ' + (error.response?.data?.error || error.response?.data?.detail || error.message))
       }
     },
 

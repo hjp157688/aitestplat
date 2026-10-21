@@ -125,3 +125,107 @@ class RunSessionTests(TestCase):
         self.assertEqual(self.session.storage_state, {'cookies': [{'name': 'sid'}]})
         self.assertEqual(
             [e.status for e in self.session.executions.order_by('id')], ['success', 'success'])
+
+    @mock.patch.object(automation_tasks, 'run_browser_task')
+    def test_login_error_masks_password_in_session_error(self, mock_task):
+        self.env.login_url = 'https://x.com/login'
+        self.env.password = 's3cretPw!'
+        self.env.save()
+        mock_task.return_value = (False, '提交了密码 s3cretPw! 但登录失败', None)
+        automation_tasks.run_session(self.session.pk)
+        self.session.refresh_from_db()
+        self.assertEqual(self.session.status, 'failed')
+        self.assertNotIn('s3cretPw!', self.session.error)
+        self.assertIn('******', self.session.error)
+
+
+class _FakeResult:
+    """仿真 browser-use AgentHistoryList 的最小接口。"""
+
+    def __init__(self, success=True):
+        self._success = success
+
+    def is_successful(self):
+        return self._success
+
+    def is_done(self):
+        return True
+
+
+class _FakeAgent:
+    """仿真 BrowserAgent：run_task 成功、可选泄漏日志、可配置导出结果。"""
+
+    def __init__(self, state=None, leak=''):
+        self._state = state
+        self._leak = leak
+
+    async def run_task(self, task_description, callback=None):
+        if callback and self._leak:
+            callback({'type': 'log', 'content': self._leak})
+        return _FakeResult(True)
+
+    async def export_storage_state(self):
+        return self._state
+
+
+class BrowserAgentSessionTests(TestCase):
+    """mock BrowserAgent 层验证 C1 登录态导出护栏与 I1 密码脱敏。"""
+
+    def setUp(self):
+        self.owner = User.objects.create_user('agent-user', password='x')
+        self.project = Project.objects.create(name='代理项目', owner=self.owner)
+        self.env = AutomationEnvironment.objects.create(
+            project=self.project, name='登录环境', base_url='https://x.com',
+            login_url='https://x.com/login', username='admin', password='s3cretPw!')
+        self.case = AutomationCase.objects.create(project=self.project, title='用例1', steps=[])
+        self.session = AutomationExecutionSession.objects.create(
+            project=self.project, environment=self.env)
+        AutomationExecution.objects.create(
+            case=self.case, session=self.session, environment=self.env)
+
+    @mock.patch('apps.ui_automation.ai_agent.BrowserAgent')
+    def test_login_state_export_none_fails_whole_session(self, mock_agent_cls):
+        """登录任务成功但 storage_state 导出为 None → 整批失败，不裸跑。"""
+        mock_agent_cls.return_value = _FakeAgent(state=None)
+        automation_tasks.run_session(self.session.pk)
+        self.session.refresh_from_db()
+        self.assertEqual(self.session.status, 'failed')
+        self.assertEqual(self.session.login_status, 'failed')
+        self.assertIn('登录态导出失败', self.session.error)
+        self.assertEqual(
+            set(self.session.executions.values_list('status', flat=True)), {'failed'})
+
+    @mock.patch('apps.ui_automation.ai_agent.BrowserAgent')
+    def test_login_state_export_dict_persists_storage_state(self, mock_agent_cls):
+        """export_storage_state 返回 dict → 登录成功且登录态落库、用例执行成功。"""
+        state = {'cookies': [{'name': 'sid', 'value': 'abc'}]}
+        mock_agent_cls.return_value = _FakeAgent(state=state)
+        automation_tasks.run_session(self.session.pk)
+        self.session.refresh_from_db()
+        self.assertEqual(self.session.status, 'done')
+        self.assertEqual(self.session.login_status, 'success')
+        self.assertEqual(self.session.storage_state, state)
+        self.assertEqual(
+            [e.status for e in self.session.executions.order_by('id')], ['success'])
+
+    @mock.patch('apps.ui_automation.ai_agent.BrowserAgent')
+    def test_execution_log_masks_password(self, mock_agent_cls):
+        """执行日志中出现密码时落库前被替换为 ******。"""
+        mock_agent_cls.return_value = _FakeAgent(
+            state={'cookies': []}, leak='输入密码 s3cretPw! 完成登录')
+        automation_tasks.run_session(self.session.pk)
+        execution = self.session.executions.first()
+        self.assertIsNotNone(execution)
+        self.assertEqual(execution.status, 'success')
+        self.assertNotIn('s3cretPw!', execution.log)
+        self.assertIn('******', execution.log)
+
+    @mock.patch('apps.ui_automation.ai_agent.BrowserAgent')
+    def test_run_browser_task_returns_exported_state_in_single_loop(self, mock_agent_cls):
+        """C1：运行与导出在同一事件循环，导出的 state 直接透传返回。"""
+        state = {'cookies': [{'name': 'sid'}]}
+        mock_agent_cls.return_value = _FakeAgent(state=state)
+        ok, log, exported = automation_tasks.run_browser_task('任务', case_name='单测')
+        self.assertTrue(ok)
+        self.assertEqual(exported, state)
+        mock_agent_cls.assert_called_once_with(case_name='单测', storage_state=None)
