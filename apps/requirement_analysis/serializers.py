@@ -598,11 +598,12 @@ class AutomationCaseSerializer(serializers.ModelSerializer):
 
 class AutomationExecutionSerializer(serializers.ModelSerializer):
     case_title = serializers.CharField(source='case.title', read_only=True)
+    environment_name = serializers.CharField(source='environment.name', read_only=True)
 
     class Meta:
         model = AutomationExecution
-        fields = ['id', 'case', 'case_title', 'session', 'environment', 'status',
-                  'result_detail', 'log', 'error', 'started_at', 'finished_at']
+        fields = ['id', 'case', 'case_title', 'session', 'environment', 'environment_name',
+                  'status', 'result_detail', 'log', 'error', 'started_at', 'finished_at']
 
 
 class AutomationExecutionSessionSerializer(serializers.ModelSerializer):
