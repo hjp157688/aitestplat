@@ -29,6 +29,14 @@
               </span>
             </el-form-item>
 
+            <el-form-item :label="$t('uiAutomation.ai.cdpUrl')">
+              <el-input
+                v-model="taskForm.cdpUrl"
+                :placeholder="$t('uiAutomation.ai.cdpUrlPlaceholder')"
+                clearable
+              />
+            </el-form-item>
+
             <el-form-item>
               <el-button
                 type="primary"
@@ -158,7 +166,8 @@ const logContainer = ref(null)
 
 const taskForm = reactive({
   description: '',
-  enableGif: true  // GIF录制开关，默认开启
+  enableGif: true,  // GIF录制开关，默认开启
+  cdpUrl: ''  // 远端浏览器 CDP 地址；留空则服务器本机启动浏览器
 })
 
 const showSaveDialog = ref(false)
@@ -183,7 +192,8 @@ const handleRun = async () => {
     const response = await runAdhocAITask({
       task_description: taskForm.description,
       execution_mode: 'text',  // 始终使用文本模式
-      enable_gif: taskForm.enableGif  // 传递GIF录制开关状态
+      enable_gif: taskForm.enableGif,  // 传递GIF录制开关状态
+      cdp_url: taskForm.cdpUrl || undefined  // 远端浏览器 CDP 地址（用户本地 Chrome 经隧道暴露）
     })
 
     // analyzing.value = false // 移除过早设置，改为在轮询获取到任务列表后再取消

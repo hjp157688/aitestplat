@@ -198,6 +198,10 @@ export function getAutomationExecutions(params) {
   return request({ url: '/requirement-analysis/automation-executions/', method: 'get', params })
 }
 
+export function deleteAutomationExecution(id) {
+  return request({ url: `/requirement-analysis/automation-executions/${id}/`, method: 'delete' })
+}
+
 export function getAutomationSession(id) {
   return request({ url: `/requirement-analysis/automation-execution-sessions/${id}/`, method: 'get' })
 }

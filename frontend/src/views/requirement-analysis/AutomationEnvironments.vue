@@ -19,6 +19,9 @@
         <el-table :data="environments" v-loading="loading">
           <el-table-column prop="name" :label="t('automation.envName')" min-width="160" />
           <el-table-column prop="base_url" :label="t('automation.baseUrl')" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="cdp_url" :label="t('automation.cdpUrl')" min-width="180" show-overflow-tooltip>
+            <template #default="{ row }">{{ row.cdp_url || '-' }}</template>
+          </el-table-column>
           <el-table-column prop="login_url" :label="t('automation.loginUrl')" min-width="200" show-overflow-tooltip />
           <el-table-column prop="username" :label="t('automation.username')" width="140" />
           <el-table-column :label="t('automation.password')" width="110">
@@ -50,6 +53,9 @@
         <el-form-item :label="t('automation.baseUrl')">
           <el-input v-model="form.base_url" placeholder="https://demo.example.com" />
         </el-form-item>
+        <el-form-item :label="t('automation.cdpUrl')">
+          <el-input v-model="form.cdp_url" :placeholder="t('automation.cdpUrlPlaceholder')" clearable />
+        </el-form-item>
         <el-form-item :label="t('automation.loginUrl')">
           <el-input v-model="form.login_url" :placeholder="t('automation.notRequired')" />
         </el-form-item>
@@ -75,6 +81,12 @@
         </el-form-item>
         <el-form-item :label="t('automation.active')">
           <el-switch v-model="form.is_active" />
+        </el-form-item>
+        <el-form-item :label="t('automation.enableScreenshot')">
+          <div class="screenshot-switch">
+            <el-switch v-model="form.enable_screenshot" />
+            <span class="screenshot-hint">{{ t('automation.enableScreenshotHint') }}</span>
+          </div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -108,8 +120,8 @@ const showDialog = ref(false)
 const saving = ref(false)
 const editingId = ref(null)
 const emptyForm = () => ({
-  name: '', base_url: '', login_url: '', username: '', password: '',
-  variables: [], is_active: true,
+  name: '', base_url: '', cdp_url: '', login_url: '', username: '', password: '',
+  variables: [], is_active: true, enable_screenshot: true,
 })
 const form = ref(emptyForm())
 
@@ -141,7 +153,12 @@ const openCreate = () => {
 
 const openEdit = (row) => {
   editingId.value = row.id
-  form.value = { ...row, password: '', variables: (row.variables || []).map(v => ({ ...v })) }
+  form.value = {
+    ...row,
+    password: '',
+    variables: (row.variables || []).map(v => ({ ...v })),
+    enable_screenshot: row.enable_screenshot !== false,
+  }
   showDialog.value = true
 }
 
@@ -185,4 +202,6 @@ onMounted(loadProjects)
 <style scoped>
 .var-editor { width: 100%; }
 .var-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.screenshot-switch { display: flex; align-items: center; gap: 10px; }
+.screenshot-hint { font-size: 12px; color: var(--el-text-color-secondary); }
 </style>

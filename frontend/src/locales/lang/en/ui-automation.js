@@ -467,6 +467,8 @@ export default {
     on: 'On',
     off: 'Off',
     gifTip: 'When enabled, the execution process will be recorded as a GIF file and saved to ai_agent_history directory',
+    cdpUrl: 'Browser CDP URL',
+    cdpUrlPlaceholder: 'Leave empty to launch a browser on the server; or a local Chrome CDP address (via tunnel), e.g. http://127.0.0.1:9222',
     startExecution: 'Start Execution',
     stopExecution: 'Stop Execution',
     saveAsCase: 'Save as Case',

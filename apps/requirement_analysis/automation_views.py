@@ -3,7 +3,7 @@ import logging
 
 from django.db import transaction
 from django.db.models import Q
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -231,7 +231,9 @@ class AutomationCaseViewSet(viewsets.ModelViewSet):
         return Response({'session_id': session_id}, status=status.HTTP_202_ACCEPTED)
 
 
-class AutomationExecutionViewSet(viewsets.ReadOnlyModelViewSet):
+class AutomationExecutionViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):
+    """执行记录：只读 + 单条删除（清理不需要的历史记录）。"""
+
     queryset = AutomationExecution.objects.select_related('case', 'environment', 'session')
     serializer_class = AutomationExecutionSerializer
 
@@ -243,6 +245,19 @@ class AutomationExecutionViewSet(viewsets.ReadOnlyModelViewSet):
         if params.get('session'):
             queryset = queryset.filter(session_id=params['session'])
         return queryset
+
+    def perform_destroy(self, instance):
+        case_id = instance.case_id
+        instance.delete()
+        # 成功路径记忆 / 失败总结源自执行记录；对应记录删光后同步清空，
+        # 否则记录清空后下次执行仍注入历史记忆，不等价于第一次执行
+        updates = {}
+        if not AutomationExecution.objects.filter(case_id=case_id, status='success').exists():
+            updates['success_trace'] = []
+        if not AutomationExecution.objects.filter(case_id=case_id, status='failed').exists():
+            updates['last_failure_summary'] = ''
+        if updates:
+            AutomationCase.objects.filter(pk=case_id).update(**updates)
 
 
 class AutomationExecutionSessionViewSet(viewsets.ReadOnlyModelViewSet):

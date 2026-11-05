@@ -529,7 +529,8 @@ class AutomationEnvironmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = AutomationEnvironment
         fields = ['id', 'project', 'name', 'base_url', 'login_url', 'username', 'password',
-                  'has_password', 'variables', 'is_active', 'description', 'created_at', 'updated_at']
+                  'has_password', 'variables', 'is_active', 'description',
+                  'enable_screenshot', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
 
     def get_has_password(self, obj):
@@ -563,9 +564,11 @@ class AutomationCaseSerializer(serializers.ModelSerializer):
         fields = ['id', 'project', 'project_name', 'requirement', 'requirement_title',
                   'source_generated_case', 'source_test_case', 'source_type', 'title',
                   'precondition', 'steps', 'convert_status', 'convert_error',
+                  'last_failure_summary', 'success_trace',
                   'created_at', 'updated_at', 'last_execution']
         read_only_fields = ['project', 'requirement', 'source_generated_case', 'source_test_case',
-                            'convert_status', 'convert_error', 'created_at', 'updated_at']
+                            'convert_status', 'convert_error', 'last_failure_summary',
+                            'success_trace', 'created_at', 'updated_at']
 
     def get_source_type(self, obj):
         return obj.source_type

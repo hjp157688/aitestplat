@@ -77,25 +77,38 @@
 
     <!-- 编辑步骤 -->
     <el-dialog v-model="showEdit" :title="t('automation.editSteps')" width="820px">
-      <el-form label-width="90px">
+      <el-form ref="editFormRef" label-width="90px">
         <el-form-item :label="t('automation.casesTitle')">
           <el-input v-model="editing.title" />
         </el-form-item>
         <el-form-item :label="t('automation.precondition')">
           <el-input v-model="editing.precondition" type="textarea" :rows="2" />
         </el-form-item>
+        <el-form-item v-if="editing.steps.length" label=" ">
+          <div class="step-header">
+            <span class="action-input">{{ t('automation.actionLabel') }}</span>
+            <span class="verify-input">{{ t('automation.verifyLabel') }}</span>
+            <span class="col-op"></span>
+          </div>
+        </el-form-item>
         <el-form-item v-for="(s, idx) in editing.steps" :key="idx"
           :label="`${idx + 1}.`">
           <div class="step-row">
-            <el-input v-model="s.action" type="textarea" :autosize="{ minRows: 1 }"
-              :placeholder="t('automation.actionLabel')" />
-            <el-input v-model="s.verify" :placeholder="t('automation.verifyLabel')" style="width: 240px" />
-            <el-button link type="danger" @click="editing.steps.splice(idx, 1)">✕</el-button>
+            <el-input v-model="s.action" type="textarea" :rows="1"
+              class="action-input" :placeholder="t('automation.actionLabel')"
+              @input="syncStepHeights" />
+            <el-input v-model="s.verify" type="textarea" :rows="1"
+              :placeholder="t('automation.verifyLabel')" class="verify-input"
+              @input="syncStepHeights" />
+            <el-button link type="danger" class="del-btn"
+              @click="editing.steps.splice(idx, 1)">✕</el-button>
           </div>
         </el-form-item>
-        <el-button link type="primary" @click="editing.steps.push({ action: '', verify: '' })">
-          {{ t('automation.addStep') }}
-        </el-button>
+        <el-form-item label=" ">
+          <el-button link type="primary" @click="editing.steps.push({ action: '', verify: '' })">
+            {{ t('automation.addStep') }}
+          </el-button>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showEdit = false">{{ t('automation.cancel') }}</el-button>
@@ -121,31 +134,60 @@
     <el-drawer v-model="showRecords" :title="t('automation.records')" size="60%">
       <el-table :data="records" v-loading="recordsLoading">
         <el-table-column prop="id" label="ID" width="70" />
-        <el-table-column :label="t('automation.convertStatus')" width="100">
+        <el-table-column :label="t('automation.execStatus')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="execTagType(row.status)">{{ execLabel(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="environment_name" :label="t('automation.environment')" width="140" />
-        <el-table-column prop="error" :label="t('automation.loginFailed')" show-overflow-tooltip />
+        <el-table-column prop="error" :label="t('automation.errorInfo')" show-overflow-tooltip />
         <el-table-column prop="started_at" :label="t('automation.lastExecution')" width="170" />
         <el-table-column :label="t('automation.executionLog')" width="90">
           <template #default="{ row }">
             <el-button link type="primary" @click="viewLog(row)">{{ t('automation.records') }}</el-button>
           </template>
         </el-table-column>
+        <el-table-column :label="t('automation.actions')" width="80">
+          <template #default="{ row }">
+            <el-button link type="danger" @click="removeRecord(row)">{{ t('automation.delete') }}</el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-drawer>
 
-    <!-- 日志对话框 -->
-    <el-dialog v-model="showLog" :title="t('automation.executionLog')" width="720px">
-      <pre class="log-view">{{ currentLog }}</pre>
+    <!-- 日志对话框：结构化时间线 + 原始日志切换 -->
+    <el-dialog v-model="showLog" :title="t('automation.executionLog')" width="820px">
+      <div v-if="currentDetail.length" class="log-toolbar">
+        <el-radio-group v-model="logViewMode" size="small">
+          <el-radio-button value="timeline">{{ t('automation.timelineView') }}</el-radio-button>
+          <el-radio-button value="raw">{{ t('automation.rawLogView') }}</el-radio-button>
+        </el-radio-group>
+      </div>
+      <el-timeline v-if="logViewMode === 'timeline' && currentDetail.length" class="step-timeline">
+        <el-timeline-item v-for="step in currentDetail" :key="step.index"
+          :type="step.error ? 'danger' : 'success'"
+          :timestamp="stepTimestamp(step)">
+          <div class="step-card">
+            <div class="step-actions">
+              <span v-for="(a, i) in step.actions" :key="i" class="step-action">{{ a }}</span>
+              <span v-if="!step.actions.length" class="step-action muted">-</span>
+            </div>
+            <div v-if="step.url" class="step-url">{{ step.title ? `${step.title} · ` : '' }}{{ step.url }}</div>
+            <div v-if="step.thinking || step.evaluation || step.next_goal" class="step-thinking">
+              {{ step.thinking || step.evaluation || step.next_goal }}
+            </div>
+            <div v-if="step.result" class="step-result">{{ step.result }}</div>
+            <div v-if="step.error" class="step-error">{{ step.error }}</div>
+          </div>
+        </el-timeline-item>
+      </el-timeline>
+      <pre v-else class="log-view">{{ currentLog }}</pre>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -159,6 +201,7 @@ import {
   batchExecuteAutomationCases,
   getAutomationEnvironments,
   getAutomationExecutions,
+  deleteAutomationExecution,
   getAutomationSession,
 } from '@/api/requirement-analysis'
 
@@ -234,6 +277,23 @@ const openEdit = (row) => {
     steps: (row.steps || []).map(s => ({ action: s.action, verify: s.verify })),
   }
   showEdit.value = true
+  syncStepHeights()
+}
+
+// 同一行「操作步骤 / 预期结果」两个输入框高度取较大者，保持等高
+const editFormRef = ref(null)
+const syncStepHeights = () => {
+  nextTick(() => {
+    const root = editFormRef.value?.$el
+    if (!root) return
+    root.querySelectorAll('.step-row').forEach(row => {
+      const areas = row.querySelectorAll('textarea')
+      if (areas.length < 2) return
+      areas.forEach(t => { t.style.height = 'auto' })
+      const h = Math.max(...Array.from(areas).map(t => t.scrollHeight))
+      areas.forEach(t => { t.style.height = `${h}px` })
+    })
+  })
 }
 
 const saveEdit = async () => {
@@ -307,11 +367,15 @@ onBeforeUnmount(stopPolling)
 const showRecords = ref(false)
 const records = ref([])
 const recordsLoading = ref(false)
+const currentRecordCase = ref(null)
 const showLog = ref(false)
 const currentLog = ref('')
+const currentDetail = ref([])
+const logViewMode = ref('timeline')
 
 const openRecords = async (row) => {
   showRecords.value = true
+  currentRecordCase.value = row
   recordsLoading.value = true
   try {
     const { data } = await getAutomationExecutions({ case: row.id })
@@ -321,7 +385,30 @@ const openRecords = async (row) => {
   }
 }
 
-const viewLog = (row) => { currentLog.value = row.log || row.error || '-'; showLog.value = true }
+const removeRecord = async (row) => {
+  try {
+    await ElMessageBox.confirm(t('automation.deleteExecConfirm'), t('automation.delete'), {
+      type: 'warning',
+    })
+  } catch {
+    return
+  }
+  await deleteAutomationExecution(row.id)
+  ElMessage.success(t('automation.saveSuccess'))
+  if (currentRecordCase.value) await openRecords(currentRecordCase.value)
+  await loadCases()
+}
+
+const viewLog = (row) => {
+  currentLog.value = row.log || row.error || '-'
+  currentDetail.value = Array.isArray(row.result_detail) ? row.result_detail : []
+  logViewMode.value = currentDetail.value.length ? 'timeline' : 'raw'
+  showLog.value = true
+}
+const stepTimestamp = (step) => {
+  const duration = step.duration != null ? ` · ${Number(step.duration).toFixed(1)}s` : ''
+  return `${t('automation.stepLabel')} ${step.index}${duration}`
+}
 
 // ---------- 其他 ----------
 const batchRetryConvert = async () => {
@@ -355,7 +442,32 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.step-row { display: flex; gap: 8px; width: 100%; }
+.step-header { display: flex; gap: 8px; width: 100%; font-size: 12px; color: var(--el-text-color-secondary); }
+.step-header .action-input,
+.step-row .action-input { flex: 1; }
+.step-header .verify-input,
+.step-row .verify-input { flex: 1; }
+.step-header .col-op { width: 21px; }
+.step-row { display: flex; gap: 8px; width: 100%; align-items: flex-start; }
+.step-row textarea { resize: none; }
+.step-row .del-btn { margin-top: 4px; width: 21px; }
 .log-view { max-height: 480px; overflow: auto; white-space: pre-wrap; margin: 0; }
 .env-empty { color: var(--el-color-warning); margin-top: 8px; font-size: 13px; }
+.log-toolbar { margin-bottom: 14px; }
+.step-timeline { max-height: 520px; overflow: auto; padding-left: 4px; }
+.step-card { display: flex; flex-direction: column; gap: 4px; }
+.step-action {
+  display: inline-block;
+  background: var(--el-fill-color-light);
+  border-radius: 4px;
+  padding: 1px 8px;
+  margin-right: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+}
+.step-action.muted { color: var(--el-text-color-placeholder); }
+.step-url { font-size: 12px; color: var(--el-text-color-secondary); word-break: break-all; }
+.step-thinking { font-size: 12.5px; color: var(--el-text-color-secondary); }
+.step-result { font-size: 12.5px; color: var(--el-text-color-regular); white-space: pre-wrap; }
+.step-error { font-size: 12.5px; color: var(--el-color-danger); white-space: pre-wrap; }
 </style>

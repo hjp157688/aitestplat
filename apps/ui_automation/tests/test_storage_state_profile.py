@@ -1,5 +1,7 @@
 """BrowserProfile 注入 storage_state 的测试（不真正启动浏览器）。"""
 import asyncio
+import json
+import os
 from types import SimpleNamespace
 from unittest import mock
 
@@ -51,12 +53,32 @@ class StorageStateProfileTests(TestCase):
     def test_profile_includes_storage_state_when_given(self):
         agent = _bare_agent({'cookies': [], 'origins': []})
         profile = agent._create_browser_profile()
-        self.assertEqual(profile.storage_state, {'cookies': [], 'origins': []})
+        # browser-use 0.10.1 只认文件路径：dict 会被 StorageStateWatchdog 的
+        # os.path.exists 静默跳过，登录态从不注入 → 用例被迫重新登录。
+        # dict 必须落成临时 JSON 文件后传路径。
+        state = profile.storage_state
+        self.assertIsInstance(state, str)
+        self.assertTrue(os.path.exists(state))
+        with open(state, encoding='utf-8') as f:
+            self.assertEqual(json.load(f), {'cookies': [], 'origins': []})
 
     def test_profile_without_storage_state_unchanged(self):
         agent = _bare_agent(None)
         profile = agent._create_browser_profile()
         self.assertIsNone(profile.storage_state)
+
+    def test_profile_storage_state_path_passthrough(self):
+        """已是文件路径的 storage_state 原样透传，不重复落盘。"""
+        import tempfile
+        fd, path = tempfile.mkstemp(suffix='.json')
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            json.dump({'cookies': [{'name': 'sid'}]}, f)
+        try:
+            agent = _bare_agent(path)
+            profile = agent._create_browser_profile()
+            self.assertEqual(profile.storage_state, path)
+        finally:
+            os.unlink(path)
 
     def test_export_storage_state_from_session(self):
         agent = _bare_agent(None)
@@ -164,3 +186,68 @@ class RunTaskSessionHandoffTests(TestCase):
 
         # 异常路径：旧会话已重置，不会误读上一次执行的登录态
         self.assertIsNone(agent.browser_session)
+
+
+class RunTaskScreenshotSkipTests(TestCase):
+    """环境级截图开关：enable_screenshot=False 时，run_task 创建的 Agent
+    打上 _skip_step_screenshot 标记（经模块级补丁跳过逐页截图）。"""
+
+    def test_skip_flag_set_when_screenshot_disabled(self):
+        from apps.ui_automation import ai_base as ai_base_module
+
+        class FakeAgent:
+            def __init__(self, **kwargs):
+                self.browser_session = None
+                self.history = SimpleNamespace(steps=[])
+                self.flags = []
+
+            async def run(self, max_steps=None, on_step_end=None):
+                return self.history
+
+        created = []
+
+        class CapturingAgent(FakeAgent):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self.kwargs = kwargs
+                created.append(self)
+
+        agent = _make_bare_agent_for_run_task()
+        agent.enable_screenshot = False
+        with mock.patch.object(ai_base_module, 'Agent', CapturingAgent), \
+                mock.patch.object(ai_base_module, 'Controller', _FakeController):
+            asyncio.run(agent.run_task('做点什么'))
+        self.assertEqual(len(created), 1)
+        self.assertTrue(created[0]._skip_step_screenshot)
+        # 截图关闭时 GIF 一并停用
+        self.assertFalse(created[0].kwargs.get('generate_gif'))
+
+
+class CdpSetCookiesPatchTests(TestCase):
+    """browser-use 0.10.1 的 _cdp_set_cookies 在无 focus target（浏览器刚启动、
+    还没有标签页，watchdog 此时加载登录态）时静默 return，登录态被丢弃。
+    ai_base 补丁后应改用 root CDP client 设置 cookie，与 focus 无关。"""
+
+    def _fake_session(self, focus=None):
+        calls = []
+
+        async def set_cookies(params=None, session_id=None):
+            calls.append(params)
+
+        root = SimpleNamespace(send=SimpleNamespace(
+            Storage=SimpleNamespace(setCookies=set_cookies)))
+        return SimpleNamespace(agent_focus_target_id=focus, cdp_client=root), calls
+
+    def test_set_cookies_without_focus_still_applies(self):
+        from browser_use.browser.session import BrowserSession
+        session, calls = self._fake_session(focus=None)
+        cookies = [{'name': 'JSESSIONID', 'value': 'x', 'domain': '192.168.177.51'}]
+        asyncio.run(BrowserSession._cdp_set_cookies(session, cookies))
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]['cookies'], cookies)
+
+    def test_set_cookies_empty_noop(self):
+        from browser_use.browser.session import BrowserSession
+        session, calls = self._fake_session(focus=None)
+        asyncio.run(BrowserSession._cdp_set_cookies(session, []))
+        self.assertEqual(calls, [])

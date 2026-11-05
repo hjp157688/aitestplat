@@ -655,6 +655,12 @@ class AutomationCase(models.Model):
     title = models.CharField(max_length=300, verbose_name='用例标题')
     precondition = models.TextField(blank=True, default='', verbose_name='前置条件')
     steps = models.JSONField(default=list, blank=True, verbose_name='自动化操作步骤')
+    last_failure_summary = models.TextField(
+        blank=True, default='', verbose_name='最近一次失败原因总结',
+        help_text='执行失败后由 AI 总结，下次执行注入任务描述；执行成功后清空')
+    success_trace = models.JSONField(
+        default=list, blank=True, verbose_name='最近成功执行路径',
+        help_text='执行成功时记录的动作序列（每步 URL + 动作），下次执行注入任务描述供参考')
     convert_status = models.CharField(max_length=20, choices=CONVERT_STATUS_CHOICES,
                                       default='processing', verbose_name='转写状态')
     convert_error = models.TextField(blank=True, default='', verbose_name='转写失败原因')
@@ -688,6 +694,12 @@ class AutomationEnvironment(models.Model):
                                 related_name='automation_environments', verbose_name='所属项目')
     name = models.CharField(max_length=100, verbose_name='环境名称')
     base_url = models.CharField(max_length=500, blank=True, default='', verbose_name='系统地址')
+    cdp_url = models.CharField(max_length=500, blank=True, default='',
+                               verbose_name='浏览器CDP地址',
+                               help_text='远端浏览器 CDP 地址（如用户本地 Chrome 经隧道暴露的 http://127.0.0.1:9222）；留空则在服务器本机启动浏览器')
+    enable_screenshot = models.BooleanField(
+        default=True, verbose_name='执行时截图',
+        help_text='关闭后执行过程不逐页截图、不生成 GIF，速度更快内存更省（不影响文本模式 AI 判断）')
     login_url = models.CharField(max_length=500, blank=True, default='', verbose_name='登录页地址')
     username = models.CharField(max_length=200, blank=True, default='', verbose_name='登录账号')
     password = models.CharField(max_length=200, blank=True, default='', verbose_name='登录密码')

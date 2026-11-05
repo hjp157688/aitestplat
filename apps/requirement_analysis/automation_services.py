@@ -109,10 +109,157 @@ def render_text(text, context):
     return PLACEHOLDER_RE.sub(lambda m: str(context.get(m.group(1), m.group(0))), str(text or ''))
 
 
-def build_case_task_description(case, environment):
-    """把自动化用例渲染成 browser-use 的完整任务描述。"""
+SUCCESS_TRACE_MAX_CHARS = 2000
+
+# 成功路径记忆里排除的非浏览器动作：不描述页面操作，注入任务描述没有意义
+_TRACE_EXCLUDED_ACTIONS = {
+    'done', 'mark_task_complete', 'mark_task_failed', 'mark_task_skipped',
+    'update_task_status',
+}
+
+
+def format_browser_action(action_dict):
+    """把单个 browser-use 动作 dict 格式化成中文短句（沿用执行日志的风格）。"""
+    for name, params in (action_dict or {}).items():
+        if params is None and name not in ('scroll_down', 'scroll_up', 'wait'):
+            continue
+        p = params if isinstance(params, dict) else {}
+        if name in ('go_to_url', 'navigate'):
+            return f"访问: {p.get('url')}"
+        if name in ('click_element', 'click'):
+            return f"点击[{p.get('index')}]"
+        if name in ('input_text', 'input'):
+            text = p.get('text')
+            return f"输入: '{text}'"
+        if name == 'select_dropdown_option':
+            return f"选择: {p.get('text')}"
+        if name == 'done':
+            return '任务完成' if p.get('success') else '任务失败'
+        if name in ('scroll_down', 'scroll_up'):
+            return '下滚' if name == 'scroll_down' else '上滚'
+        if name == 'wait':
+            return f"等待 {p.get('seconds', '')}秒".strip()
+        if name == 'switch_tab':
+            return f"切换标签[{p.get('tab_id')}]"
+        if name == 'close_tab':
+            return '关闭标签页'
+        if name == 'open_new_tab':
+            return '新建标签页'
+        return f"{name}: {json.dumps(params, ensure_ascii=False)[:80]}"
+    return ''
+
+
+def _iter_history_steps(history):
+    """兼容 AgentHistoryList（.history）与普通 list 两种历史形态。"""
+    steps = getattr(history, 'history', None)
+    if steps is None:
+        steps = history if isinstance(history, (list, tuple)) else []
+    return steps
+
+
+def extract_execution_detail(history):
+    """把执行历史转成结构化步骤列表，供前端时间线渲染。
+
+    每步：{index, url, title, actions, thinking, evaluation, next_goal,
+    error, result, duration}。无 model_output 的步骤（如初始导航）也保留，
+    只回填已知字段。
+    """
+    detail = []
+    for i, step in enumerate(_iter_history_steps(history), start=1):
+        output = getattr(step, 'model_output', None)
+        state = getattr(step, 'state', None)
+        metadata = getattr(step, 'metadata', None)
+        actions = []
+        thinking = evaluation = next_goal = ''
+        if output is not None:
+            thinking = getattr(output, 'thinking', '') or ''
+            evaluation = getattr(output, 'evaluation_previous_goal', '') or ''
+            next_goal = getattr(output, 'next_goal', '') or ''
+            for action in (getattr(output, 'action', None) or []):
+                dump = action.model_dump() if hasattr(action, 'model_dump') else {}
+                formatted = format_browser_action(dump)
+                if formatted:
+                    actions.append(formatted)
+        error = ''
+        result_text = ''
+        for r in (getattr(step, 'result', None) or []):
+            error = error or (getattr(r, 'error', None) or '')
+            result_text = result_text or (getattr(r, 'extracted_content', None) or '')
+        entry = {
+            'index': i,
+            'url': getattr(state, 'url', '') or '',
+            'title': getattr(state, 'title', '') or '',
+            'actions': actions,
+            'thinking': thinking,
+            'evaluation': evaluation,
+            'next_goal': next_goal,
+            'error': error,
+            'result': result_text,
+            'duration': getattr(metadata, 'duration_seconds', None),
+        }
+        detail.append(entry)
+    return detail
+
+
+def extract_success_trace(history):
+    """提取成功路径记忆：[{url, actions: [格式化动作]}]，只保留有浏览器动作的步骤。"""
+    trace = []
+    for step in _iter_history_steps(history):
+        output = getattr(step, 'model_output', None)
+        if output is None:
+            continue
+        actions = []
+        for action in (getattr(output, 'action', None) or []):
+            dump = action.model_dump() if hasattr(action, 'model_dump') else {}
+            if not dump or (_TRACE_EXCLUDED_ACTIONS & set(dump.keys())):
+                continue
+            formatted = format_browser_action(dump)
+            if formatted:
+                actions.append(formatted)
+        if not actions:
+            continue
+        state = getattr(step, 'state', None)
+        trace.append({
+            'url': getattr(state, 'url', '') or '',
+            'actions': actions,
+        })
+    return trace
+
+
+def render_success_trace(trace, max_chars=SUCCESS_TRACE_MAX_CHARS):
+    """把成功执行路径渲染成任务描述里的参考文本，超长截断。"""
+    lines = []
+    for item in (trace or []):
+        url = (item.get('url') or '').strip()
+        actions = [a for a in (item.get('actions') or []) if a]
+        if not url and not actions:
+            continue
+        prefix = f'  页面 {url}:\n' if url else ''
+        lines.append(prefix + '\n'.join(f'    {a}' for a in actions))
+    text = '\n'.join(lines)
+    if len(text) > max_chars:
+        text = text[:max_chars] + '\n  （超长截断，仅供参考）'
+    return text
+
+
+def build_case_task_description(case, environment, logged_in=False):
+    """把自动化用例渲染成 browser-use 的完整任务描述。
+
+    带上次失败总结（失败后 AI 总结、成功后清除）或成功路径记忆
+    （成功后覆盖记录）时，注入对应参考段，帮助 agent 少走弯路。
+    logged_in=True（会话级登录已完成）时注入跳过登录指令，避免
+    会话登录 + 用例自带登录步骤重复登录。
+    """
     context = build_environment_context(environment)
     lines = []
+    if logged_in:
+        lines.append(
+            '注意：当前浏览器已完成登录，无需再登录。若步骤中包含「打开登录页/'
+            '输入账号密码/点击登录」之类的登录操作，直接跳过该步骤，'
+            '从登录后的主页继续执行后续步骤；不要访问登录页，也不要注销或重复登录。')
+    failure_summary = (case.last_failure_summary or '').strip()
+    if failure_summary:
+        lines.append(f'上次执行失败原因（务必避免重蹈覆辙）：{failure_summary}')
     if case.precondition:
         lines.append(f'前置条件：{render_text(case.precondition, context)}')
     for step in (case.steps or []):
@@ -121,6 +268,11 @@ def build_case_task_description(case, environment):
         if verify:
             line += f'\n   完成后验证：{verify}'
         lines.append(line)
+    trace_text = render_success_trace(case.success_trace)
+    if trace_text:
+        lines.append(
+            '上次成功执行路径参考（尽量复用同样的元素与操作顺序，元素序号可能变化，'
+            '按元素语义定位）：\n' + trace_text)
     return '\n'.join(lines)
 
 

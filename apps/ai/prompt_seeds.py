@@ -219,7 +219,7 @@ PROMPT_SEEDS_TYPES = (
     'writer', 'reviewer', 'requirement_parse',
     'api_testcase_generator', 'browser_use_task', 'browser_use_breakdown',
     'testcase_modifier', 'testcase_supplement',
-    'automation_case_converter',
+    'automation_case_converter', 'automation_failure_summary',
 )
 
 # ---------------------------------------------------------------------------
@@ -274,6 +274,14 @@ AUTOMATION_CASE_CONVERTER_FALLBACK = """你是资深 Web 自动化测试工程�
 5. 只输出 JSON 数组，不要输出任何解释、markdown 围栏或多余文字，格式：
 [{"action": "具体操作指令", "verify": "验证点或空字符串"}]"""
 
+AUTOMATION_FAILURE_SUMMARY_FALLBACK = """你是资深 Web 自动化测试工程师。一条自动化用例由 AI 浏览器智能体执行后失败了，请根据用例信息和执行日志总结失败原因。
+
+要求：
+1. 用 2-4 句话总结，聚焦根因：是元素定位失败、页面结构与预期不符、数据/前置条件问题，还是系统本身缺陷。
+2. 给出下次执行的避坑建议（例如「点击应改点可见的提交按钮而非隐藏元素」「该输入框需先点击触发下拉」）。
+3. 不要复述执行日志原文，不要输出 markdown 标题或列表符号，直接输出纯文本总结。"""
+
+
 SEEDS = {
     'writer': {
         'name': '默认用例编写提示词',
@@ -312,6 +320,10 @@ SEEDS = {
     'automation_case_converter': {
         'name': '功能用例转自动化操作步骤提示词',
         'fallback': AUTOMATION_CASE_CONVERTER_FALLBACK,
+    },
+    'automation_failure_summary': {
+        'name': '自动化用例失败原因总结提示词',
+        'fallback': AUTOMATION_FAILURE_SUMMARY_FALLBACK,
     },
 }
 
