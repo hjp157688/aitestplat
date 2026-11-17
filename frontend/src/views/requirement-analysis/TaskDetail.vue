@@ -1,36 +1,37 @@
 <template>
-  <div class="task-detail">
-    <div class="page-header">
-      <div class="header-left">
-        <h2 class="page-title">{{ $t('taskDetail.title') }} <span v-if="task.title">- {{ task.title }}</span></h2>
-        <div class="task-info">
-          <span class="task-id">{{ $t('taskDetail.taskId') }}: {{ taskId }}</span>
-          <span class="task-status" :class="task.status">{{ getStatusText(task.status) }}</span>
-          <span
-            v-if="task.granularity"
-            class="task-chip"
-            :title="task.granularity === 'coarse'
-              ? $t('requirementAnalysis.granularityCoarseHint')
-              : (task.granularity === 'fine'
-                ? $t('requirementAnalysis.granularityFineHint')
-                : $t('requirementAnalysis.granularityMediumHint'))">
-            {{ $t('requirementAnalysis.granularityDisplay') }}：{{ task.granularity_display || task.granularity }}
-          </span>
-          <span v-if="task.case_type" class="task-chip">
-            {{ $t('requirementAnalysis.caseTypeLabel') }}：{{ task.case_type }}
-          </span>
-        </div>
-      </div>
-      <div class="header-actions">
-        <button
+  <div class="page-container task-detail">
+    <PageHeader :title="$t('taskDetail.title')" :desc="task.title">
+      <template #actions>
+        <el-button
           v-if="testCases.length > 0"
-          class="export-btn"
+          type="primary"
+          plain
           @click="exportToExcel"
-          :disabled="isExporting">
-          <span v-if="isExporting">{{ $t('taskDetail.exporting') }}</span>
-          <span v-else>{{ $t('taskDetail.exportBtn') }}</span>
-        </button>
-      </div>
+          :loading="isExporting">
+          {{ $t('taskDetail.exportBtn') }}
+        </el-button>
+      </template>
+    </PageHeader>
+
+    <div class="task-info">
+      <span class="task-id">{{ $t('taskDetail.taskId') }}: {{ taskId }}</span>
+      <span class="status-tag" :class="task.status">
+        <span class="status-tag__dot"></span>
+        {{ getStatusText(task.status) }}
+      </span>
+      <span
+        v-if="task.granularity"
+        class="task-chip"
+        :title="task.granularity === 'coarse'
+          ? $t('requirementAnalysis.granularityCoarseHint')
+          : (task.granularity === 'fine'
+            ? $t('requirementAnalysis.granularityFineHint')
+            : $t('requirementAnalysis.granularityMediumHint'))">
+        {{ $t('requirementAnalysis.granularityDisplay') }}：{{ task.granularity_display || task.granularity }}
+      </span>
+      <span v-if="task.case_type" class="task-chip">
+        {{ $t('requirementAnalysis.caseTypeLabel') }}：{{ task.case_type }}
+      </span>
     </div>
 
     <!-- 需求描述折叠卡片 -->
@@ -177,84 +178,82 @@
       <!-- 批量操作区域 -->
       <div class="batch-actions" v-if="testCases.length > 0">
         <div class="selection-info">
-          <label class="select-all">
-            <input
-              type="checkbox"
-              :checked="isAllSelected"
-              @change="toggleSelectAll">
-            {{ $t('taskDetail.selectAll') }}
-          </label>
           <span class="selected-count" v-if="selectedCases.length > 0">
             {{ $t('taskDetail.selectedCount', { count: selectedCases.length }) }}
           </span>
         </div>
         <div class="batch-buttons">
-          <button
-            class="batch-adopt-btn"
+          <el-button
+            type="success"
             :disabled="selectedCases.length === 0"
             @click="batchAdopt">
             {{ $t('taskDetail.batchAdopt', { count: selectedCases.length }) }}
-          </button>
-          <button
-            class="batch-discard-btn"
+          </el-button>
+          <el-button
+            type="warning"
+            :disabled="selectedCases.length === 0"
+            @click="batchConvertToAutomation">
+            {{ $t('automation.convertBtn') }} ({{ selectedCases.length }})
+          </el-button>
+          <el-button
+            type="danger"
+            plain
             :disabled="selectedCases.length === 0"
             @click="batchDiscard">
             {{ $t('taskDetail.batchDiscard', { count: selectedCases.length }) }}
-          </button>
+          </el-button>
         </div>
       </div>
 
       <!-- 测试用例列表 -->
       <div class="testcases-table" v-if="testCases.length > 0">
-        <div class="table-header">
-          <div class="header-cell checkbox-cell">{{ $t('taskDetail.tableSelect') }}</div>
-          <div class="header-cell">{{ $t('taskDetail.tableCaseId') }}</div>
-          <div class="header-cell">{{ $t('taskDetail.tableScenario') }}</div>
-          <div class="header-cell">{{ $t('taskDetail.tablePrecondition') }}</div>
-          <div class="header-cell">{{ $t('taskDetail.tableSteps') }}</div>
-          <div class="header-cell">{{ $t('taskDetail.tableExpected') }}</div>
-          <div class="header-cell">{{ $t('taskDetail.tablePriority') }}</div>
-          <div class="header-cell">{{ $t('taskDetail.tableActions') }}</div>
-        </div>
-
-        <div class="table-body">
-          <div
-            v-for="(testCase, index) in paginatedTestCases"
-            :key="testCase.id || index"
-            class="table-row"
-            :class="{ selected: isCaseSelected(testCase) }">
-            <div class="body-cell checkbox-cell">
-              <input
-                type="checkbox"
-                :value="testCase"
-                v-model="selectedCases"
-                @change="updateSelectAll">
-            </div>
-            <div class="body-cell">{{ testCase.caseId || `TC${String(index + 1).padStart(3, '0')}` }}</div>
-            <div class="body-cell">{{ testCase.scenario }}</div>
-            <div class="body-cell text-truncate">
-              {{ formatTextForList(testCase.precondition) }}
-            </div>
-            <!-- 操作步骤列：仅展示步骤描述（编号 + 描述），预期移入预期列，不再混入 -->
-            <div class="body-cell text-truncate text-clamp-5" :title="stepsText(testCase)">
-              {{ stepsText(testCase) }}
-            </div>
-            <!-- 预期结果列：每步预期与步骤行对齐展示 -->
-            <div class="body-cell text-truncate text-clamp-5" :title="expectText(testCase)">
-              {{ expectText(testCase) }}
-            </div>
-            <div class="body-cell">
-              <span class="priority-tag" :class="testCase.priority?.toLowerCase()">{{ testCase.priority || 'P2' }}</span>
-            </div>
-            <div class="body-cell">
+        <el-table
+          ref="caseTable"
+          :data="paginatedTestCases"
+          :row-key="caseRowKey"
+          @selection-change="onSelectionChange"
+          style="width: 100%">
+          <el-table-column type="selection" width="46" reserve-selection />
+          <el-table-column :label="$t('taskDetail.tableCaseId')" width="130">
+            <template #default="scope">
+              {{ scope.row.caseId || `TC${String(scope.$index + 1).padStart(3, '0')}` }}
+            </template>
+          </el-table-column>
+          <el-table-column :label="$t('taskDetail.tableScenario')" min-width="200" show-overflow-tooltip>
+            <template #default="scope">{{ scope.row.scenario }}</template>
+          </el-table-column>
+          <el-table-column :label="$t('taskDetail.tablePrecondition')" min-width="140">
+            <template #default="scope">
+              <span class="cell-clamp">{{ formatTextForList(scope.row.precondition) }}</span>
+            </template>
+          </el-table-column>
+          <!-- 操作步骤列：仅展示步骤描述（编号 + 描述），预期移入预期列，不再混入 -->
+          <el-table-column :label="$t('taskDetail.tableSteps')" min-width="240">
+            <template #default="scope">
+              <span class="cell-clamp cell-clamp-5" :title="stepsText(scope.row)">{{ stepsText(scope.row) }}</span>
+            </template>
+          </el-table-column>
+          <!-- 预期结果列：每步预期与步骤行对齐展示 -->
+          <el-table-column :label="$t('taskDetail.tableExpected')" min-width="200">
+            <template #default="scope">
+              <span class="cell-clamp cell-clamp-5" :title="expectText(scope.row)">{{ expectText(scope.row) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column :label="$t('taskDetail.tablePriority')" width="90" align="center">
+            <template #default="scope">
+              <el-tag size="small" :type="priorityTagType(scope.row.priority)">{{ scope.row.priority || 'P2' }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label="$t('taskDetail.tableActions')" width="200" fixed="right">
+            <template #default="scope">
               <div class="action-buttons">
-                <button class="view-btn" @click="viewCaseDetail(testCase, index)">{{ $t('taskDetail.viewDetail') }}</button>
-                <button class="adopt-btn" @click="adoptSingleCase(testCase, index)">{{ $t('taskDetail.adopt') }}</button>
-                <button class="discard-btn" @click="discardSingleCase(testCase, index)">{{ $t('taskDetail.discard') }}</button>
+                <el-button link type="primary" size="small" @click="viewCaseDetail(scope.row, scope.$index)">{{ $t('taskDetail.viewDetail') }}</el-button>
+                <el-button link type="success" size="small" @click="adoptSingleCase(scope.row, scope.$index)">{{ $t('taskDetail.adopt') }}</el-button>
+                <el-button link type="danger" size="small" @click="discardSingleCase(scope.row, scope.$index)">{{ $t('taskDetail.discard') }}</el-button>
               </div>
-            </div>
-          </div>
-        </div>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
 
       <div v-else class="empty-state">
@@ -264,135 +263,116 @@
 
       <!-- 分页 -->
       <div v-if="testCases.length > 0" class="pagination-section">
-        <div class="pagination-info">
-          {{ $t('taskDetail.paginationInfo', { start: paginationStart, end: paginationEnd, total: testCases.length }) }}
-        </div>
-        <div class="pagination-controls">
-          <div class="page-size-selector">
-            <label>{{ $t('taskDetail.pageSizeLabel') }}</label>
-            <select v-model="pageSize" @change="currentPage = 1">
-              <option value="10">{{ $t('taskDetail.pageSizeOption', { size: 10 }) }}</option>
-              <option value="20">{{ $t('taskDetail.pageSizeOption', { size: 20 }) }}</option>
-              <option value="50">{{ $t('taskDetail.pageSizeOption', { size: 50 }) }}</option>
-            </select>
-          </div>
-          <div class="pagination-buttons">
-            <button :disabled="currentPage <= 1" @click="currentPage--">{{ $t('taskDetail.previousPage') }}</button>
-            <span class="current-page">{{ $t('taskDetail.currentPageInfo', { current: currentPage, total: totalPages }) }}</span>
-            <button :disabled="currentPage >= totalPages" @click="currentPage++">{{ $t('taskDetail.nextPage') }}</button>
-          </div>
-        </div>
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          :total="testCases.length"
+          layout="total, sizes, prev, pager, next" />
       </div>
       </template>
     </div>
 
     <!-- 用例详情弹窗 -->
-    <div v-if="showCaseDetail" class="case-detail-modal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>{{ isEditing ? $t('taskDetail.modalEditTitle') : $t('taskDetail.modalViewTitle') }}</h3>
-          <button class="close-btn" @click="closeCaseDetail">×</button>
-        </div>
+    <el-dialog
+      v-model="showCaseDetail"
+      :title="isEditing ? $t('taskDetail.modalEditTitle') : $t('taskDetail.modalViewTitle')"
+      width="760px"
+      @close="closeCaseDetail">
 
-        <!-- 查看模式 -->
-        <div v-if="!isEditing" class="modal-body">
-          <div class="detail-item">
-            <label>{{ $t('taskDetail.labelCaseId') }}</label>
-            <span>{{ selectedCase.caseId || `TC${String(selectedCaseIndex + 1).padStart(3, '0')}` }}</span>
-          </div>
-          <div class="detail-item">
-            <label>{{ $t('taskDetail.labelScenario') }}</label>
-            <p v-html="formatMarkdown(selectedCase.scenario)"></p>
-          </div>
-          <div class="detail-item">
-            <label>{{ $t('taskDetail.labelPrecondition') }}</label>
-            <p v-html="formatMarkdown(selectedCase.precondition || $t('taskDetail.labelNone'))"></p>
-          </div>
-          <div class="detail-item">
-            <label>{{ $t('taskDetail.labelSteps') }}</label>
-            <!-- 结构化步骤：按步渲染 desc + 内联预期（与流式卡片一致），不再把预期重复到下方字段 -->
-            <div v-if="selectedCase.stepsList && selectedCase.stepsList.length" class="detail-steps">
-              <div v-for="(step, si) in selectedCase.stepsList" :key="si" class="stream-step">
-                <span class="step-order">{{ +si + 1 }}.</span>
-                <span class="step-desc">{{ step.desc || '—' }}</span>
-                <span v-if="step.expect" class="step-expect">{{ $t('taskDetail.tableExpected') }}：{{ step.expect }}</span>
-              </div>
-            </div>
-            <!-- 旧文本格式（无 stepsList）回退为多行文本展示 -->
-            <p v-else class="test-steps" v-html="formatMarkdown(selectedCase.steps)"></p>
-          </div>
-          <!-- 结构化步骤已内联预期，仅在无 stepsList 且有独立预期文本时才展示该字段 -->
-          <div class="detail-item" v-if="!(selectedCase.stepsList && selectedCase.stepsList.length) && selectedCase.expected">
-            <label>{{ $t('taskDetail.labelExpected') }}</label>
-            <p v-html="formatMarkdown(selectedCase.expected)"></p>
-          </div>
-          <div class="detail-item">
-            <label>{{ $t('taskDetail.labelPriority') }}</label>
-            <span class="priority-tag" :class="selectedCase.priority?.toLowerCase()">{{ selectedCase.priority || 'P2' }}</span>
-          </div>
+      <!-- 查看模式 -->
+      <div v-if="!isEditing" class="detail-list">
+        <div class="detail-item">
+          <label>{{ $t('taskDetail.labelCaseId') }}</label>
+          <span>{{ selectedCase.caseId || `TC${String(selectedCaseIndex + 1).padStart(3, '0')}` }}</span>
         </div>
-
-        <!-- 编辑模式 -->
-        <div v-else class="modal-body edit-mode">
-          <div class="form-item">
-            <label>{{ $t('taskDetail.labelCaseId') }}</label>
-            <span class="readonly-field">{{ editForm.caseId || `TC${String(selectedCaseIndex + 1).padStart(3, '0')}` }}</span>
-          </div>
-          <div class="form-item">
-            <label>{{ $t('taskDetail.labelScenario') }}</label>
-            <el-input v-model="editForm.scenario" type="textarea" :rows="2" :placeholder="$t('taskDetail.placeholderScenario')" />
-          </div>
-          <div class="form-item">
-            <label>{{ $t('taskDetail.labelPrecondition') }}</label>
-            <el-input v-model="editForm.precondition" type="textarea" :rows="3" :placeholder="$t('taskDetail.placeholderPrecondition')" />
-          </div>
-          <div class="form-item">
-            <label>{{ $t('taskDetail.labelSteps') }}</label>
-            <!-- 与测试用例页一致：每行一步骤 + 对应预期，成对编辑 -->
-            <div class="steps-editor">
-              <div v-for="(step, idx) in editForm.stepsList" :key="idx" class="step-row">
-                <span class="step-index">{{ idx + 1 }}</span>
-                <el-input v-model="step.desc" type="textarea" :autosize="{ minRows: 1, maxRows: 4 }" :placeholder="$t('testcase.stepDescPlaceholder')" />
-                <el-input v-model="step.expect" type="textarea" :autosize="{ minRows: 1, maxRows: 4 }" :placeholder="$t('testcase.stepExpectPlaceholder')" />
-                <el-button type="danger" link class="step-remove-btn" :title="$t('taskDetail.deleteStep')" @click="removeStepRow(idx)">
-                  <el-icon><Delete /></el-icon>
-                </el-button>
-              </div>
-              <el-button type="primary" link class="add-step-btn" @click="addStepRow">
-                <el-icon><Plus /></el-icon>
-                {{ $t('testcase.addStep') }}
-              </el-button>
+        <div class="detail-item">
+          <label>{{ $t('taskDetail.labelScenario') }}</label>
+          <p v-html="formatMarkdown(selectedCase.scenario)"></p>
+        </div>
+        <div class="detail-item">
+          <label>{{ $t('taskDetail.labelPrecondition') }}</label>
+          <p v-html="formatMarkdown(selectedCase.precondition || $t('taskDetail.labelNone'))"></p>
+        </div>
+        <div class="detail-item">
+          <label>{{ $t('taskDetail.labelSteps') }}</label>
+          <!-- 结构化步骤：按步渲染 desc + 内联预期（与流式卡片一致），不再把预期重复到下方字段 -->
+          <div v-if="selectedCase.stepsList && selectedCase.stepsList.length" class="detail-steps">
+            <div v-for="(step, si) in selectedCase.stepsList" :key="si" class="stream-step">
+              <span class="step-order">{{ +si + 1 }}.</span>
+              <span class="step-desc">{{ step.desc || '—' }}</span>
+              <span v-if="step.expect" class="step-expect">{{ $t('taskDetail.tableExpected') }}：{{ step.expect }}</span>
             </div>
           </div>
-          <div class="form-item">
-            <label>{{ $t('taskDetail.labelPriority') }}</label>
-            <el-select v-model="editForm.priority" :placeholder="$t('taskDetail.placeholderPriority')">
-              <el-option label="P0" value="P0"></el-option>
-              <el-option label="P1" value="P1"></el-option>
-              <el-option label="P2" value="P2"></el-option>
-              <el-option label="P3" value="P3"></el-option>
-            </el-select>
-          </div>
+          <!-- 旧文本格式（无 stepsList）回退为多行文本展示 -->
+          <p v-else class="test-steps" v-html="formatMarkdown(selectedCase.steps)"></p>
         </div>
-
-        <!-- 底部操作栏 -->
-        <div class="modal-footer">
-          <template v-if="!isEditing">
-            <button class="action-btn edit-btn" @click="startEdit">
-              <span>{{ $t('taskDetail.btnEdit') }}</span>
-            </button>
-            <button class="action-btn close-btn-footer" @click="closeCaseDetail">{{ $t('taskDetail.btnClose') }}</button>
-          </template>
-          <template v-else>
-            <button class="action-btn save-btn" @click="saveEdit" :disabled="isSaving">
-              <span v-if="isSaving">{{ $t('taskDetail.btnSaveing') }}</span>
-              <span v-else>{{ $t('taskDetail.btnSave') }}</span>
-            </button>
-            <button class="action-btn cancel-btn" @click="cancelEdit" :disabled="isSaving">{{ $t('taskDetail.btnCancel') }}</button>
-          </template>
+        <!-- 结构化步骤已内联预期，仅在无 stepsList 且有独立预期文本时才展示该字段 -->
+        <div class="detail-item" v-if="!(selectedCase.stepsList && selectedCase.stepsList.length) && selectedCase.expected">
+          <label>{{ $t('taskDetail.labelExpected') }}</label>
+          <p v-html="formatMarkdown(selectedCase.expected)"></p>
+        </div>
+        <div class="detail-item">
+          <label>{{ $t('taskDetail.labelPriority') }}</label>
+          <el-tag size="small" :type="priorityTagType(selectedCase.priority)">{{ selectedCase.priority || 'P2' }}</el-tag>
         </div>
       </div>
-    </div>
+
+      <!-- 编辑模式 -->
+      <div v-else class="edit-mode">
+        <div class="form-item">
+          <label>{{ $t('taskDetail.labelCaseId') }}</label>
+          <span class="readonly-field">{{ editForm.caseId || `TC${String(selectedCaseIndex + 1).padStart(3, '0')}` }}</span>
+        </div>
+        <div class="form-item">
+          <label>{{ $t('taskDetail.labelScenario') }}</label>
+          <el-input v-model="editForm.scenario" type="textarea" :rows="2" :placeholder="$t('taskDetail.placeholderScenario')" />
+        </div>
+        <div class="form-item">
+          <label>{{ $t('taskDetail.labelPrecondition') }}</label>
+          <el-input v-model="editForm.precondition" type="textarea" :rows="3" :placeholder="$t('taskDetail.placeholderPrecondition')" />
+        </div>
+        <div class="form-item">
+          <label>{{ $t('taskDetail.labelSteps') }}</label>
+          <!-- 与测试用例页一致：每行一步骤 + 对应预期，成对编辑 -->
+          <div class="steps-editor">
+            <div v-for="(step, idx) in editForm.stepsList" :key="idx" class="step-row">
+              <span class="step-index">{{ idx + 1 }}</span>
+              <el-input v-model="step.desc" type="textarea" :autosize="{ minRows: 1, maxRows: 4 }" :placeholder="$t('testcase.stepDescPlaceholder')" />
+              <el-input v-model="step.expect" type="textarea" :autosize="{ minRows: 1, maxRows: 4 }" :placeholder="$t('testcase.stepExpectPlaceholder')" />
+              <el-button type="danger" link class="step-remove-btn" :title="$t('taskDetail.deleteStep')" @click="removeStepRow(idx)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+            <el-button type="primary" link class="add-step-btn" @click="addStepRow">
+              <el-icon><Plus /></el-icon>
+              {{ $t('testcase.addStep') }}
+            </el-button>
+          </div>
+        </div>
+        <div class="form-item">
+          <label>{{ $t('taskDetail.labelPriority') }}</label>
+          <el-select v-model="editForm.priority" :placeholder="$t('taskDetail.placeholderPriority')">
+            <el-option label="P0" value="P0"></el-option>
+            <el-option label="P1" value="P1"></el-option>
+            <el-option label="P2" value="P2"></el-option>
+            <el-option label="P3" value="P3"></el-option>
+          </el-select>
+        </div>
+      </div>
+
+      <!-- 底部操作栏 -->
+      <template #footer>
+        <template v-if="!isEditing">
+          <el-button type="primary" @click="startEdit">{{ $t('taskDetail.btnEdit') }}</el-button>
+          <el-button @click="closeCaseDetail">{{ $t('taskDetail.btnClose') }}</el-button>
+        </template>
+        <template v-else>
+          <el-button type="primary" :loading="isSaving" @click="saveEdit">{{ $t('taskDetail.btnSave') }}</el-button>
+          <el-button @click="cancelEdit" :disabled="isSaving">{{ $t('taskDetail.btnCancel') }}</el-button>
+        </template>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -402,10 +382,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { DocumentCopy, Delete, Plus } from '@element-plus/icons-vue'
 import * as XLSX from 'xlsx'
 import WeKnoraAgentTrace from '@/components/WeKnoraAgentTrace.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 export default {
   name: 'TaskDetail',
-  components: { WeKnoraAgentTrace },
+  components: { WeKnoraAgentTrace, PageHeader },
   data() {
     return {
       taskId: '',
@@ -444,10 +425,6 @@ export default {
   },
 
   computed: {
-    isAllSelected() {
-      return this.testCases.length > 0 && this.selectedCases.length === this.testCases.length
-    },
-
     totalPages() {
       return Math.ceil(this.testCases.length / this.pageSize)
     },
@@ -456,14 +433,6 @@ export default {
       const start = (this.currentPage - 1) * this.pageSize
       const end = start + this.pageSize
       return this.testCases.slice(start, end)
-    },
-
-    paginationStart() {
-      return (this.currentPage - 1) * this.pageSize + 1
-    },
-
-    paginationEnd() {
-      return Math.min(this.currentPage * this.pageSize, this.testCases.length)
     }
   },
 
@@ -507,7 +476,7 @@ export default {
         this.task = taskResponse.data
 
         // 运行中：进入流式/轮询模式
-        if (['pending', 'generating', 'reviewing', 'revising'].includes(this.task.status)) {
+        if (['pending', 'generating', 'retrieving', 'reviewing', 'revising'].includes(this.task.status)) {
           this.isStreaming = true
           this.$nextTick(() => {
             if (this.task.output_mode === 'stream') {
@@ -551,7 +520,10 @@ export default {
         if (data.type === 'progress') {
           // 仅更新步骤与进度，不直接赋值 task.status（最终以 progress 接口为准）
           this.task.progress = data.progress
-          if (data.status === 'generating') {
+          if (data.status === 'retrieving') {
+            // WeKnora 知识检索阶段（生成开始前）
+            this.currentStep = 2
+          } else if (data.status === 'generating') {
             this.currentStep = 2
           } else if (data.status === 'reviewing') {
             this.currentStep = 3
@@ -782,21 +754,20 @@ export default {
       return html;
     },
 
-    toggleSelectAll() {
-      if (this.isAllSelected) {
-        this.selectedCases = []
-      } else {
-        this.selectedCases = [...this.testCases]
-      }
+    // el-table 选择变化（配合 reserve-selection 跨页保留）
+    onSelectionChange(rows) {
+      this.selectedCases = rows
     },
 
-    updateSelectAll() {
-      // 这个方法会在单个checkbox变化时触发，用于更新全选状态
-      // Vue的v-model会自动处理selectedCases数组的更新
+    // 行 key：用例无稳定 id，用编号+场景+步骤组合标识
+    caseRowKey(row) {
+      return `${row.caseId || ''}|${row.scenario || ''}|${row.steps || ''}`
     },
 
-    isCaseSelected(testCase) {
-      return this.selectedCases.includes(testCase)
+    // 优先级 → el-tag type（P0 危险 / P1 警告 / P2 主色 / P3 信息）
+    priorityTagType(priority) {
+      const map = { P0: 'danger', P1: 'warning', P2: 'primary', P3: 'info' }
+      return map[priority] || 'info'
     },
 
     async batchAdopt() {
@@ -837,6 +808,7 @@ export default {
 
         ElMessage.success(this.$t('taskDetail.adoptSuccess', { count: this.selectedCases.length }))
         this.selectedCases = []
+        if (this.$refs.caseTable) this.$refs.caseTable.clearSelection()
 
         // Keep adopted cases in the list for multiple adoptions
         // this.testCases = this.testCases.filter(tc => !this.selectedCases.includes(tc))
@@ -844,6 +816,47 @@ export default {
       } catch (error) {
         console.error('Batch adopt failed:', error)
         ElMessage.error(this.$t('taskDetail.batchAdoptFailed') + ': ' + (error.response?.data?.message || error.message))
+      }
+    },
+
+    // 批量转为自动化用例（AI 转写）
+    async batchConvertToAutomation() {
+      if (this.selectedCases.length === 0) {
+        ElMessage.warning(this.$t('taskDetail.pleaseSelectFirst', { action: this.$t('automation.convertBtn') }))
+        return
+      }
+
+      try {
+        await ElMessageBox.confirm(
+          this.$t('automation.convertConfirm', { count: this.selectedCases.length }),
+          this.$t('automation.convertBtn'),
+          {
+            confirmButtonText: this.$t('taskDetail.btnConfirm'),
+            cancelButtonText: this.$t('taskDetail.btnCancelOperation'),
+            type: 'warning'
+          }
+        )
+      } catch {
+        return
+      }
+
+      try {
+        const casesData = this.selectedCases.map(testCase => ({
+          title: testCase.scenario || testCase.caseId || '',
+          precondition: testCase.precondition || '',
+          steps: testCase.steps || '',
+          expected_result: testCase.expected || ''
+        }))
+        const { data } = await api.post('/requirement-analysis/automation-cases/batch-convert/', {
+          source_type: 'generated',
+          task_id: this.taskId,
+          cases: casesData
+        })
+        ElMessage.success(
+          this.$t('automation.convertResult', { created: data.created_count, skipped: data.skipped_count }))
+      } catch (error) {
+        console.error('Batch convert to automation failed:', error)
+        ElMessage.error(this.$t('common.error') + ': ' + (error.response?.data?.error || error.response?.data?.detail || error.message))
       }
     },
 
@@ -895,6 +908,7 @@ export default {
           if (response.data.updated_test_cases) {
             this.testCases = this.parseTestCases(response.data.updated_test_cases)
             this.selectedCases = []
+            if (this.$refs.caseTable) this.$refs.caseTable.clearSelection()
             this.currentPage = 1 // 重置到第一页
           }
         }
@@ -1296,20 +1310,13 @@ export default {
 </script>
 
 <style scoped>
-.task-detail {
-  padding: 28px var(--aitest-space-6);
-  max-width: 1400px;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-}
-
 /* Requirement description collapse card */
 .requirement-description-card {
-  margin-bottom: var(--aitest-space-5);
+  margin-bottom: var(--aitest-space-4);
   background: var(--aitest-surface);
-  border-radius: 12px;
-  border: 1px solid var(--aitest-border);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  border-radius: var(--aitest-card-radius);
+  border: 1px solid var(--aitest-card-border);
+  box-shadow: var(--aitest-card-shadow);
   overflow: hidden;
 }
 
@@ -1381,73 +1388,39 @@ export default {
 .requirement-description-card :deep(.el-collapse-item__wrap) { border-bottom: none; }
 .requirement-description-card :deep(.el-collapse-item__content) { padding: 0 var(--aitest-space-5) var(--aitest-space-4); }
 
-/* Page header */
-.page-header {
-  margin-bottom: var(--aitest-space-5);
-  padding-bottom: var(--aitest-space-4);
-  border-bottom: 1px solid var(--aitest-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.header-left { flex: 1; }
-
-.page-header .page-title {
-  color: var(--aitest-text-1);
-  margin: 0 0 var(--aitest-space-2) 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
+/* 任务信息条（页头下方） */
 .task-info {
   display: flex;
-  gap: var(--aitest-space-5);
+  gap: var(--aitest-space-4);
   align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .task-id {
   color: var(--aitest-text-2);
-  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
-  font-size: 0.85rem;
+  font-family: var(--aitest-font-mono);
+  font-size: var(--aitest-font-size-sm);
 }
 
-.task-status {
-  padding: 3px var(--aitest-space-3);
-  border-radius: var(--aitest-radius-sm);
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.task-status.completed { background: var(--aitest-success-bg); color: var(--aitest-success); }
-
-.header-actions { display: flex; gap: var(--aitest-space-3); }
-
-.export-btn {
-  background: var(--aitest-success);
-  color: #FFFFFF;
-  border: none;
-  padding: 9px var(--aitest-space-5);
-  border-radius: var(--aitest-radius-lg);
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.export-btn:hover:not(:disabled) { background: #047857; }
-.export-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
+/* 任务状态标签（胶囊外观继承全局 .status-tag，此处只补状态色对） */
+.status-tag.pending { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
+.status-tag.generating,
+.status-tag.retrieving,
+.status-tag.reviewing,
+.status-tag.revising { background: var(--aitest-info-bg); color: var(--aitest-info); }
+.status-tag.cancelled { background: var(--aitest-neutral-bg); color: var(--aitest-neutral); }
+.status-tag.completed { background: var(--aitest-success-bg); color: var(--aitest-success); }
+.status-tag.failed { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
 
 /* Batch actions */
 .batch-actions {
   background: var(--aitest-surface);
-  border-radius: 12px;
-  padding: var(--aitest-space-4) var(--aitest-space-5);
-  margin-bottom: var(--aitest-space-5);
-  border: 1px solid var(--aitest-border);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  border-radius: var(--aitest-card-radius);
+  padding: var(--aitest-space-3) var(--aitest-space-5);
+  margin-bottom: var(--aitest-space-4);
+  border: 1px solid var(--aitest-card-border);
+  box-shadow: var(--aitest-card-shadow);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1459,283 +1432,62 @@ export default {
   gap: var(--aitest-space-4);
 }
 
-.select-all {
-  display: flex;
-  align-items: center;
-  gap: var(--aitest-space-2);
-  cursor: pointer;
-}
-
 .selected-count { color: var(--aitest-primary); font-weight: 600; }
 
 .batch-buttons { display: flex; gap: var(--aitest-space-3); }
 
-.batch-adopt-btn, .batch-discard-btn {
-  padding: var(--aitest-space-2) var(--aitest-space-4);
-  border: none;
-  border-radius: var(--aitest-radius-lg);
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-
-.batch-adopt-btn { background: var(--aitest-success); color: #FFFFFF; }
-.batch-adopt-btn:hover:not(:disabled) { background: #047857; }
-.batch-discard-btn { background: var(--aitest-danger); color: #FFFFFF; }
-.batch-discard-btn:hover:not(:disabled) { background: #B91C1C; }
-.batch-adopt-btn:disabled, .batch-discard-btn:disabled { background: var(--aitest-border-strong); cursor: not-allowed; }
-
 /* Test cases table */
 .testcases-table {
-  background: var(--aitest-surface);
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--aitest-border);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  margin-bottom: var(--aitest-space-4);
 }
 
-.table-header {
-  display: grid;
-  grid-template-columns: 52px 120px 1.3fr 1fr 1.7fr 1.3fr 78px 172px;
-  background: var(--aitest-canvas);
-  font-weight: 600;
-  color: var(--aitest-text-2);
-}
-
-.table-body .table-row {
-  display: grid;
-  grid-template-columns: 52px 120px 1.3fr 1fr 1.7fr 1.3fr 78px 172px;
-  border-bottom: 1px solid var(--aitest-surface-subtle);
-  transition: background 0.15s;
-}
-
-.table-row:hover { background: var(--aitest-canvas); }
-.table-row.selected { background: var(--aitest-info-bg); }
-.table-row.selected:hover { background: var(--aitest-info-bg); }
-
-.header-cell, .body-cell {
-  padding: var(--aitest-space-4) var(--aitest-space-2);
-  display: flex;
-  align-items: flex-start;
-  border-right: 1px solid var(--aitest-surface-subtle);
-  word-break: break-word;
-  min-height: 56px;
-}
-
-.text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* 单元格多行截断（步骤/预期列允许 5 行，hover 看全文） */
+.cell-clamp {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   white-space: pre-wrap;
-  line-height: 1.6;
+  line-height: var(--aitest-line-height-normal);
   word-break: break-word;
 }
 
-/* 步骤/预期列允许更多行（复数步骤），行留 hover 悬浮框看全文 */
-.text-clamp-5 {
+.cell-clamp-5 {
   -webkit-line-clamp: 5;
-  max-height: calc(1.6em * 5);
+  max-height: calc(1.5em * 5);
 }
 
-.checkbox-cell { justify-content: center; }
-.header-cell:last-child, .body-cell:last-child { border-right: none; }
+.action-buttons { display: flex; gap: var(--aitest-space-1); flex-wrap: wrap; white-space: nowrap; }
 
-.priority-tag {
-  padding: 3px var(--aitest-space-2);
-  border-radius: var(--aitest-radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.priority-tag.low { background: var(--aitest-success-bg); color: var(--aitest-success); }
-.priority-tag.p3 { background: var(--aitest-success-bg); color: var(--aitest-success); }
-.priority-tag.medium { background: var(--aitest-info-bg); color: var(--aitest-primary); }
-.priority-tag.p2 { background: var(--aitest-info-bg); color: var(--aitest-primary); }
-.priority-tag.high { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
-.priority-tag.p1 { background: var(--aitest-warning-bg); color: var(--aitest-warning); }
-.priority-tag.critical { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
-.priority-tag.p0 { background: var(--aitest-danger-bg); color: var(--aitest-danger); }
-
-.action-buttons { display: flex; gap: var(--aitest-space-1); flex-wrap: wrap; }
-
-.view-btn, .adopt-btn, .discard-btn {
-  padding: var(--aitest-space-1) var(--aitest-space-2);
-  border: none;
-  border-radius: var(--aitest-radius-sm);
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-
-.view-btn { background: var(--aitest-primary); color: #FFFFFF; }
-.view-btn:hover { background: var(--aitest-primary-hover); }
-.adopt-btn { background: var(--aitest-success); color: #FFFFFF; }
-.adopt-btn:hover { background: #047857; }
-.discard-btn { background: var(--aitest-danger); color: #FFFFFF; }
-.discard-btn:hover { background: #B91C1C; }
-
-/* Pagination */
+/* 分页 */
 .pagination-section {
-  margin-top: var(--aitest-space-5);
+  margin-top: var(--aitest-space-2);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--aitest-surface);
-  padding: var(--aitest-space-4) var(--aitest-space-5);
-  border-radius: 10px;
-  border: 1px solid var(--aitest-border);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  justify-content: flex-end;
 }
 
-.pagination-controls {
+/* 用例详情弹窗内容 */
+.detail-list {
   display: flex;
-  align-items: center;
-  gap: var(--aitest-space-5);
+  flex-direction: column;
+  gap: var(--aitest-space-4);
 }
-
-.page-size-selector {
-  display: flex;
-  align-items: center;
-  gap: var(--aitest-space-2);
-}
-
-.page-size-selector label { color: var(--aitest-text-2); font-size: 0.85rem; }
-
-.page-size-selector select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 7px 34px 7px 12px;
-  border: 1.5px solid var(--aitest-border);
-  border-radius: var(--aitest-radius);
-  font-size: 0.85rem;
-  color: var(--aitest-text-1);
-  background-color: var(--aitest-surface);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 12px;
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.page-size-selector select:hover { border-color: var(--aitest-primary); }
-
-.page-size-selector select:focus-visible {
-  outline: none;
-  border-color: var(--aitest-primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
-}
-
-.page-size-selector select option {
-  color: var(--aitest-text-1);
-  background: var(--aitest-surface);
-}
-
-.pagination-info {
-  color: var(--aitest-text-3);
-  font-size: 0.85rem;
-}
-
-.current-page {
-  padding: 3px 10px;
-  min-width: 64px;
-  text-align: center;
-  background: var(--aitest-canvas);
-  border: 1px solid var(--aitest-border);
-  border-radius: var(--aitest-radius);
-  color: var(--aitest-text-2);
-  font-size: 0.85rem;
-}
-
-.pagination-buttons {
-  display: flex;
-  align-items: center;
-  gap: var(--aitest-space-3);
-}
-
-.pagination-buttons button {
-  padding: var(--aitest-space-2) var(--aitest-space-3);
-  border: 1.5px solid var(--aitest-border);
-  background: var(--aitest-surface);
-  cursor: pointer;
-  border-radius: var(--aitest-radius);
-  color: var(--aitest-text-2);
-  font-size: 0.85rem;
-  transition: all 0.15s;
-}
-
-.pagination-buttons button:hover:not(:disabled) { background: var(--aitest-surface-subtle); }
-.pagination-buttons button:disabled { color: var(--aitest-border-strong); cursor: not-allowed; }
-
-/* Case detail modal */
-.case-detail-modal {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: var(--aitest-surface);
-  border-radius: 14px;
-  max-width: 800px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  border: 1px solid var(--aitest-border);
-  box-shadow: 0 25px 50px rgba(0,0,0,0.12);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--aitest-space-5) var(--aitest-space-6);
-  border-bottom: 1px solid var(--aitest-border);
-}
-
-.modal-header h3 { margin: 0; color: var(--aitest-text-1); font-weight: 700; }
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  cursor: pointer;
-  color: var(--aitest-text-3);
-  padding: var(--aitest-space-1) var(--aitest-space-2);
-  border-radius: var(--aitest-radius);
-  transition: all 0.15s;
-}
-
-.close-btn:hover { color: var(--aitest-text-1); background: var(--aitest-surface-subtle); }
-
-.modal-body { padding: var(--aitest-space-6); }
-
-.detail-item { margin-bottom: var(--aitest-space-5); }
 
 .detail-item label {
+  display: block;
   font-weight: 600;
   color: var(--aitest-text-2);
-  display: block;
   margin-bottom: var(--aitest-space-2);
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-sm);
 }
 
-.detail-item span, .detail-item p { color: var(--aitest-text-2); line-height: 1.6; }
+.detail-item span, .detail-item p { color: var(--aitest-text-2); line-height: var(--aitest-line-height-normal); }
 
 .test-steps {
   white-space: pre-line;
   background: var(--aitest-canvas);
   padding: var(--aitest-space-4);
-  border-radius: var(--aitest-radius-lg);
+  border-radius: var(--aitest-radius);
   border-left: 3px solid var(--aitest-primary);
 }
 
@@ -1745,7 +1497,7 @@ export default {
   gap: var(--aitest-space-2);
   background: var(--aitest-canvas);
   padding: var(--aitest-space-4);
-  border-radius: var(--aitest-radius-lg);
+  border-radius: var(--aitest-radius);
   border-left: 3px solid var(--aitest-primary);
 }
 
@@ -1761,101 +1513,69 @@ export default {
 .error-state a:hover { text-decoration: underline; }
 
 /* Edit mode */
-.edit-mode {
-  .form-item { margin-bottom: var(--aitest-space-5); }
-  .form-item label {
-    font-weight: 600;
-    color: var(--aitest-text-2);
-    display: block;
-    margin-bottom: var(--aitest-space-2);
-  }
-  .readonly-field {
-    color: var(--aitest-text-2);
-    padding: var(--aitest-space-2) var(--aitest-space-3);
-    background: var(--aitest-canvas);
-    border-radius: var(--aitest-radius);
-    display: inline-block;
-  }
+.edit-mode .form-item { margin-bottom: var(--aitest-space-5); }
 
-  /* 步骤/预期成对编辑：每行一步骤 + 对应预期 */
-  .steps-editor {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: var(--aitest-space-2);
-  }
-  .step-row {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--aitest-space-2);
-  }
-  .step-row .el-textarea { flex: 1; }
-  .step-row .el-textarea:first-of-type { flex: 1.4; }
-  .step-index {
-    width: 24px;
-    flex-shrink: 0;
-    text-align: center;
-    color: var(--aitest-text-3);
-    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
-    font-size: 0.8rem;
-    line-height: 1.5;
-    padding-top: 10px;
-  }
-  .step-remove-btn {
-    flex-shrink: 0;
-    margin: 0;
-    padding-top: 4px;
-  }
-  .add-step-btn {
-    align-self: flex-start;
-    padding-left: 0;
-  }
+.edit-mode .form-item label {
+  font-weight: 600;
+  color: var(--aitest-text-2);
+  display: block;
+  margin-bottom: var(--aitest-space-2);
 }
 
-/* Modal footer */
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--aitest-space-3);
-  padding: var(--aitest-space-4) var(--aitest-space-6);
-  border-top: 1px solid var(--aitest-border);
+.edit-mode .readonly-field {
+  color: var(--aitest-text-2);
+  padding: var(--aitest-space-2) var(--aitest-space-3);
   background: var(--aitest-canvas);
-  border-radius: 0 0 14px 14px;
+  border-radius: var(--aitest-radius);
+  display: inline-block;
 }
 
-.action-btn {
-  padding: 9px var(--aitest-space-5);
-  border: none;
-  border-radius: var(--aitest-radius-lg);
-  cursor: pointer;
-  font-size: var(--aitest-font-size-base);
-  font-weight: 500;
-  transition: all 0.15s;
-  display: inline-flex;
-  align-items: center;
+/* 步骤/预期成对编辑：每行一步骤 + 对应预期 */
+.edit-mode .steps-editor {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
   gap: var(--aitest-space-2);
 }
 
-.edit-btn { background: var(--aitest-primary); color: #FFFFFF; }
-.edit-btn:hover { background: var(--aitest-primary-hover); }
+.edit-mode .step-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--aitest-space-2);
+}
 
-.save-btn { background: var(--aitest-success); color: #FFFFFF; }
-.save-btn:hover:not(:disabled) { background: #047857; }
-.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.edit-mode .step-row .el-textarea { flex: 1; }
+.edit-mode .step-row .el-textarea:first-of-type { flex: 1.4; }
 
-.cancel-btn { background: var(--aitest-surface-subtle); color: var(--aitest-text-2); border: 1.5px solid var(--aitest-border); }
-.cancel-btn:hover:not(:disabled) { background: var(--aitest-surface-subtle); }
+.edit-mode .step-index {
+  width: 24px;
+  flex-shrink: 0;
+  text-align: center;
+  color: var(--aitest-text-3);
+  font-family: var(--aitest-font-mono);
+  font-size: var(--aitest-font-size-sm);
+  line-height: var(--aitest-line-height-normal);
+  padding-top: 10px;
+}
 
-.close-btn-footer { background: var(--aitest-surface-subtle); color: var(--aitest-text-2); border: 1.5px solid var(--aitest-border); }
-.close-btn-footer:hover { background: var(--aitest-surface-subtle); }
+.edit-mode .step-remove-btn {
+  flex-shrink: 0;
+  margin: 0;
+  padding-top: 4px;
+}
+
+.edit-mode .add-step-btn {
+  align-self: flex-start;
+  padding-left: 0;
+}
 
 .task-chip {
-  font-size: 0.78rem;
+  font-size: var(--aitest-font-size-xs);
   color: var(--aitest-text-2);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
   padding: 2px var(--aitest-space-3);
-  border-radius: 20px;
+  border-radius: var(--aitest-radius-full);
   max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1864,7 +1584,7 @@ export default {
 
 /* 流式生成面板 */
 .streaming-panel {
-  background: var(--aitest-canvas);
+  background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
   border-radius: var(--aitest-radius-lg);
   padding: var(--aitest-space-4);
@@ -1874,22 +1594,23 @@ export default {
   display: flex;
   gap: var(--aitest-space-2);
   margin-bottom: var(--aitest-space-3);
-  font-size: 0.75rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-2);
+  flex-wrap: wrap;
 }
 .mini-step {
   padding: var(--aitest-space-1) var(--aitest-space-3);
-  border-radius: 12px;
+  border-radius: var(--aitest-radius-full);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
 }
 .mini-step.active {
-  background: var(--aitest-primary, var(--el-color-primary));
+  background: var(--aitest-primary);
   color: #fff;
   border-color: transparent;
 }
 .stream-status {
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-2);
   margin-bottom: var(--aitest-space-3);
 }
@@ -1898,16 +1619,16 @@ export default {
 }
 .stream-section-title {
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-sm);
   margin-bottom: var(--aitest-space-2);
-  color: #334155;
+  color: var(--aitest-text-1);
 }
 .stream-content {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
   border-radius: var(--aitest-radius);
-  padding: var(--aitest-space-3) var(--aitest-space-3);
-  font-size: 0.82rem;
+  padding: var(--aitest-space-3);
+  font-size: var(--aitest-font-size-base);
   line-height: 1.7;
   color: var(--aitest-text-2);
   max-height: 320px;
@@ -1923,10 +1644,10 @@ export default {
 .stream-card {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-left: 3px solid var(--aitest-primary, var(--el-color-primary));
+  border-left: 3px solid var(--aitest-primary);
   border-radius: var(--aitest-radius);
   padding: var(--aitest-space-2) var(--aitest-space-3);
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-base);
 }
 .stream-card-head {
   display: flex;
@@ -1936,7 +1657,9 @@ export default {
 }
 .stream-card-id {
   font-weight: 600;
-  color: #334155;
+  color: var(--aitest-text-1);
+  font-family: var(--aitest-font-mono);
+  font-size: var(--aitest-font-size-sm);
 }
 .stream-card-scenario {
   color: var(--aitest-text-2);
@@ -1958,13 +1681,13 @@ export default {
   display: flex;
   gap: var(--aitest-space-2);
   align-items: baseline;
-  line-height: 1.6;
+  line-height: var(--aitest-line-height-normal);
 }
 .step-order {
   flex: none;
   color: var(--aitest-text-3);
-  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
-  font-size: 0.72rem;
+  font-family: var(--aitest-font-mono);
+  font-size: var(--aitest-font-size-xs);
 }
 .step-desc {
   color: var(--aitest-text-2);
@@ -1975,112 +1698,20 @@ export default {
   word-break: break-word;
 }
 .review-feedback-section {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
+  background: var(--aitest-info-bg);
+  border: 1px solid var(--aitest-border);
   border-radius: var(--aitest-radius-lg);
-  padding: var(--aitest-space-4) var(--aitest-space-4);
+  padding: var(--aitest-space-4);
   margin-bottom: var(--aitest-space-4);
 }
 .review-feedback-title {
   font-weight: 600;
-  font-size: 0.85rem;
-  color: #075985;
+  font-size: var(--aitest-font-size-sm);
+  color: var(--aitest-info);
   margin-bottom: var(--aitest-space-2);
 }
 .terminal-state {
   padding: var(--aitest-space-6);
   text-align: center;
-}
-</style>
-
-<style>
-/* 全局样式：隐藏Element Plus折叠面板的默认箭头图标 */
-.requirement-description-card .el-collapse-item__header .el-icon {
-  display: none !important;
-}
-
-.requirement-description-card .el-collapse-item__arrow {
-  display: none !important;
-}
-
-/* 针对Element Plus不同版本的箭头图标 */
-.requirement-description-card .el-collapse-item__header .el-collapse-item__arrow {
-  display: none !important;
-}
-
-.requirement-description-card .el-collapse-item__header .el-icon-arrow-right {
-  display: none !important;
-}
-
-.requirement-description-card .el-collapse-item__header .el-icon-arrow-left {
-  display: none !important;
-}
-
-/* WeKnora 知识审计面板 */
-.weknora-audit-title {
-  cursor: pointer;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.weknora-audit-title .el-icon {
-  color: var(--aitest-text-3);
-}
-.weknora-count {
-  font-weight: 400;
-  font-size: 0.85rem;
-  color: var(--aitest-text-3);
-}
-.weknora-audit-body {
-  padding: 10px 0 4px;
-}
-.weknora-block {
-  margin-bottom: 12px;
-}
-.weknora-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--aitest-text-2);
-  margin-bottom: 6px;
-}
-.weknora-answer-text {
-  background: var(--aitest-surface-subtle);
-  border: 1px solid var(--aitest-border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 260px;
-  overflow: auto;
-}
-.weknora-ref-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 0;
-  border-bottom: 1px dashed var(--aitest-border);
-  font-size: 0.9rem;
-}
-.weknora-ref-row:last-child {
-  border-bottom: none;
-}
-.weknora-ref-doc {
-  font-weight: 600;
-  color: var(--aitest-text-1);
-}
-.weknora-ref-title {
-  color: var(--aitest-text-2);
-}
-.weknora-ref-chunk {
-  color: var(--aitest-text-3);
-  font-size: 0.8rem;
-}
-.weknora-ref-score {
-  margin-left: auto;
-  color: var(--aitest-primary, #4f46e5);
-  font-variant-numeric: tabular-nums;
 }
 </style>

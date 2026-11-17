@@ -1,7 +1,8 @@
 <template>
-  <div class="test-report">
+  <div class="page-container test-report">
+    <div class="card-container">
     <!-- Filter bar -->
-    <div class="filter-bar">
+    <div class="report-toolbar">
       <div class="left-filters">
         <el-select v-model="filters.project" :placeholder="$t('report.selectProject')" clearable @change="handleFilterChange" style="width: 200px">
           <el-option v-for="item in projects" :key="item.id" :label="item.name" :value="item.id"></el-option>
@@ -138,6 +139,7 @@
           <div class="chart-body" ref="workloadChartRef"></div>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>
@@ -384,21 +386,16 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 报表页：主内容包全局 .card-container（普通滚动），内部布局不变 */
 .test-report {
-  padding: var(--aitest-space-5);
   background-color: var(--aitest-canvas);
-  min-height: 100vh;
 }
 
-.filter-bar {
+.report-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--aitest-space-5);
-  background: var(--aitest-surface);
-  padding: var(--aitest-space-4);
-  border-radius: var(--aitest-radius-lg);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .left-filters {
@@ -419,14 +416,14 @@ onUnmounted(() => {
   padding: var(--aitest-space-5);
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: var(--aitest-shadow-sm);
   transition: all 0.3s;
   position: relative;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: var(--aitest-shadow-md);
 }
 
 .card-icon {
@@ -487,7 +484,7 @@ onUnmounted(() => {
   background: var(--aitest-surface);
   border-radius: var(--aitest-radius-lg);
   padding: var(--aitest-space-5);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: var(--aitest-shadow-sm);
   display: flex;
   flex-direction: column;
 }

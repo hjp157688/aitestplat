@@ -2,7 +2,9 @@ from rest_framework import serializers
 from .models import (
     RequirementDocument, RequirementAnalysis,
     GeneratedTestCase, AnalysisTask, AIModelConfig, PromptConfig, TestCaseGenerationTask,
-    GenerationConfig, ZentaoConfig, Requirement, WeKnoraConfig, WeKnoraProjectBinding
+    GenerationConfig, ZentaoConfig, Requirement, WeKnoraConfig, WeKnoraProjectBinding,
+    AutomationCase, AutomationEnvironment,
+    AutomationExecution, AutomationExecutionSession
 )
 from apps.projects.models import Project
 
@@ -303,6 +305,8 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
     writer_prompt_name = serializers.CharField(source='writer_prompt_config.name', read_only=True)
     reviewer_prompt_name = serializers.CharField(source='reviewer_prompt_config.name', read_only=True)
     granularity_display = serializers.CharField(source='get_granularity_display', read_only=True)
+    adopted_count = serializers.SerializerMethodField()
+    case_count = serializers.SerializerMethodField()
 
     class Meta:
         model = TestCaseGenerationTask
@@ -314,11 +318,26 @@ class TestCaseGenerationTaskSerializer(serializers.ModelSerializer):
                  'review_feedback', 'final_test_cases', 'generation_log', 'error_message',
                  'weknora_answer', 'weknora_references', 'weknora_steps',
                  'created_by', 'created_by_name', 'created_at', 'updated_at', 'completed_at',
-                 'case_type', 'granularity', 'granularity_display']
+                 'case_type', 'granularity', 'granularity_display', 'adopted_count', 'case_count']
         read_only_fields = ['task_id', 'status', 'progress', 'generated_test_cases',
                           'review_feedback', 'final_test_cases', 'generation_log',
                           'error_message', 'weknora_answer', 'weknora_references', 'weknora_steps',
                           'created_by', 'completed_at']
+
+    def get_adopted_count(self, obj):
+        """该任务已采纳入库的用例数（测试用例通过 source_generation_task 回链）"""
+        return obj.adopted_cases.count()
+
+    def get_case_count(self, obj):
+        """final_test_cases 实际用例条数（后端权威解析，前端不再自行计数）"""
+        if not obj.final_test_cases:
+            return 0
+        # 函数内导入避免 serializers→views 循环依赖
+        from apps.requirement_analysis.views import TestCaseGenerationTaskViewSet
+        try:
+            return len(TestCaseGenerationTaskViewSet()._parse_test_cases_content(obj.final_test_cases))
+        except Exception:
+            return 0
 
     def create(self, validated_data):
         # 自动设置创建者和任务ID
@@ -370,6 +389,21 @@ class GenerationConfigSerializer(serializers.ModelSerializer):
             'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+        self._deactivate_others(instance)
+        return instance
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        self._deactivate_others(instance)
+        return instance
+
+    def _deactivate_others(self, instance):
+        """激活互斥：is_active=True 时禁用其他配置，保证同一时刻最多一个启用（与 enable action 行为一致）"""
+        if instance.is_active:
+            GenerationConfig.objects.exclude(pk=instance.pk).update(is_active=False)
 
 
 class ZentaoConfigSerializer(serializers.ModelSerializer):
@@ -482,3 +516,111 @@ class WeKnoraProjectBindingSerializer(serializers.ModelSerializer):
             'agent_name': {'required': False},
             'knowledge_base_ids': {'required': False},
         }
+
+# ============ 自动化用例（转化与执行） ============
+
+
+class AutomationEnvironmentSerializer(serializers.ModelSerializer):
+    """环境序列化：password 只写不读，回显 has_password 布尔。"""
+
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    has_password = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AutomationEnvironment
+        fields = ['id', 'project', 'name', 'base_url', 'login_url', 'username', 'password',
+                  'has_password', 'variables', 'is_active', 'description',
+                  'enable_screenshot', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+    def get_has_password(self, obj):
+        return bool(obj.password)
+
+    def validate_variables(self, value):
+        if value in (None, ''):
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError('variables 必须是数组')
+        for item in value:
+            if not isinstance(item, dict) or not str(item.get('key', '')).strip():
+                raise serializers.ValidationError('每个变量必须包含非空 key')
+        return value
+
+    def update(self, instance, validated_data):
+        # 未传 password 字段时保持原值，避免编辑其他字段把密码清空
+        if 'password' not in validated_data:
+            validated_data['password'] = instance.password
+        return super().update(instance, validated_data)
+
+
+class AutomationCaseSerializer(serializers.ModelSerializer):
+    source_type = serializers.SerializerMethodField()
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    requirement_title = serializers.CharField(source='requirement.title', read_only=True)
+    last_execution = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AutomationCase
+        fields = ['id', 'project', 'project_name', 'requirement', 'requirement_title',
+                  'source_generated_case', 'source_test_case', 'source_type', 'title',
+                  'precondition', 'steps', 'convert_status', 'convert_error',
+                  'last_failure_summary', 'success_trace',
+                  'created_at', 'updated_at', 'last_execution']
+        read_only_fields = ['project', 'requirement', 'source_generated_case', 'source_test_case',
+                            'convert_status', 'convert_error', 'last_failure_summary',
+                            'success_trace', 'created_at', 'updated_at']
+
+    def get_source_type(self, obj):
+        return obj.source_type
+
+    def get_last_execution(self, obj):
+        execution = obj.automation_executions.order_by('-id').first()
+        if not execution:
+            return None
+        return {'id': execution.id, 'status': execution.status,
+                'finished_at': execution.finished_at}
+
+    def validate_steps(self, value):
+        if value in (None, ''):
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError('steps 必须是数组')
+        normalized = []
+        for index, step in enumerate(value, start=1):
+            step = step or {}
+            action = str(step.get('action', '')).strip()
+            if not action:
+                continue
+            normalized.append({
+                'index': index,
+                'action': action,
+                'verify': str(step.get('verify', '')).strip(),
+            })
+        return normalized
+
+
+class AutomationExecutionSerializer(serializers.ModelSerializer):
+    case_title = serializers.CharField(source='case.title', read_only=True)
+    environment_name = serializers.CharField(source='environment.name', read_only=True)
+
+    class Meta:
+        model = AutomationExecution
+        fields = ['id', 'case', 'case_title', 'session', 'environment', 'environment_name',
+                  'status', 'result_detail', 'log', 'error', 'started_at', 'finished_at']
+
+
+class AutomationExecutionSessionSerializer(serializers.ModelSerializer):
+    environment_name = serializers.CharField(source='environment.name', read_only=True)
+    executions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AutomationExecutionSession
+        fields = ['id', 'project', 'environment', 'environment_name', 'status', 'login_status',
+                  'error', 'executions', 'started_at', 'finished_at']
+
+    def get_executions(self, obj):
+        return [
+            {'id': e.id, 'case_id': e.case_id, 'case_title': e.case.title,
+             'status': e.status, 'error': e.error}
+            for e in obj.executions.select_related('case').order_by('id')
+        ]

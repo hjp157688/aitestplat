@@ -1,5 +1,5 @@
 <template>
-  <div class="report-list">
+  <div class="page-container report-list">
     <!-- Tab 切换 -->
     <el-tabs v-model="activeTab" @tab-change="onTabChange">
       <!-- ==================== 套件报告 ==================== -->
@@ -14,9 +14,10 @@
           </el-card>
         </div>
 
-        <!-- 筛选 -->
-        <div class="filters">
-          <el-row :gutter="20">
+        <div class="card-container">
+          <!-- 筛选 -->
+          <div class="filter-bar">
+            <el-row :gutter="20">
             <el-col :span="4">
               <el-select v-model="suiteProjectFilter" :placeholder="$t('appAutomation.report.allProjects')" clearable filterable @change="loadSuiteReports">
                 <el-option v-for="p in projectList" :key="p.id" :label="p.name" :value="p.id" />
@@ -40,10 +41,10 @@
               <el-button @click="suiteSearch = ''; suiteStatusFilter = ''; suiteProjectFilter = null; loadSuiteReports()">{{ $t('appAutomation.common.reset') }}</el-button>
             </el-col>
           </el-row>
-        </div>
+          </div>
 
-        <!-- 套件报告列表 -->
-        <el-table :data="suiteReports" v-loading="suiteLoading" border stripe>
+          <!-- 套件报告列表 -->
+          <el-table :data="suiteReports" v-loading="suiteLoading" border stripe>
           <el-table-column prop="name" :label="$t('appAutomation.report.suiteName')" min-width="140" show-overflow-tooltip />
           <el-table-column prop="description" :label="$t('appAutomation.common.description')" min-width="120" show-overflow-tooltip>
             <template #default="{ row }">{{ row.description || '-' }}</template>
@@ -94,16 +95,17 @@
           </el-table-column>
         </el-table>
 
-        <div class="pagination">
-          <el-pagination
-            v-model:current-page="suitePagination.current"
-            v-model:page-size="suitePagination.size"
-            :total="suitePagination.total"
-            :page-sizes="[10, 20, 50]"
-            layout="total, sizes, prev, pager, next"
-            @size-change="loadSuiteReports"
-            @current-change="loadSuiteReports"
-          />
+          <div class="pagination-container">
+            <el-pagination
+              v-model:current-page="suitePagination.current"
+              v-model:page-size="suitePagination.size"
+              :total="suitePagination.total"
+              :page-sizes="[10, 20, 50]"
+              layout="total, sizes, prev, pager, next"
+              @size-change="loadSuiteReports"
+              @current-change="loadSuiteReports"
+            />
+          </div>
         </div>
       </el-tab-pane>
 
@@ -119,33 +121,34 @@
           </el-card>
         </div>
 
-        <!-- 筛选 -->
-        <div class="filters">
-          <el-row :gutter="20">
-            <el-col :span="4">
-              <el-select v-model="caseProjectFilter" :placeholder="$t('appAutomation.report.allProjects')" clearable filterable @change="loadCaseReports">
-                <el-option v-for="p in projectList" :key="p.id" :label="p.name" :value="p.id" />
-              </el-select>
-            </el-col>
-            <el-col :span="6">
-              <el-input v-model="caseSearch" :placeholder="$t('appAutomation.report.searchCaseDevice')" clearable @clear="loadCaseReports" @keyup.enter="loadCaseReports">
-                <template #prefix><el-icon><Search /></el-icon></template>
-              </el-input>
-            </el-col>
-            <el-col :span="4">
-              <el-select v-model="caseStatusFilter" :placeholder="$t('appAutomation.report.executionStatus')" clearable @change="loadCaseReports">
-                <el-option :label="$t('appAutomation.common.all')" value="" />
-                <el-option :label="$t('appAutomation.status.completed')" value="completed" />
-                <el-option :label="$t('appAutomation.report.executionError')" value="error" />
-                <el-option :label="$t('appAutomation.status.stopped')" value="stopped" />
-              </el-select>
-            </el-col>
-            <el-col :span="6">
-              <el-button type="primary" @click="loadCaseReports"><el-icon><Search /></el-icon>{{ $t('appAutomation.common.query') }}</el-button>
-              <el-button @click="caseSearch = ''; caseStatusFilter = ''; caseProjectFilter = null; loadCaseReports()">{{ $t('appAutomation.common.reset') }}</el-button>
-            </el-col>
-          </el-row>
-        </div>
+        <div class="card-container">
+          <!-- 筛选 -->
+          <div class="filter-bar">
+            <el-row :gutter="20">
+              <el-col :span="4">
+                <el-select v-model="caseProjectFilter" :placeholder="$t('appAutomation.report.allProjects')" clearable filterable @change="loadCaseReports">
+                  <el-option v-for="p in projectList" :key="p.id" :label="p.name" :value="p.id" />
+                </el-select>
+              </el-col>
+              <el-col :span="6">
+                <el-input v-model="caseSearch" :placeholder="$t('appAutomation.report.searchCaseDevice')" clearable @clear="loadCaseReports" @keyup.enter="loadCaseReports">
+                  <template #prefix><el-icon><Search /></el-icon></template>
+                </el-input>
+              </el-col>
+              <el-col :span="4">
+                <el-select v-model="caseStatusFilter" :placeholder="$t('appAutomation.report.executionStatus')" clearable @change="loadCaseReports">
+                  <el-option :label="$t('appAutomation.common.all')" value="" />
+                  <el-option :label="$t('appAutomation.status.completed')" value="completed" />
+                  <el-option :label="$t('appAutomation.report.executionError')" value="error" />
+                  <el-option :label="$t('appAutomation.status.stopped')" value="stopped" />
+                </el-select>
+              </el-col>
+              <el-col :span="6">
+                <el-button type="primary" @click="loadCaseReports"><el-icon><Search /></el-icon>{{ $t('appAutomation.common.query') }}</el-button>
+                <el-button @click="caseSearch = ''; caseStatusFilter = ''; caseProjectFilter = null; loadCaseReports()">{{ $t('appAutomation.common.reset') }}</el-button>
+              </el-col>
+            </el-row>
+          </div>
 
         <!-- 用例报告列表 -->
         <el-table :data="caseReports" v-loading="caseLoading" border stripe>
@@ -201,16 +204,17 @@
           </el-table-column>
         </el-table>
 
-        <div class="pagination">
-          <el-pagination
-            v-model:current-page="casePagination.current"
-            v-model:page-size="casePagination.size"
-            :total="casePagination.total"
-            :page-sizes="[10, 20, 50, 100]"
-            layout="total, sizes, prev, pager, next"
-            @size-change="loadCaseReports"
-            @current-change="loadCaseReports"
-          />
+          <div class="pagination-container">
+            <el-pagination
+              v-model:current-page="casePagination.current"
+              v-model:page-size="casePagination.size"
+              :total="casePagination.total"
+              :page-sizes="[10, 20, 50, 100]"
+              layout="total, sizes, prev, pager, next"
+              @size-change="loadCaseReports"
+              @current-change="loadCaseReports"
+            />
+          </div>
         </div>
       </el-tab-pane>
     </el-tabs>
@@ -600,19 +604,22 @@ function formatDuration(seconds) {
 </script>
 
 <style scoped>
-.report-list { padding: var(--aitest-space-5); }
+/* 页面骨架使用全局 card-container/filter-bar，本地仅保留分页对齐 */
+.pagination-container {
+  margin-top: var(--aitest-space-5);
+  display: flex;
+  justify-content: flex-end;
+}
 .stats-row { display: flex; gap: var(--aitest-space-4); margin-bottom: var(--aitest-space-5); }
 .stat-card { flex: 1; }
 .stat-content { text-align: center; }
-.stat-number { font-size: 28px; font-weight: bold; line-height: 1.6; }
+.stat-number { font-size: var(--aitest-font-size-2xl); font-weight: bold; line-height: 1.6; }
 .stat-label { font-size: var(--aitest-font-size-base); color: var(--el-text-color-secondary); }
-.filters { margin-bottom: var(--aitest-space-5); padding: var(--aitest-space-5); background: var(--aitest-surface-subtle); border-radius: var(--aitest-radius-lg); }
-.pagination { margin-top: var(--aitest-space-5); display: flex; justify-content: flex-end; }
 .step-stats { display: flex; align-items: center; font-size: var(--aitest-font-size-base); }
 .detail-section { margin-top: var(--aitest-space-6); }
 .detail-section h4 { margin-bottom: var(--aitest-space-3); color: var(--aitest-text-1); }
 .detail-stat { text-align: center; padding: var(--aitest-space-4); border-radius: var(--aitest-radius-lg); }
-.detail-stat-num { font-size: 24px; font-weight: bold; }
+.detail-stat-num { font-size: var(--aitest-font-size-2xl); font-weight: bold; }
 .detail-stat-label { font-size: var(--aitest-font-size-base); color: var(--el-text-color-regular); margin-top: var(--aitest-space-1); }
 .success-bg { background: var(--aitest-success-bg); color: var(--el-color-success); }
 .danger-bg { background: var(--aitest-danger-bg); color: var(--el-color-danger); }

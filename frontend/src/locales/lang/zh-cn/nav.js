@@ -29,6 +29,8 @@ export default {
     reviewTemplates: '评审模板',
     testPlan: '测试计划',
     testReport: '测试报告',
+    automationCases: '自动化用例',
+    automationEnvs: '自动化环境',
 
     // 接口测试
     dashboard: '数据看板',

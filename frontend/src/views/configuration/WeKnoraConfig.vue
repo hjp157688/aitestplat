@@ -1,26 +1,27 @@
 <template>
-  <div class="weknora-config">
-    <PageHeader title="WeKnora 知识库配置" />
+  <div class="weknora-config page-container">
+    <PageHeader :title="$t('configuration.weknora.title')" :desc="$t('configuration.weknora.desc')" />
 
     <div v-if="loading" class="loading-container">
       <el-skeleton :rows="4" animated />
     </div>
 
-    <div v-else>
+    <template v-else>
       <!-- 连接配置 -->
-      <el-card class="section-card" shadow="never">
-        <template #header>
-          <div class="section-header">
+      <div class="card-container section-card">
+        <div class="section-header">
+          <div class="section-title">
             <el-icon><Connection /></el-icon>
-            <span>WeKnora 连接配置</span>
-            <el-tag :type="cfg.enabled ? 'success' : 'info'" size="small">
-              {{ cfg.enabled ? '已启用' : '未启用' }}
-            </el-tag>
+            <span>{{ $t('configuration.weknora.connectionSection') }}</span>
           </div>
-        </template>
+          <span class="status-tag" :class="cfg.enabled ? 'active' : 'inactive'">
+            <span class="status-tag__dot"></span>
+            {{ cfg.enabled ? $t('configuration.common.enabled') : $t('configuration.common.disabled') }}
+          </span>
+        </div>
 
         <el-form :model="cfg" label-width="150px" label-position="right">
-          <el-form-item label="服务地址">
+          <el-form-item :label="$t('configuration.weknora.baseUrl')">
             <el-input v-model="cfg.base_url" placeholder="http://localhost:8080" />
           </el-form-item>
           <el-form-item label="API Key">
@@ -28,101 +29,102 @@
               v-model="cfg.api_key"
               type="password"
               show-password
-              placeholder="WeKnora 账户 API Key"
+              :placeholder="$t('configuration.weknora.apiKeyPlaceholder')"
             />
           </el-form-item>
-          <el-form-item label="超时(秒)">
+          <el-form-item :label="$t('configuration.weknora.timeout')">
             <el-input-number v-model="cfg.timeout" :min="5" :max="300" />
           </el-form-item>
-          <el-form-item label="是否启用">
+          <el-form-item :label="$t('configuration.common.isActive')">
             <el-switch v-model="cfg.enabled" />
           </el-form-item>
           <el-form-item>
             <div class="form-actions">
               <el-button type="primary" @click="saveConnection" :loading="saving">
-                保存配置
+                {{ $t('configuration.weknora.saveConfig') }}
               </el-button>
               <el-button @click="testConnection" :loading="testing">
-                测试连接
+                {{ $t('configuration.weknora.testConnection') }}
               </el-button>
               <el-button @click="loadAgents" :loading="loadingAgents" :disabled="!cfg.base_url || !cfg.api_key">
-                获取智能体列表
+                {{ $t('configuration.weknora.loadAgents') }}
               </el-button>
             </div>
           </el-form-item>
         </el-form>
 
         <div v-if="agents.length > 0" class="agents-block">
-          <div class="agents-title">可用智能体（{{ agents.length }}）：</div>
+          <div class="agents-title">{{ $t('configuration.weknora.agentsTitle', { count: agents.length }) }}</div>
           <div v-for="a in agents" :key="a.id" class="agent-chip">
             <span>{{ a.name }}</span>
             <code>{{ a.id }}</code>
-            <el-tag v-if="a.is_builtin" size="small" type="info">内置</el-tag>
+            <el-tag v-if="a.is_builtin" size="small" type="info">{{ $t('configuration.weknora.builtin') }}</el-tag>
           </div>
         </div>
-      </el-card>
+      </div>
 
       <!-- 项目绑定 -->
-      <el-card class="section-card" shadow="never">
-        <template #header>
-          <div class="section-header">
+      <div class="card-container">
+        <div class="section-header">
+          <div class="section-title">
             <el-icon><Coin /></el-icon>
-            <span>项目 ⇄ 智能体绑定</span>
-            <el-button type="primary" size="small" @click="openBindingDialog(null)">
-              <el-icon><Plus /></el-icon>
-              新增绑定
-            </el-button>
+            <span>{{ $t('configuration.weknora.bindingSection') }}</span>
           </div>
-        </template>
+          <el-button type="primary" size="small" @click="openBindingDialog(null)">
+            <el-icon><Plus /></el-icon>
+            {{ $t('configuration.weknora.addBinding') }}
+          </el-button>
+        </div>
 
-        <el-table :data="bindings" v-loading="bindingsLoading" empty-text="暂无项目绑定">
-          <el-table-column label="项目" prop="project_name" min-width="140" />
-          <el-table-column label="智能体" min-width="160">
+        <el-table :data="bindings" v-loading="bindingsLoading" :empty-text="$t('configuration.weknora.noBindings')">
+          <el-table-column :label="$t('configuration.weknora.colProject')" prop="project_name" min-width="140" />
+          <el-table-column :label="$t('configuration.weknora.colAgent')" min-width="160">
             <template #default="{ row }">
               {{ row.agent_name || row.agent_id }}
               <code v-if="row.agent_id" class="agent-id">{{ row.agent_id }}</code>
             </template>
           </el-table-column>
-          <el-table-column label="知识库ID" prop="knowledge_base_ids" min-width="160">
+          <el-table-column :label="$t('configuration.weknora.colKb')" prop="knowledge_base_ids" min-width="160">
             <template #default="{ row }">
               <span v-if="row.knowledge_base_ids && row.knowledge_base_ids.length">
                 {{ row.knowledge_base_ids.join(', ') }}
               </span>
-              <span v-else class="muted">默认</span>
+              <span v-else class="muted">{{ $t('configuration.weknora.kbDefault') }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="状态" width="90">
+          <el-table-column :label="$t('configuration.weknora.colStatus')" width="100">
             <template #default="{ row }">
-              <el-tag :type="row.enabled ? 'success' : 'info'" size="small">
-                {{ row.enabled ? '已启用' : '已停用' }}
-              </el-tag>
+              <span class="status-tag" :class="row.enabled ? 'active' : 'inactive'">
+                <span class="status-tag__dot"></span>
+                {{ row.enabled ? $t('configuration.common.enabled') : $t('configuration.common.disabled') }}
+              </span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="140">
+          <el-table-column :label="$t('configuration.weknora.colActions')" width="140">
             <template #default="{ row }">
-              <el-button size="small" type="primary" link @click="openBindingDialog(row)">编辑</el-button>
-              <el-button size="small" type="danger" link @click="deleteBinding(row)">删除</el-button>
+              <el-button size="small" type="primary" link @click="openBindingDialog(row)">{{ $t('configuration.common.edit') }}</el-button>
+              <el-button size="small" type="danger" link @click="deleteBinding(row)">{{ $t('configuration.common.delete') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
-      </el-card>
-    </div>
+      </div>
+    </template>
 
     <!-- 绑定弹窗 -->
     <el-dialog
       v-model="bindingDialogVisible"
-      :title="editingBinding ? '编辑项目绑定' : '新增项目绑定'"
+      :title="editingBinding ? $t('configuration.weknora.bindingEditTitle') : $t('configuration.weknora.bindingAddTitle')"
       width="560px"
       :close-on-click-modal="false"
     >
       <el-form :model="bindingForm" label-width="120px" label-position="right">
-        <el-form-item label="项目" required>
-          <el-select v-model="bindingForm.project" filterable placeholder="选择项目" style="width: 100%">
+        <el-form-item :label="$t('configuration.weknora.colProject')" required>
+          <el-select v-model="bindingForm.project" filterable :placeholder="$t('configuration.weknora.selectProject')" style="width: 100%">
             <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="WeKnora 智能体" required>
-          <el-select v-model="bindingForm.agent_id" filterable placeholder="选择智能体" style="width: 100%">
+        <el-form-item :label="$t('configuration.weknora.agentLabel')" required>
+          <el-select v-model="bindingForm.agent_id" filterable :placeholder="$t('configuration.weknora.selectAgent')" style="width: 100%">
             <el-option
               v-for="a in agents"
               :key="a.id"
@@ -131,20 +133,20 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="知识库ID">
+        <el-form-item :label="$t('configuration.weknora.colKb')">
           <el-input
             v-model="bindingForm.knowledge_base_ids_input"
-            placeholder="可留空(使用智能体默认知识库)；多个用逗号分隔"
+            :placeholder="$t('configuration.weknora.kbPlaceholder')"
           />
         </el-form-item>
-        <el-form-item label="是否启用">
+        <el-form-item :label="$t('configuration.common.isActive')">
           <el-switch v-model="bindingForm.enabled" />
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="bindingDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="saveBinding" :loading="savingBinding">保存</el-button>
+          <el-button @click="bindingDialogVisible = false">{{ $t('configuration.common.cancel') }}</el-button>
+          <el-button type="primary" @click="saveBinding" :loading="savingBinding">{{ $t('configuration.common.save') }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -153,6 +155,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Connection, Coin, Plus } from '@element-plus/icons-vue'
 import api from '@/utils/api'
@@ -166,6 +169,8 @@ import {
   deleteWeKnoraBinding
 } from '@/api/requirement'
 import PageHeader from '@/components/common/PageHeader.vue'
+
+const { t } = useI18n()
 
 const loading = ref(true)
 const saving = ref(false)
@@ -203,7 +208,7 @@ async function loadAll() {
     Object.assign(cfg, d)
     if (!d.api_key && d.api_key !== undefined) cfg.api_key = ''
   } catch (e) {
-    ElMessage.error(e.response?.data?.error || '加载配置失败')
+    ElMessage.error(e.response?.data?.error || t('configuration.weknora.loadFailed'))
   } finally {
     loading.value = false
   }
@@ -220,7 +225,7 @@ async function loadBindings() {
     const res = await listWeKnoraBindings()
     bindings.value = res.data?.results || res.data || []
   } catch (e) {
-    ElMessage.error(e.response?.data?.error || '加载绑定失败')
+    ElMessage.error(e.response?.data?.error || t('configuration.weknora.loadBindingsFailed'))
   } finally {
     bindingsLoading.value = false
   }
@@ -232,13 +237,13 @@ async function loadAgents() {
     const res = await listWeKnoraAgents()
     if (res.data?.success) {
       agents.value = res.data.agents || []
-      ElMessage.success(`已获取 ${agents.value.length} 个智能体`)
-      if (agents.value.length === 0) ElMessage.warning('未获取到智能体')
+      ElMessage.success(t('configuration.weknora.agentsLoaded', { count: agents.value.length }))
+      if (agents.value.length === 0) ElMessage.warning(t('configuration.weknora.agentsEmpty'))
     } else {
-      ElMessage.error(res.data?.error || res.data?.message || '获取智能体失败')
+      ElMessage.error(res.data?.error || res.data?.message || t('configuration.weknora.agentsFailed'))
     }
   } catch (e) {
-    ElMessage.error(e.response?.data?.error || e.response?.data?.message || '获取智能体失败')
+    ElMessage.error(e.response?.data?.error || e.response?.data?.message || t('configuration.weknora.agentsFailed'))
   } finally {
     loadingAgents.value = false
   }
@@ -246,7 +251,7 @@ async function loadAgents() {
 
 async function saveConnection() {
   if (!cfg.base_url) {
-    ElMessage.warning('请填写服务地址')
+    ElMessage.warning(t('configuration.weknora.urlRequired'))
     return
   }
   saving.value = true
@@ -257,10 +262,10 @@ async function saveConnection() {
       timeout: cfg.timeout,
       enabled: cfg.enabled
     })
-    ElMessage.success('配置已保存')
+    ElMessage.success(t('configuration.weknora.saveSuccess'))
     await loadAll()
   } catch (e) {
-    ElMessage.error(e.response?.data?.error || '保存失败')
+    ElMessage.error(e.response?.data?.error || t('configuration.weknora.saveFailed'))
   } finally {
     saving.value = false
   }
@@ -268,7 +273,7 @@ async function saveConnection() {
 
 async function testConnection() {
   if (!cfg.base_url) {
-    ElMessage.warning('请先填写服务地址')
+    ElMessage.warning(t('configuration.weknora.urlRequired'))
     return
   }
   testing.value = true
@@ -280,16 +285,16 @@ async function testConnection() {
       check_agents: true
     })
     if (res.data?.success) {
-      ElMessage.success('连接成功')
+      ElMessage.success(t('configuration.weknora.testSuccess'))
       if (res.data.agents?.length) {
         agents.value = res.data.agents
-        ElMessage.info(`共 ${res.data.agents.length} 个智能体`)
+        ElMessage.info(t('configuration.weknora.agentsInfo', { count: res.data.agents.length }))
       }
     } else {
-      ElMessage.error(res.data?.error || res.data?.message || '连接失败')
+      ElMessage.error(res.data?.error || res.data?.message || t('configuration.weknora.testFailed'))
     }
   } catch (e) {
-    ElMessage.error(e.response?.data?.error || e.response?.data?.message || '连接测试失败')
+    ElMessage.error(e.response?.data?.error || e.response?.data?.message || t('configuration.weknora.testError'))
   } finally {
     testing.value = false
   }
@@ -316,11 +321,11 @@ function openBindingDialog(binding) {
 
 async function saveBinding() {
   if (!bindingForm.project) {
-    ElMessage.warning('请选择项目')
+    ElMessage.warning(t('configuration.weknora.projectRequired'))
     return
   }
   if (!bindingForm.agent_id) {
-    ElMessage.warning('请选择智能体')
+    ElMessage.warning(t('configuration.weknora.agentRequired'))
     return
   }
   const bindingData = {
@@ -335,11 +340,11 @@ async function saveBinding() {
   savingBinding.value = true
   try {
     await saveWeKnoraBinding(bindingData)
-    ElMessage.success(editingBinding.value ? '绑定已更新' : '绑定已创建')
+    ElMessage.success(editingBinding.value ? t('configuration.weknora.bindingUpdated') : t('configuration.weknora.bindingCreated'))
     bindingDialogVisible.value = false
     await loadBindings()
   } catch (e) {
-    ElMessage.error(e.response?.data?.error || '保存失败')
+    ElMessage.error(e.response?.data?.error || t('configuration.weknora.saveFailed'))
   } finally {
     savingBinding.value = false
   }
@@ -347,17 +352,21 @@ async function saveBinding() {
 
 async function deleteBinding(binding) {
   try {
-    await ElMessageBox.confirm(`确定删除项目「${binding.project_name}」的绑定吗？`, '确认删除', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      t('configuration.weknora.deleteConfirm', { name: binding.project_name }),
+      t('configuration.weknora.deleteConfirmTitle'),
+      {
+        type: 'warning',
+        confirmButtonText: t('configuration.common.delete'),
+        cancelButtonText: t('configuration.common.cancel')
+      }
+    )
     await deleteWeKnoraBinding(binding.id)
-    ElMessage.success('已删除')
+    ElMessage.success(t('configuration.weknora.deleted'))
     await loadBindings()
   } catch (e) {
     if (e !== 'cancel') {
-      ElMessage.error(e.response?.data?.error || '删除失败')
+      ElMessage.error(e.response?.data?.error || t('configuration.weknora.deleteFailed'))
     }
   }
 }
@@ -370,52 +379,70 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.weknora-config {
-  padding: var(--aitest-space-5);
-  max-width: 1100px;
-  margin: 0 auto;
-}
+/* 页面骨架：page-container + PageHeader + card-container 分区；留白由全局 .page-container 提供，根容器不私写 max-width */
 .loading-container {
   padding: var(--aitest-space-10);
 }
+
 .section-card {
-  margin-bottom: var(--aitest-space-5);
+  margin-bottom: var(--aitest-space-4);
 }
+
 .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--aitest-space-4);
+}
+
+.section-title {
   display: flex;
   align-items: center;
   gap: var(--aitest-space-2);
   font-weight: 600;
+  font-size: var(--aitest-font-size-md);
+  color: var(--aitest-text-1);
 }
+
 .form-actions {
   display: flex;
   gap: var(--aitest-space-3);
 }
+
 .agents-block {
   margin-top: var(--aitest-space-4);
+  padding-top: var(--aitest-space-4);
+  border-top: 1px solid var(--aitest-border);
 }
+
 .agents-title {
   font-weight: 600;
   margin-bottom: var(--aitest-space-2);
+  font-size: var(--aitest-font-size-base);
+  color: var(--aitest-text-2);
 }
+
 .agent-chip {
   display: inline-flex;
   align-items: center;
   gap: var(--aitest-space-2);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 6px;
+  border-radius: var(--aitest-radius);
   padding: var(--aitest-space-1) var(--aitest-space-3);
   margin: 0 var(--aitest-space-2) var(--aitest-space-2) 0;
 }
+
 .agent-chip code,
 .agent-id {
   color: var(--aitest-text-3);
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
 }
+
 .muted {
   color: var(--aitest-text-3);
 }
+
 .dialog-footer {
   display: flex;
   justify-content: flex-end;

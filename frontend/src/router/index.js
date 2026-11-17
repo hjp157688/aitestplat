@@ -172,6 +172,16 @@ const routes = [
                 component: () => import('@/views/requirement-analysis/TaskDetail.vue')
             },
             {
+                path: 'automation-cases',
+                name: 'AutomationCases',
+                component: () => import('@/views/requirement-analysis/AutomationCases.vue')
+            },
+            {
+                path: 'automation-envs',
+                name: 'AutomationEnvironments',
+                component: () => import('@/views/requirement-analysis/AutomationEnvironments.vue')
+            },
+            {
                 path: 'profile',
                 name: 'Profile',
                 component: () => import('@/views/profile/UserProfile.vue')

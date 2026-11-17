@@ -1,5 +1,5 @@
 <template>
-  <div class="project-management">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('apiTesting.project.title')">
       <template #actions>
         <el-button type="primary" @click="showCreateDialog = true">
@@ -11,7 +11,9 @@
 
 
     <!-- 项目列表 -->
-    <el-table :data="projects" v-loading="loading" style="width: 100%">
+    <div class="card-container">
+      <div class="table-container">
+        <el-table :data="projects" v-loading="loading" style="width: 100%" height="100%">
       <el-table-column prop="name" :label="$t('apiTesting.project.projectName')" min-width="200" />
       <el-table-column prop="project_type" :label="$t('apiTesting.project.projectType')" width="120">
         <template #default="scope">
@@ -44,19 +46,22 @@
           <el-button link type="danger" @click="deleteProject(scope.row)">{{ $t('apiTesting.common.delete') }}</el-button>
         </template>
       </el-table-column>
-    </el-table>
+        </el-table>
+      </div>
 
-    <!-- 分页 -->
-    <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :page-sizes="[10, 20, 50, 100]"
-      :total="total"
-      layout="total, sizes, prev, pager, next, jumper"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      class="pagination"
-    />
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </div>
 
     <!-- 新建/编辑项目对话框 -->
     <el-dialog
@@ -406,15 +411,3 @@ onMounted(async () => {
   await Promise.all([loadProjects(), loadUsers()])
 })
 </script>
-
-<style scoped>
-.project-management {
-  padding: var(--aitest-space-5);
-}
-
-.pagination {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: center;
-}
-</style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="notification-management">
+  <div class="page-container notification-management">
     <!-- 顶部标题 -->
     <PageHeader :title="$t('apiTesting.notification.title')" />
 
@@ -7,9 +7,9 @@
     <el-tabs v-model="activeTab" class="notification-tabs">
       <!-- 通知列表Tab -->
       <el-tab-pane :label="$t('apiTesting.notification.notificationList')" name="list">
-        <div class="tab-content">
+        <div class="card-container">
           <!-- 筛选条件 -->
-          <div class="filters">
+          <div class="filter-bar">
             <el-row :gutter="20">
               <el-col :span="6">
                 <el-input
@@ -84,7 +84,7 @@
           </el-table>
 
           <!-- 分页 -->
-          <div class="pagination">
+          <div class="pagination-container">
             <el-pagination
               v-model:current-page="pagination.current"
               v-model:page-size="pagination.size"
@@ -588,33 +588,14 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.notification-management {
-  padding: var(--aitest-space-5);
-  background: var(--aitest-canvas);
-  min-height: 100%;
-}
-
-.notification-tabs {
-  background: var(--aitest-surface);
-  border-radius: var(--aitest-radius-lg);
-  overflow: hidden;
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--aitest-space-4);
 }
 
 .tab-content {
   padding: var(--aitest-space-5);
-}
-
-.filters {
-  margin-bottom: var(--aitest-space-5);
-  background: var(--aitest-surface-subtle);
-  padding: var(--aitest-space-5);
-  border-radius: var(--aitest-radius-lg);
-}
-
-.pagination {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
 }
 
 .config-section {

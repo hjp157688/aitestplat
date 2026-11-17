@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from apps.users.models import User
 from apps.projects.models import Project
+from apps.testcases.models import TestCase as ManualTestCase
 import json
 import re
 import httpx
@@ -189,7 +190,8 @@ class AIModelConfig(models.Model):
     api_key = models.CharField(max_length=500, verbose_name='API Key', blank=True, null=True)
     base_url = models.CharField(max_length=500, verbose_name='API Base URL')
     model_name = models.CharField(max_length=200, verbose_name='模型名称')
-    max_tokens = models.IntegerField(default=4096, verbose_name='最大Token数')
+    max_tokens = models.IntegerField(default=4096, null=True, blank=True, verbose_name='最大Token数',
+                                     help_text='留空或0表示不限制（不向服务端传 max_tokens，由模型输出上限决定）')
     temperature = models.FloatField(default=0.7, verbose_name='温度参数')
     top_p = models.FloatField(default=0.9, verbose_name='Top P参数')
     is_active = models.BooleanField(default=True, verbose_name='是否启用')
@@ -233,6 +235,8 @@ class PromptConfig(models.Model):
         ('api_testcase_generator', '接口测试用例生成'),
         ('browser_use_task', 'Browser Use-执行任务'),
         ('browser_use_breakdown', 'Browser Use-任务拆分'),
+        ('testcase_modifier', '用例AI定向修改'),
+        ('testcase_supplement', '用例AI补充生成'),
     ]
 
     name = models.CharField(max_length=100, verbose_name='配置名称')
@@ -307,8 +311,8 @@ class GenerationConfig(models.Model):
 
     @classmethod
     def get_active_config(cls):
-        """获取活跃的生成配置"""
-        return cls.objects.filter(is_active=True).first()
+        """获取活跃的生成配置（加稳定排序：历史数据若存在多份启用，取最近更新的那份）"""
+        return cls.objects.filter(is_active=True).order_by('-updated_at', '-id').first()
 
 
 class TestCaseGenerationTask(models.Model):
@@ -316,6 +320,7 @@ class TestCaseGenerationTask(models.Model):
     STATUS_CHOICES = [
         ('pending', '等待中'),
         ('generating', '生成中'),
+        ('retrieving', '知识检索中'),
         ('reviewing', '评审中'),
         ('revising', '改进中'),
         ('completed', '已完成'),
@@ -625,6 +630,173 @@ class WeKnoraProjectBinding(models.Model):
 
     def __str__(self):
         return f'{self.project}: {self.agent_name or self.agent_id}'
+
+
+class AutomationCase(models.Model):
+    """由功能用例经 AI 转写得到的 browser-use 自动化用例。"""
+
+    CONVERT_STATUS_CHOICES = [
+        ('processing', '转写中'),
+        ('done', '转写成功'),
+        ('failed', '转写失败'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE,
+                                related_name='automation_cases', verbose_name='所属项目')
+    requirement = models.ForeignKey('Requirement', on_delete=models.SET_NULL,
+                                    null=True, blank=True, related_name='automation_cases',
+                                    verbose_name='关联需求')
+    source_generated_case = models.ForeignKey('GeneratedTestCase', on_delete=models.SET_NULL,
+                                              null=True, blank=True, related_name='automation_cases',
+                                              verbose_name='来源AI生成用例')
+    source_test_case = models.ForeignKey(ManualTestCase, on_delete=models.SET_NULL,
+                                         null=True, blank=True, related_name='automation_cases',
+                                         verbose_name='来源手动用例')
+    title = models.CharField(max_length=300, verbose_name='用例标题')
+    precondition = models.TextField(blank=True, default='', verbose_name='前置条件')
+    steps = models.JSONField(default=list, blank=True, verbose_name='自动化操作步骤')
+    last_failure_summary = models.TextField(
+        blank=True, default='', verbose_name='最近一次失败原因总结',
+        help_text='执行失败后由 AI 总结，下次执行注入任务描述；执行成功后清空')
+    success_trace = models.JSONField(
+        default=list, blank=True, verbose_name='最近成功执行路径',
+        help_text='执行成功时记录的动作序列（每步 URL + 动作），下次执行注入任务描述供参考')
+    convert_status = models.CharField(max_length=20, choices=CONVERT_STATUS_CHOICES,
+                                      default='processing', verbose_name='转写状态')
+    convert_error = models.TextField(blank=True, default='', verbose_name='转写失败原因')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='automation_cases_created', verbose_name='创建人')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        db_table = 'automation_cases'
+        ordering = ['-created_at']
+        verbose_name = '自动化用例'
+        verbose_name_plural = '自动化用例'
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def source_type(self):
+        if self.source_generated_case_id:
+            return 'generated'
+        if self.source_test_case_id:
+            return 'testcase'
+        return 'inline'
+
+
+class AutomationEnvironment(models.Model):
+    """自动化执行环境：系统地址、登录配置与通用变量（{{key}} 引用）。"""
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE,
+                                related_name='automation_environments', verbose_name='所属项目')
+    name = models.CharField(max_length=100, verbose_name='环境名称')
+    base_url = models.CharField(max_length=500, blank=True, default='', verbose_name='系统地址')
+    cdp_url = models.CharField(max_length=500, blank=True, default='',
+                               verbose_name='浏览器CDP地址',
+                               help_text='远端浏览器 CDP 地址（如用户本地 Chrome 经隧道暴露的 http://127.0.0.1:9222）；留空则在服务器本机启动浏览器')
+    enable_screenshot = models.BooleanField(
+        default=True, verbose_name='执行时截图',
+        help_text='关闭后执行过程不逐页截图、不生成 GIF，速度更快内存更省（不影响文本模式 AI 判断）')
+    login_url = models.CharField(max_length=500, blank=True, default='', verbose_name='登录页地址')
+    username = models.CharField(max_length=200, blank=True, default='', verbose_name='登录账号')
+    password = models.CharField(max_length=200, blank=True, default='', verbose_name='登录密码')
+    variables = models.JSONField(default=list, blank=True, verbose_name='环境变量')
+    is_active = models.BooleanField(default=True, verbose_name='是否启用')
+    description = models.TextField(blank=True, default='', verbose_name='描述')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        db_table = 'automation_environments'
+        ordering = ['-created_at']
+        verbose_name = '自动化环境'
+        verbose_name_plural = '自动化环境'
+
+    def __str__(self):
+        return self.name
+
+
+class AutomationExecutionSession(models.Model):
+    """一次批量执行的会话：整批共享一次登录（storage_state 复用）。"""
+
+    STATUS_CHOICES = [
+        ('pending', '待执行'),
+        ('logging_in', '登录中'),
+        ('running', '执行中'),
+        ('done', '已完成'),
+        ('failed', '失败'),
+    ]
+    LOGIN_STATUS_CHOICES = [
+        ('not_required', '无需登录'),
+        ('success', '登录成功'),
+        ('failed', '登录失败'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE,
+                                related_name='automation_execution_sessions', verbose_name='所属项目')
+    environment = models.ForeignKey(AutomationEnvironment, on_delete=models.CASCADE,
+                                    related_name='execution_sessions', verbose_name='执行环境')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending',
+                              verbose_name='会话状态')
+    login_status = models.CharField(max_length=20, choices=LOGIN_STATUS_CHOICES,
+                                    default='not_required', verbose_name='登录状态')
+    storage_state = models.JSONField(null=True, blank=True, verbose_name='登录态')
+    error = models.TextField(blank=True, default='', verbose_name='错误信息')
+    triggered_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='automation_sessions_triggered', verbose_name='触发人')
+    started_at = models.DateTimeField(null=True, blank=True, verbose_name='开始时间')
+    finished_at = models.DateTimeField(null=True, blank=True, verbose_name='结束时间')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+
+    class Meta:
+        db_table = 'automation_execution_sessions'
+        ordering = ['-created_at']
+        verbose_name = '自动化执行会话'
+        verbose_name_plural = '自动化执行会话'
+
+    def __str__(self):
+        return f'执行会话#{self.pk}'
+
+
+class AutomationExecution(models.Model):
+    """单条自动化用例的执行记录。"""
+
+    STATUS_CHOICES = [
+        ('pending', '待执行'),
+        ('running', '执行中'),
+        ('success', '成功'),
+        ('failed', '失败'),
+        ('stopped', '已停止'),
+    ]
+
+    case = models.ForeignKey(AutomationCase, on_delete=models.CASCADE,
+                             related_name='automation_executions', verbose_name='自动化用例')
+    session = models.ForeignKey(AutomationExecutionSession, on_delete=models.CASCADE,
+                                related_name='executions', verbose_name='执行会话')
+    environment = models.ForeignKey(AutomationEnvironment, on_delete=models.CASCADE,
+                                    related_name='automation_executions', verbose_name='执行环境')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending',
+                              verbose_name='执行状态')
+    result_detail = models.JSONField(default=list, blank=True, verbose_name='逐步结果')
+    log = models.TextField(blank=True, default='', verbose_name='执行日志')
+    error = models.TextField(blank=True, default='', verbose_name='错误信息')
+    triggered_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='automation_executions_triggered', verbose_name='触发人')
+    started_at = models.DateTimeField(null=True, blank=True, verbose_name='开始时间')
+    finished_at = models.DateTimeField(null=True, blank=True, verbose_name='结束时间')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+
+    class Meta:
+        db_table = 'automation_executions'
+        ordering = ['-created_at']
+        verbose_name = '自动化执行记录'
+        verbose_name_plural = '自动化执行记录'
+
+    def __str__(self):
+        return f'执行记录#{self.pk}'
 
 
 class AIModelService:
@@ -1187,18 +1359,50 @@ class AIModelService:
         return '\n'.join(lines[:end])
 
     @staticmethod
+    def dedupe_test_cases(test_cases_content: str) -> str:
+        """按标题对 JSONL 用例去重（保留首条），不重新编号。
+
+        用于 generated_test_cases 落库：截断自动续写导致模型重复输出同一条用例
+        （逐字节相同的重复行），writer 原始内容先去重，评审/改进才不会在重复集上放大。
+        非 JSON 行原样保留。
+        """
+        if not test_cases_content:
+            return test_cases_content
+
+        seen_titles = set()
+        out_lines = []
+        for line in test_cases_content.split('\n'):
+            stripped = line.strip()
+            if not stripped:
+                continue
+            try:
+                obj = json.loads(stripped)
+            except (json.JSONDecodeError, ValueError):
+                out_lines.append(stripped)
+                continue
+            if isinstance(obj, dict) and obj.get('title'):
+                if obj['title'] in seen_titles:
+                    logger.info(f"dedupe_test_cases: 去重重复用例: {obj['title'][:40]!r}")
+                    continue
+                seen_titles.add(obj['title'])
+            out_lines.append(json.dumps(obj, ensure_ascii=False))
+        return '\n'.join(out_lines)
+
+    @staticmethod
     def renumber_test_cases(test_cases_content: str) -> str:
         """
-        按顺序重新编号 JSONL 测试用例，使编号连续。
+        去重（按标题保留首条）并重新编号 JSONL 测试用例，使编号连续。
 
-        保留每行的前缀与分隔符（如 LOGIN_ / TC- / IMMSG），位数与原有编号一致；
+        去重：截断自动续写会让模型无视"不要重复"指令重新输出已有用例（同一标题
+        x2/x3、逐字节相同的重复行），落库前按 title 去重，只保留首次出现。
+        编号：保留每行的前缀与分隔符（如 LOGIN_ / TC- / IMMSG），位数与原有编号一致；
         多前缀（如混合 LOGIN_* 与 REGISTER_*）各自独立连续编号；无数字编号的行保持不变。
 
         Args:
             test_cases_content: 测试用例内容（JSONL 字符串）
 
         Returns:
-            str: 重新编号后的测试用例内容
+            str: 去重并重新编号后的测试用例内容
         """
         if not test_cases_content:
             return test_cases_content
@@ -1219,6 +1423,7 @@ class AIModelService:
             return test_cases_content
 
         counters = {}  # 按 前缀+分隔符 分别计数，避免不同模块编号互相干扰
+        seen_titles = set()  # 续写重启会重复输出同一条用例，按标题保留首条
         out_lines = []
         for obj in entries:
             if not isinstance(obj, dict):
@@ -1228,6 +1433,12 @@ class AIModelService:
                     f"renumber_test_cases: 丢弃非对象 JSON 行: "
                     f"{json.dumps(obj, ensure_ascii=False)[:60]!r}")
                 continue
+            title = obj.get('title')
+            if title:
+                if title in seen_titles:
+                    logger.info(f"renumber_test_cases: 去重重复用例: {title[:40]!r}")
+                    continue
+                seen_titles.add(title)
             case_id = obj.get('case_id')
             m = _CASE_ID_PATTERN.match(str(case_id).strip()) if isinstance(case_id, str) else None
             if m:

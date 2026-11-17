@@ -415,3 +415,45 @@ def execute_import_record(record_id: int, celery_task_id: str = '') -> dict:
         record.completed_at = timezone.now()
         record.save(update_fields=['status', 'progress', 'error_message', 'completed_at', 'updated_at'])
         raise
+
+
+# 用例版本快照覆盖的内容字段（与 TestCaseVersion 快照字段一一对应）
+CASE_CONTENT_FIELDS = ('title', 'description', 'preconditions', 'steps', 'priority', 'test_type', 'tags')
+
+
+def case_content_dict(testcase):
+    """提取用例内容字段快照 dict，用于变更比较"""
+    return {f: getattr(testcase, f) for f in CASE_CONTENT_FIELDS}
+
+
+def snapshot_case_version(testcase, source='created', note='', created_by=None):
+    """为用例当前内容落一条版本快照，版本号按用例独立自增"""
+    from django.db.models import Max
+
+    from .models import TestCaseVersion
+
+    next_version = (
+        TestCaseVersion.objects.filter(testcase=testcase).aggregate(m=Max('version'))['m'] or 0
+    ) + 1
+    return TestCaseVersion.objects.create(
+        testcase=testcase,
+        version=next_version,
+        source=source,
+        note=note or '',
+        created_by=created_by,
+        **{f: getattr(testcase, f) for f in CASE_CONTENT_FIELDS},
+    )
+
+
+def ensure_baseline_version(testcase, created_by=None):
+    """老用例无版本记录时，把当前内容补录为 v1（初版），保证后续任何修改都可对比。
+
+    已有版本记录时是 no-op，返回 None。
+    """
+    from .models import TestCaseVersion
+
+    if TestCaseVersion.objects.filter(testcase=testcase).exists():
+        return None
+    return snapshot_case_version(
+        testcase, source='created', note='历史数据补录初版', created_by=created_by
+    )

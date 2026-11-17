@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('reviewList.title')">
       <template #actions>
         <el-button type="primary" @click="createReview">
@@ -9,6 +9,7 @@
       </template>
     </PageHeader>
 
+    <div class="card-container">
     <div class="filter-bar">
       <el-form :inline="true" :model="filters" class="filter-form">
         <el-form-item :label="$t('reviewList.project')">
@@ -44,7 +45,7 @@
     </div>
 
     <div class="table-container">
-      <el-table :data="reviews" v-loading="loading" stripe>
+      <el-table :data="reviews" v-loading="loading" stripe height="100%">
         <el-table-column prop="title" :label="$t('reviewList.reviewTitle')" min-width="200" show-overflow-tooltip />
         <el-table-column :label="$t('reviewList.reviewProject')" width="200">
           <template #default="{ row }">
@@ -106,18 +107,19 @@
           </template>
         </el-table-column>
       </el-table>
+    </div>
 
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.size"
-          :total="pagination.total"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="fetchReviews"
-          @current-change="fetchReviews"
-        />
-      </div>
+    <div class="pagination-container">
+      <el-pagination
+        v-model:current-page="pagination.page"
+        v-model:page-size="pagination.size"
+        :total="pagination.total"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="fetchReviews"
+        @current-change="fetchReviews"
+      />
+    </div>
     </div>
 
     <!-- 评审对话框 -->
@@ -334,6 +336,8 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
+
 .filter-form {
   display: flex;
   flex-wrap: wrap;

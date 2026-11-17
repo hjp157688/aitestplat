@@ -1,5 +1,5 @@
 <template>
-  <div class="requirement-analysis">
+  <div class="page-container requirement-analysis">
     <PageHeader :title="$t('requirementAnalysis.title')" />
 
     <!-- AI 配置未就绪 · 可关细提醒条 -->
@@ -70,9 +70,9 @@
                     @change="handleFileSelect"
                     accept=".pdf,.doc,.docx,.txt,.md"
                     style="display: none;">
-                  <button class="select-file-btn" @click="triggerFileInput">
+                  <el-button type="primary" plain @click="triggerFileInput">
                     {{ $t('requirementAnalysis.selectFile') }}
-                  </button>
+                  </el-button>
                 </div>
 
                 <div v-else class="file-selected">
@@ -111,8 +111,18 @@
           </el-tab-pane>
         </el-tabs>
 
-        <!-- 统一生成条：输出模式 + 生成按钮 -->
+        <!-- 统一生成条：特定生成要求（通栏）+ 输出模式/颗粒度/生成按钮 -->
         <div class="generate-bar">
+          <div class="case-type-field">
+            <span class="output-mode-label">{{ $t('requirementAnalysis.caseTypeLabel') }}</span>
+            <input
+              v-model="caseType"
+              type="text"
+              class="form-input case-type-input"
+              maxlength="120"
+              :placeholder="$t('requirementAnalysis.caseTypePlaceholder')">
+          </div>
+          <div class="generate-controls">
           <div class="output-mode-compact">
             <span class="output-mode-label">{{ $t('requirementAnalysis.outputModeDesc') }}</span>
             <div class="segmented" role="radiogroup" :aria-label="$t('requirementAnalysis.outputModeTitle')">
@@ -137,15 +147,6 @@
                 {{ $t('requirementAnalysis.completeOutput') }}
               </button>
             </div>
-          </div>
-          <div class="case-type-field">
-            <span class="output-mode-label">{{ $t('requirementAnalysis.caseTypeLabel') }}</span>
-            <input
-              v-model="caseType"
-              type="text"
-              class="form-input case-type-input"
-              maxlength="120"
-              :placeholder="$t('requirementAnalysis.caseTypePlaceholder')">
           </div>
 
           <div class="granularity-field">
@@ -190,6 +191,7 @@
             <span v-if="isGenerating">{{ $t('requirementAnalysis.generating') }}</span>
             <span v-else><el-icon class="btn-icon"><Lightning /></el-icon> {{ $t('requirementAnalysis.generateButton') }}</span>
           </button>
+          </div>
         </div>
       </div>
 
@@ -258,9 +260,9 @@
             </div>
             <!-- 生成中：取消 -->
             <div v-else-if="isGenerating" class="cancel-row-wrap">
-              <button class="cancel-generation-btn" @click="cancelGeneration">
+              <el-button text type="danger" @click="cancelGeneration">
                 {{ $t('requirementAnalysis.cancelGeneration') }}
-              </button>
+              </el-button>
             </div>
           </div>
 
@@ -982,7 +984,8 @@ export default {
         return
       }
 
-      const requirementText = `${this.$t('requirementAnalysis.requirementTitle')}: ${this.manualInput.title}\n\n${this.$t('requirementAnalysis.requirementDescription')}:\n${this.manualInput.description}`
+      // 需求详情只保留描述内容（标题单独存任务 title，不再拼接"需求标题/需求描述"前缀）
+      const requirementText = (this.manualInput.description || '').trim() || this.manualInput.title
 
       await this.startGeneration(
         this.manualInput.title,
@@ -1150,7 +1153,11 @@ export default {
 
           if (data.type === 'progress') {
             // Update progress status
-            if (data.status === 'generating') {
+            if (data.status === 'retrieving') {
+              // WeKnora 知识检索阶段（生成开始前）
+              this.currentStep = 2
+              this.progressText = this.$t('requirementAnalysis.statusRetrieving')
+            } else if (data.status === 'generating') {
               this.currentStep = 2
               this.progressText = `${this.$t('requirementAnalysis.statusGenerating')} ${data.progress}%`
             } else if (data.status === 'reviewing') {
@@ -1343,7 +1350,10 @@ export default {
           console.log(`${this.$t('requirementAnalysis.taskStatus')}: ${task.status}, ${this.$t('requirementAnalysis.progress')}: ${task.progress}%`)
 
           // 更新进度显示
-          if (task.status === 'generating') {
+          if (task.status === 'retrieving') {
+            this.currentStep = 2
+            this.progressText = this.$t('requirementAnalysis.statusRetrieving')
+          } else if (task.status === 'generating') {
             this.currentStep = 2
             this.progressText = this.$t('requirementAnalysis.statusGenerating')
           } else if (task.status === 'reviewing') {
@@ -1710,11 +1720,7 @@ export default {
    ================================================================ */
 
 .requirement-analysis {
-  padding: 28px var(--aitest-space-6);
-  max-width: 1280px;
-  margin: 0 auto;
   position: relative;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
 }
 
 /* ---------- Config Banner（AI 配置未就绪 · 可关细提醒条） ---------- */
@@ -1724,16 +1730,16 @@ export default {
   gap: var(--aitest-space-3);
   padding: var(--aitest-space-3) var(--aitest-space-4);
   margin-bottom: var(--aitest-space-5);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   background: var(--aitest-warning-bg);
   border: 1px solid color-mix(in srgb, var(--aitest-warning) 35%, transparent);
   color: var(--aitest-text-2);
-  font-size: 0.86rem;
+  font-size: var(--aitest-font-size-base);
 }
 
 .config-banner-icon {
   color: var(--aitest-warning);
-  font-size: 1rem;
+  font-size: var(--aitest-font-size-md);
   flex-shrink: 0;
 }
 
@@ -1762,7 +1768,7 @@ export default {
 /* ---------- Input Card（页签：粘贴/上传） ---------- */
 .input-card {
   background: var(--aitest-surface);
-  border-radius: 14px;
+  border-radius: var(--aitest-radius-lg);
   border: 1px solid var(--aitest-border);
   box-shadow: var(--aitest-shadow-sm);
   padding: var(--aitest-space-2) var(--aitest-space-6) var(--aitest-space-6);
@@ -1785,15 +1791,25 @@ export default {
 }
 
 /* ---------- 统一生成条 ---------- */
+/* 两行结构：第一行特定生成要求通栏，第二行输出模式/颗粒度/生成按钮 */
 .generate-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: var(--aitest-space-4);
-  flex-wrap: wrap;
   margin-top: var(--aitest-space-5);
   padding-top: var(--aitest-space-5);
   border-top: 1px solid var(--aitest-surface-subtle);
+}
+
+.generate-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--aitest-space-4);
+  flex-wrap: wrap;
+}
+
+.generate-controls .generate-manual-btn {
+  margin-left: auto;
 }
 
 .output-mode-compact {
@@ -1804,7 +1820,7 @@ export default {
 }
 
 .output-mode-label {
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
   font-weight: 600;
   color: var(--aitest-text-3);
 }
@@ -1813,7 +1829,7 @@ export default {
   display: inline-flex;
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   padding: 3px;
   gap: 2px;
 }
@@ -1825,10 +1841,10 @@ export default {
   border: none;
   background: transparent;
   color: var(--aitest-text-2);
-  font-size: 0.84rem;
+  font-size: var(--aitest-font-size-base);
   font-weight: 500;
   padding: 7px var(--aitest-space-4);
-  border-radius: 7px;
+  border-radius: var(--aitest-radius);
   cursor: pointer;
   transition: all 0.18s ease;
 }
@@ -1867,15 +1883,15 @@ export default {
   display: flex;
   align-items: center;
   gap: var(--aitest-space-3);
-  flex: 1;
-  min-width: 340px;
+  width: 100%;
 }
 
 .case-type-input {
   width: auto;
   flex: 1;
   padding: var(--aitest-space-3) var(--aitest-space-4);
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
+  min-width: 0;
 }
 
 .granularity-field {
@@ -1900,7 +1916,7 @@ export default {
   display: block;
   margin-bottom: var(--aitest-space-2);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-base);
   color: var(--aitest-text-2);
 }
 
@@ -1909,7 +1925,7 @@ export default {
   padding: var(--aitest-space-3) var(--aitest-space-4);
   border: 1.5px solid var(--aitest-border);
   border-radius: var(--aitest-radius-lg);
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-1);
   background: var(--aitest-surface);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -1932,7 +1948,7 @@ export default {
   padding: var(--aitest-space-3) var(--aitest-space-4);
   border: 1.5px solid var(--aitest-border);
   border-radius: var(--aitest-radius-lg);
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-1);
   background: var(--aitest-surface);
   resize: vertical;
@@ -1954,7 +1970,7 @@ export default {
 
 .char-count {
   text-align: right;
-  font-size: 0.78rem;
+  font-size: var(--aitest-font-size-xs);
   color: var(--aitest-text-3);
   margin-top: var(--aitest-space-1);
 }
@@ -1970,9 +1986,9 @@ export default {
   color: var(--aitest-surface);
   border: none;
   padding: 13px 28px;
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: var(--aitest-font-size-md);
   font-weight: 600;
   width: 100%;
   margin-top: var(--aitest-space-3);
@@ -1986,7 +2002,7 @@ export default {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   opacity: 0;
   transition: opacity 0.3s ease;
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(79, 70, 229, 0.12));
@@ -2013,7 +2029,7 @@ export default {
 /* ---------- Upload Area ---------- */
 .upload-area {
   border: 2px dashed var(--aitest-border-strong);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   padding: 36px var(--aitest-space-6);
   text-align: center;
   transition: all 0.2s ease;
@@ -2032,7 +2048,7 @@ export default {
 }
 
 .upload-icon {
-  font-size: 2.5rem;
+  font-size: 28px;
   margin-bottom: var(--aitest-space-3);
   display: block;
   color: var(--aitest-text-3);
@@ -2040,32 +2056,14 @@ export default {
 
 .upload-placeholder p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
   color: var(--aitest-text-2);
 }
 
 .upload-hint {
   color: var(--aitest-text-3) !important;
-  font-size: 0.8rem !important;
+  font-size: var(--aitest-font-size-sm) !important;
   margin-top: var(--aitest-space-1) !important;
-}
-
-.select-file-btn {
-  background: var(--aitest-surface-subtle);
-  color: var(--aitest-text-2);
-  border: 1.5px solid var(--aitest-border);
-  padding: 9px var(--aitest-space-5);
-  border-radius: var(--aitest-radius-lg);
-  cursor: pointer;
-  margin-top: var(--aitest-space-4);
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.select-file-btn:hover {
-  background: var(--aitest-surface-subtle);
-  border-color: var(--aitest-border-strong);
 }
 
 .file-selected {
@@ -2081,7 +2079,7 @@ export default {
 }
 
 .file-icon {
-  font-size: 1.75rem;
+  font-size: var(--aitest-font-size-2xl);
   color: var(--aitest-text-2);
 }
 
@@ -2093,12 +2091,12 @@ export default {
   font-weight: 600;
   margin: 0;
   color: var(--aitest-text-1);
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
 }
 
 .file-size {
   color: var(--aitest-text-3);
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
   margin: 3px 0 0 0;
 }
 
@@ -2106,7 +2104,7 @@ export default {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: var(--aitest-font-size-xl);
   color: var(--aitest-text-3);
   padding: var(--aitest-space-1);
   border-radius: var(--aitest-radius);
@@ -2126,7 +2124,7 @@ export default {
 /* AI Pulse — signature element（靛蓝→天蓝，生成时长驻流动） */
 .generation-panel {
   background: var(--aitest-surface);
-  border-radius: 14px;
+  border-radius: var(--aitest-radius-lg);
   padding: var(--aitest-space-6);
   border: 1px solid var(--aitest-border);
   box-shadow: var(--aitest-shadow-sm);
@@ -2138,7 +2136,7 @@ export default {
   content: '';
   position: absolute;
   inset: -2px;
-  border-radius: 16px;
+  border-radius: var(--aitest-radius-lg);
   padding: 2px;
   background: linear-gradient(135deg, var(--aitest-primary), var(--aitest-accent), var(--aitest-primary));
   background-size: 200% 200%;
@@ -2168,19 +2166,19 @@ export default {
 }
 
 .result-kicker {
-  font-size: 1.05rem;
+  font-size: var(--aitest-font-size-lg);
   font-weight: 700;
   color: var(--aitest-text-1);
   letter-spacing: -0.01em;
 }
 
 .result-task-id {
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-3);
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
   padding: 2px var(--aitest-space-3);
-  border-radius: 20px;
+  border-radius: var(--aitest-radius-full);
 }
 
 .result-header-spacer {
@@ -2192,8 +2190,8 @@ export default {
   align-items: center;
   gap: 7px;
   padding: var(--aitest-space-1) var(--aitest-space-3);
-  border-radius: 20px;
-  font-size: 0.78rem;
+  border-radius: var(--aitest-radius-full);
+  font-size: var(--aitest-font-size-xs);
   font-weight: 600;
 }
 
@@ -2239,7 +2237,7 @@ export default {
   border-radius: var(--aitest-radius-lg);
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-3);
-  font-size: 0.78rem;
+  font-size: var(--aitest-font-size-xs);
   transition: all 0.25s ease;
 }
 
@@ -2252,7 +2250,7 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.68rem;
+  font-size: var(--aitest-font-size-xs);
   color: var(--aitest-text-3);
 }
 
@@ -2287,47 +2285,30 @@ export default {
   border-top: 1px solid var(--aitest-surface-subtle);
 }
 
-.cancel-generation-btn {
-  background: var(--aitest-danger-bg);
-  color: var(--aitest-danger);
-  border: 1.5px solid color-mix(in srgb, var(--aitest-danger) 28%, transparent);
-  padding: 9px 22px;
-  border-radius: var(--aitest-radius-lg);
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.cancel-generation-btn:hover {
-  background: var(--aitest-danger-bg);
-  border-color: color-mix(in srgb, var(--aitest-danger) 45%, transparent);
-}
-
 /* ---------- 空态 ---------- */
 .results-empty {
   text-align: center;
   padding: 56px var(--aitest-space-6);
   background: var(--aitest-surface);
   border: 1px dashed var(--aitest-border-strong);
-  border-radius: 14px;
+  border-radius: var(--aitest-radius-lg);
 }
 
 .results-empty-icon {
-  font-size: 2.4rem;
+  font-size: 28px;
   color: var(--aitest-border-strong);
   margin-bottom: var(--aitest-space-4);
 }
 
 .results-empty-title {
-  font-size: 1rem;
+  font-size: var(--aitest-font-size-md);
   font-weight: 700;
   color: var(--aitest-text-2);
   margin: 0 0 var(--aitest-space-2) 0;
 }
 
 .results-empty-desc {
-  font-size: 0.86rem;
+  font-size: var(--aitest-font-size-base);
   color: var(--aitest-text-3);
   margin: 0 0 var(--aitest-space-4) 0;
   line-height: 1.6;
@@ -2343,14 +2324,14 @@ export default {
   gap: var(--aitest-space-4);
   padding: var(--aitest-space-4) var(--aitest-space-5);
   margin-bottom: var(--aitest-space-5);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   background: var(--aitest-danger-bg);
   border: 1px solid color-mix(in srgb, var(--aitest-danger) 30%, transparent);
 }
 
 .failure-icon {
   color: var(--aitest-danger);
-  font-size: 1.3rem;
+  font-size: var(--aitest-font-size-xl);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -2362,12 +2343,12 @@ export default {
 .failure-title {
   font-weight: 700;
   color: var(--aitest-danger);
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
   margin: 0 0 var(--aitest-space-1) 0;
 }
 
 .failure-msg {
-  font-size: 0.84rem;
+  font-size: var(--aitest-font-size-base);
   color: var(--aitest-text-2);
   margin: 0;
   line-height: 1.5;
@@ -2388,7 +2369,7 @@ export default {
   background: var(--aitest-canvas);
   border: 1px solid var(--aitest-border);
   border-bottom: none;
-  border-radius: 10px 10px 0 0;
+  border-radius: var(--aitest-radius-lg) var(--aitest-radius-lg) 0 0;
 }
 
 .result-section-title {
@@ -2397,15 +2378,15 @@ export default {
   gap: var(--aitest-space-2);
   font-weight: 600;
   color: var(--aitest-text-2);
-  font-size: 0.88rem;
+  font-size: var(--aitest-font-size-base);
 }
 
 .result-section-meta {
-  font-size: 0.78rem;
+  font-size: var(--aitest-font-size-xs);
   color: var(--aitest-text-2);
   background: var(--aitest-surface);
   padding: 3px var(--aitest-space-3);
-  border-radius: 20px;
+  border-radius: var(--aitest-radius-full);
   border: 1px solid var(--aitest-border);
 }
 
@@ -2439,8 +2420,8 @@ export default {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
   border-top: none;
-  border-radius: 0 0 10px 10px;
-  font-size: 0.88rem;
+  border-radius: 0 0 var(--aitest-radius-lg) var(--aitest-radius-lg);
+  font-size: var(--aitest-font-size-base);
   line-height: 1.7;
   color: var(--aitest-text-2);
   white-space: pre-wrap;
@@ -2457,7 +2438,7 @@ export default {
 
 .stream-content::-webkit-scrollbar-thumb {
   background: var(--aitest-border-strong);
-  border-radius: 3px;
+  border-radius: var(--aitest-radius-sm);
 }
 
 .stream-content::-webkit-scrollbar-thumb:hover {
@@ -2477,7 +2458,7 @@ export default {
   padding: 2px var(--aitest-space-2);
   border-radius: var(--aitest-radius-sm);
   font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
-  font-size: 0.82em;
+  font-size: var(--aitest-font-size-sm);
 }
 
 .stream-content pre {
@@ -2517,7 +2498,7 @@ export default {
   background: var(--aitest-canvas);
   border: 1px solid var(--aitest-border);
   border-top: none;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 var(--aitest-radius-lg) var(--aitest-radius-lg);
   max-height: 560px;
   overflow-y: auto;
 }
@@ -2532,7 +2513,7 @@ export default {
 
 .cards-grid::-webkit-scrollbar-thumb {
   background: var(--aitest-border-strong);
-  border-radius: 3px;
+  border-radius: var(--aitest-radius-sm);
 }
 
 .cards-grid::-webkit-scrollbar-thumb:hover {
@@ -2542,7 +2523,7 @@ export default {
 /* Single Test Case Card */
 .testcase-card {
   background: var(--aitest-surface);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   padding: var(--aitest-space-4);
   border: 1px solid var(--aitest-border);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -2599,7 +2580,7 @@ export default {
   height: 2.5px;
   background: linear-gradient(90deg, transparent, var(--aitest-primary), var(--aitest-accent), transparent);
   animation: shimmer 1.8s infinite;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 var(--aitest-radius-lg) var(--aitest-radius-lg);
 }
 
 @keyframes shimmer {
@@ -2617,19 +2598,19 @@ export default {
 
 .testcase-card .case-id {
   font-family: var(--aitest-font-mono);
-  font-size: 0.75rem;
+  font-size: var(--aitest-font-size-xs);
   color: var(--aitest-text-2);
   background: var(--aitest-surface-subtle);
   padding: 2px var(--aitest-space-3);
-  border-radius: 5px;
+  border-radius: var(--aitest-radius);
   letter-spacing: 0.02em;
   font-weight: 500;
 }
 
 .testcase-card .priority-badge {
   padding: 3px var(--aitest-space-3);
-  border-radius: 20px;
-  font-size: 0.7rem;
+  border-radius: var(--aitest-radius-full);
+  font-size: var(--aitest-font-size-xs);
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -2652,7 +2633,7 @@ export default {
 .testcase-card .card-scenario {
   font-weight: 600;
   color: var(--aitest-text-1);
-  font-size: 0.88rem;
+  font-size: var(--aitest-font-size-base);
   margin-bottom: var(--aitest-space-3);
   line-height: 1.45;
   display: -webkit-box;
@@ -2674,7 +2655,7 @@ export default {
   display: flex;
   gap: var(--aitest-space-2);
   margin-bottom: var(--aitest-space-2);
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
   line-height: 1.5;
   align-items: flex-start;
 }
@@ -2682,7 +2663,7 @@ export default {
 .testcase-card .field-icon {
   flex-shrink: 0;
   margin-top: 1px;
-  font-size: 0.82rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-3);
 }
 
@@ -2691,7 +2672,7 @@ export default {
   font-weight: 500;
   flex-shrink: 0;
   min-width: 26px;
-  font-size: 0.75rem;
+  font-size: var(--aitest-font-size-xs);
 }
 
 .testcase-card .field-value {
@@ -2723,7 +2704,7 @@ export default {
 .testcase-card .step-order {
   flex-shrink: 0;
   font-family: var(--aitest-font-mono);
-  font-size: 0.72rem;
+  font-size: var(--aitest-font-size-xs);
   color: var(--aitest-text-3);
 }
 
@@ -2743,7 +2724,7 @@ export default {
 
 /* Streaming indicator */
 .streaming-indicator {
-  font-size: 0.85em;
+  font-size: var(--aitest-font-size-base);
   margin-left: var(--aitest-space-2);
   color: var(--aitest-success);
   animation: pulse 1.5s ease-in-out infinite;
@@ -2769,7 +2750,7 @@ export default {
   border: none;
   border-radius: var(--aitest-radius-lg);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
   font-weight: 500;
   transition: all 0.2s ease;
 }
@@ -2790,7 +2771,7 @@ export default {
 
 .selected-knowledge-summary {
   margin-top: var(--aitest-space-2);
-  font-size: 0.82rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-2);
   display: flex;
   align-items: center;
@@ -2808,15 +2789,15 @@ export default {
   background: var(--aitest-primary-subtle);
   color: var(--aitest-primary);
   padding: 2px var(--aitest-space-2);
-  border-radius: 10px;
-  font-size: 0.75rem;
+  border-radius: var(--aitest-radius-lg);
+  font-size: var(--aitest-font-size-xs);
   font-weight: 500;
 }
 
 .knowledge-panel {
   margin-bottom: var(--aitest-space-4);
   border: 1px solid var(--aitest-border);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
   background: var(--aitest-surface);
 }
@@ -2828,17 +2809,17 @@ export default {
   padding: var(--aitest-space-3) var(--aitest-space-4);
   background: var(--aitest-canvas);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-base);
   color: var(--aitest-text-2);
   border-bottom: 1px solid var(--aitest-border);
 }
 
 .knowledge-count {
-  font-size: 0.78rem;
+  font-size: var(--aitest-font-size-xs);
   color: var(--aitest-text-3);
   background: var(--aitest-surface);
   padding: 2px var(--aitest-space-3);
-  border-radius: 12px;
+  border-radius: var(--aitest-radius-lg);
   border: 1px solid var(--aitest-border);
 }
 
@@ -2852,7 +2833,7 @@ export default {
   text-align: center;
   padding: 28px;
   color: var(--aitest-text-3);
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-base);
 }
 
 .knowledge-item {
@@ -2889,15 +2870,15 @@ export default {
 
 .knowledge-item-name {
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-base);
   color: var(--aitest-text-2);
   flex: 1;
 }
 
 .knowledge-item-type {
-  font-size: 0.72rem;
+  font-size: var(--aitest-font-size-xs);
   padding: 2px var(--aitest-space-2);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-2);
 }
@@ -2913,10 +2894,10 @@ export default {
 }
 
 .knowledge-item-score {
-  font-size: 0.78rem;
+  font-size: var(--aitest-font-size-xs);
   font-weight: 700;
   padding: 2px var(--aitest-space-2);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   background: var(--aitest-warning-bg);
   color: var(--aitest-warning);
 }
@@ -2932,7 +2913,7 @@ export default {
 }
 
 .knowledge-item-content {
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-2);
   line-height: 1.5;
   display: -webkit-box;
@@ -2950,7 +2931,7 @@ export default {
   padding: var(--aitest-space-3) var(--aitest-space-4);
   background: var(--aitest-canvas);
   border-top: 1px solid var(--aitest-border);
-  font-size: 0.82rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-2);
 }
 
@@ -2961,7 +2942,7 @@ export default {
   border: none;
   border-radius: var(--aitest-radius);
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: var(--aitest-font-size-sm);
   font-weight: 500;
   transition: background 0.15s ease;
 }
@@ -3032,12 +3013,12 @@ export default {
 /* AI 配置引导对话框（append-to-body 后在 scoped 作用域外，需全局样式） */
 .config-guide-dialog .config-guide-subtitle {
   color: var(--aitest-text-2);
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
   margin: 0 0 18px 0;
 }
 
 .config-guide-dialog .config-guide-group {
-  font-size: 0.72rem;
+  font-size: var(--aitest-font-size-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3055,7 +3036,7 @@ export default {
   gap: 12px;
   padding: 10px 14px;
   border: 1px solid var(--aitest-border);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   margin-bottom: 8px;
   background: var(--aitest-surface);
 }
@@ -3065,7 +3046,7 @@ export default {
 }
 
 .config-guide-dialog .config-guide-label {
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
   font-weight: 600;
   color: var(--aitest-text-2);
   flex-shrink: 0;
@@ -3074,7 +3055,7 @@ export default {
 .config-guide-dialog .config-guide-name {
   flex: 1;
   text-align: right;
-  font-size: 0.84rem;
+  font-size: var(--aitest-font-size-base);
   color: var(--aitest-text-2);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3103,7 +3084,7 @@ export default {
   margin-bottom: 12px;
 }
 .weknora-label {
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-base);
   font-weight: 600;
   color: var(--aitest-text-2);
   margin-bottom: 6px;
@@ -3111,9 +3092,9 @@ export default {
 .weknora-answer-text {
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
-  border-radius: 8px;
+  border-radius: var(--aitest-radius-lg);
   padding: 10px 12px;
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
@@ -3126,7 +3107,7 @@ export default {
   gap: 8px;
   padding: 5px 0;
   border-bottom: 1px dashed var(--aitest-border);
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
 }
 .weknora-ref-row:last-child {
   border-bottom: none;
@@ -3140,11 +3121,11 @@ export default {
 }
 .weknora-ref-chunk {
   color: var(--aitest-text-3);
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
 }
 .weknora-ref-score {
   margin-left: auto;
-  color: var(--aitest-primary, #4f46e5);
+  color: var(--aitest-primary);
   font-variant-numeric: tabular-nums;
 }
 </style>

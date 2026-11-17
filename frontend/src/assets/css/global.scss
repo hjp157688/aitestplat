@@ -109,6 +109,76 @@ body {
   padding: var(--aitest-space-page);
 }
 
+/* ============ 固定视口列表页变体 ============ */
+/* 整页撑满内容区（无页面级滚动）：工具栏/分页固定，表格内部滚动。
+   用法：根元素 class="page-container page-container--full"，卡内结构依次为
+   .filter-bar（工具栏）→ .table-container（> el-table，加 height="100%"）→ .pagination-container。
+   窄屏（<=1024px）自动退化为普通滚动页。 */
+.page-container--full {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+
+  > .card-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  > .card-container > .filter-bar {
+    flex-shrink: 0;
+    margin-bottom: 0;
+    padding: var(--aitest-card-padding) var(--aitest-card-padding) var(--aitest-space-4);
+    border-bottom: 1px solid var(--aitest-border);
+  }
+
+  > .card-container > .table-container {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 var(--aitest-card-padding);
+  }
+
+  > .card-container > .pagination-container {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+    padding: var(--aitest-space-3) var(--aitest-card-padding);
+    border-top: 1px solid var(--aitest-border);
+  }
+
+  /* 表体内部滚动：配合 el-table 的 height="100%"（表头固定） */
+  > .card-container > .table-container > .el-table {
+    .el-table__body-wrapper {
+      overflow-y: auto !important;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .page-container--full {
+    height: auto;
+    overflow: visible;
+
+    > .card-container,
+    > .card-container > .table-container {
+      overflow: visible;
+      flex: none;
+    }
+
+    > .card-container > .table-container > .el-table {
+      .el-table__body-wrapper {
+        overflow-y: visible !important;
+      }
+    }
+  }
+}
+
 /* ============ 页头（顶层规则，不依赖 .page-container） ============ */
 .page-header {
   display: flex;

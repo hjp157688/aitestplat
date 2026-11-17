@@ -1,8 +1,9 @@
 <template>
-  <div class="execution-list">
-    <!-- 工具栏 -->
-    <el-card class="toolbar" shadow="never">
-      <el-row :gutter="20">
+  <div class="page-container page-container--full execution-list">
+    <div class="card-container">
+      <!-- 工具栏 -->
+      <div class="filter-bar">
+        <el-row :gutter="20">
         <el-col :span="4">
           <el-select v-model="projectFilter" :placeholder="$t('appAutomation.execution.allProjects')" clearable filterable @change="loadExecutions">
             <el-option v-for="p in projectList" :key="p.id" :label="p.name" :value="p.id" />
@@ -42,16 +43,17 @@
           </el-button>
         </el-col>
       </el-row>
-    </el-card>
-    
-    <!-- 执行记录列表 -->
-    <el-card class="table-card" shadow="never">
-      <el-table
-        v-loading="loading"
-        :data="executions"
-        stripe
-        style="width: 100%"
-      >
+      </div>
+
+      <!-- 执行记录列表 -->
+      <div class="table-container">
+        <el-table
+          v-loading="loading"
+          :data="executions"
+          stripe
+          style="width: 100%"
+          height="100%"
+        >
         <el-table-column prop="case_name" :label="$t('appAutomation.execution.testCase')" min-width="180" />
         <el-table-column prop="device_name" :label="$t('appAutomation.execution.device')" width="150" />
         <el-table-column :label="$t('appAutomation.common.status')" width="100">
@@ -126,9 +128,10 @@
           </template>
         </el-table-column>
       </el-table>
-      
+      </div>
+
       <!-- 分页 -->
-      <div class="pagination">
+      <div class="pagination-container">
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
@@ -139,8 +142,8 @@
           @current-change="loadExecutions"
         />
       </div>
-    </el-card>
-    
+    </div>
+
     <!-- 错误信息对话框 -->
     <el-dialog
       v-model="errorDialogVisible"
@@ -289,24 +292,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-.execution-list {
-  padding: var(--aitest-space-5);
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
-.toolbar {
-  margin-bottom: var(--aitest-space-5);
-
-  .text-right {
-    text-align: right;
-  }
-}
-
-.table-card {
-  .pagination {
-    margin-top: var(--aitest-space-5);
-    display: flex;
-    justify-content: flex-end;
-  }
+.text-right {
+  text-align: right;
 }
 
 .step-stats {

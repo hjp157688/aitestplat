@@ -3060,7 +3060,8 @@ class AICaseViewSet(viewsets.ModelViewSet):
                     ai_case.task_description,
                     analysis_callback=on_analysis_complete,
                     step_callback=on_step_update,
-                    should_stop=should_stop
+                    should_stop=should_stop,
+                    cdp_url=request.data.get('cdp_url')
                 )
 
                 # 检查是否是手动停止
@@ -3605,7 +3606,8 @@ class AIExecutionRecordViewSet(viewsets.ModelViewSet):
                     should_stop=should_stop_async,  # 传递异步版本
                     execution_mode=execution_mode,
                     enable_gif=enable_gif,  # 传递GIF录制开关
-                    case_name=task_description[:50] if task_description else "Adhoc Task"  # 传递用例名称用于GIF文件命名
+                    case_name=task_description[:50] if task_description else "Adhoc Task",  # 传递用例名称用于GIF文件命名
+                    cdp_url=request.data.get('cdp_url')  # 远端浏览器 CDP 地址（用户本地 Chrome 经隧道暴露）
                 )
 
                 # 检查是否是手动停止 (使用同步版本)

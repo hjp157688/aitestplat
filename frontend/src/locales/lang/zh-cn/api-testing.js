@@ -418,6 +418,9 @@ export default {
       passed: '通过'
     },
     confirmDeleteSuite: '确定要删除测试套件 "{name}" 吗？',
+    confirmDeleteExecution: '确定要删除此执行记录吗？删除后不可恢复。',
+    deleteExecutionSuccess: '执行记录已删除',
+    deleteExecutionFailed: '删除执行记录失败',
     confirmRemoveRequest: '确定要移除这个请求吗？',
     selectAtLeastOne: '请选择至少一个请求',
     assertionDeveloping: '断言编辑功能开发中',

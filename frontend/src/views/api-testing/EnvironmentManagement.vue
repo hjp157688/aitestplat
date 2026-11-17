@@ -1,5 +1,5 @@
 <template>
-  <div class="environment-management">
+  <div class="page-container environment-management">
     <PageHeader :title="$t('apiTesting.environment.title')">
       <template #actions>
         <el-button type="primary" @click="showCreateDialog = true">
@@ -11,41 +11,45 @@
 
     <el-tabs v-model="activeTab" @tab-change="onTabChange">
       <el-tab-pane :label="$t('apiTesting.environment.scopeTypes.global')" name="GLOBAL">
-        <EnvironmentTable
-          :data="globalEnvironments"
-          :loading="loading"
-          scope="GLOBAL"
-          @edit="editEnvironment"
-          @delete="deleteEnvironment"
-          @activate="activateEnvironment"
-          @duplicate="duplicateEnvironment"
-        />
+        <div class="card-container">
+          <EnvironmentTable
+            :data="globalEnvironments"
+            :loading="loading"
+            scope="GLOBAL"
+            @edit="editEnvironment"
+            @delete="deleteEnvironment"
+            @activate="activateEnvironment"
+            @duplicate="duplicateEnvironment"
+          />
+        </div>
       </el-tab-pane>
       <el-tab-pane :label="$t('apiTesting.environment.scopeTypes.local')" name="LOCAL">
-        <div class="local-env-header">
-          <el-select
-            v-model="selectedProject"
-            :placeholder="$t('apiTesting.common.selectProject')"
-            @change="loadLocalEnvironments"
-            style="width: 200px;"
-          >
-            <el-option
-              v-for="project in projects"
-              :key="project.id"
-              :label="project.name"
-              :value="project.id"
-            />
-          </el-select>
+        <div class="card-container">
+          <div class="local-env-header">
+            <el-select
+              v-model="selectedProject"
+              :placeholder="$t('apiTesting.common.selectProject')"
+              @change="loadLocalEnvironments"
+              style="width: 200px;"
+            >
+              <el-option
+                v-for="project in projects"
+                :key="project.id"
+                :label="project.name"
+                :value="project.id"
+              />
+            </el-select>
+          </div>
+          <EnvironmentTable
+            :data="localEnvironments"
+            :loading="loading"
+            scope="LOCAL"
+            @edit="editEnvironment"
+            @delete="deleteEnvironment"
+            @activate="activateEnvironment"
+            @duplicate="duplicateEnvironment"
+          />
         </div>
-        <EnvironmentTable
-          :data="localEnvironments"
-          :loading="loading"
-          scope="LOCAL"
-          @edit="editEnvironment"
-          @delete="deleteEnvironment"
-          @activate="activateEnvironment"
-          @duplicate="duplicateEnvironment"
-        />
       </el-tab-pane>
     </el-tabs>
 
@@ -499,10 +503,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.environment-management {
-  padding: var(--aitest-space-5);
-}
-
 .local-env-header {
   margin-bottom: var(--aitest-space-4);
   padding-bottom: var(--aitest-space-4);

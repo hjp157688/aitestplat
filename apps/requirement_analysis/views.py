@@ -1215,6 +1215,9 @@ def _execute_task(task, selected_knowledge):
                             '任务 %s 未关联 WeKnora 绑定(project=%s, default_agent=%r)，跳过知识注入',
                             task.task_id, task.project_id, _cfg.default_agent_id)
                     else:
+                        # 进入知识检索阶段：SSE/前端据此显示「正在检索知识库…」
+                        task.status = 'retrieving'
+                        task.save(update_fields=['status'])
                         _client = WeKnoraClient(_cfg.base_url, _cfg.api_key, _cfg.timeout)
                         _result = _client.agent_answer(
                             task.requirement_text, _binding.agent_id,
@@ -1234,6 +1237,11 @@ def _execute_task(task, selected_knowledge):
                                         task.task_id, _binding.agent_id, _ctx_project or 'default')
             except Exception as e:
                 logger.warning('任务 %s WeKnora 知识注入失败(跳过): %s', task.task_id, e)
+            finally:
+                # 检索阶段结束(无论成败)恢复 generating，供 SSE/前端正确显示生成阶段
+                if task.status == 'retrieving':
+                    task.status = 'generating'
+                    task.save(update_fields=['status'])
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -1288,7 +1296,8 @@ def _execute_task(task, selected_knowledge):
                 if task.stream_buffer:
                     save_stream_buffer(task.stream_buffer)
 
-                task.generated_test_cases = generated_cases
+                # 续写重启会让模型重复输出同一条用例，落库前按标题去重
+                task.generated_test_cases = AIModelService.dedupe_test_cases(generated_cases)
                 task.progress = 60
                 task.save()
 
@@ -1458,7 +1467,8 @@ def _execute_task(task, selected_knowledge):
                     AIModelService.generate_test_cases(task, selected_knowledge=selected_knowledge)
                 )
 
-                task.generated_test_cases = generated_cases
+                # 续写重启会让模型重复输出同一条用例，落库前按标题去重
+                task.generated_test_cases = AIModelService.dedupe_test_cases(generated_cases)
                 task.progress = 60
                 task.save()
 
@@ -2438,13 +2448,22 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                             )
 
                 adopted_count = 0
+                skipped_count = 0
+                # 幂等：该任务此前已采纳的用例（按标题去重，跳过已存在的）
+                existing_titles = set(
+                    TestCase.objects.filter(source_generation_task=task).values_list('title', flat=True)
+                )
                 for test_case in test_cases:
                     import json as _json
+                    case_title = test_case.get('title') or test_case.get('scenario', '测试用例')
+                    if case_title in existing_titles:
+                        skipped_count += 1
+                        continue
                     parsed_steps = normalize_steps(test_case.get('steps', []))
                     TestCase.objects.create(
                         project=project,  # 使用统一的项目选择逻辑
                         author=task.created_by,
-                        title=test_case.get('title') or test_case.get('scenario', '测试用例'),
+                        title=case_title,
                         description=test_case.get('scenario', ''),  # 使用scenario作为描述
                         preconditions=test_case.get('precondition', ''),
                         steps=_json.dumps(parsed_steps, ensure_ascii=False),
@@ -2452,12 +2471,23 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                         test_type='functional',
                         status='draft',
                         requirement=_ensure_task_requirement(task),
+                        source_generation_task=task,
                     )
+                    existing_titles.add(case_title)
                     adopted_count += 1
 
+                if adopted_count == 0:
+                    message = f'已采纳过 {skipped_count} 条测试用例，请勿重复操作'
+                elif skipped_count > 0:
+                    message = f'新增采纳 {adopted_count} 条（跳过已存在 {skipped_count} 条）到项目 "{project.name}"'
+                else:
+                    message = f'成功采纳 {adopted_count} 条测试用例到项目 "{project.name}"'
+
                 return Response({
-                    'message': f'成功采纳 {adopted_count} 条测试用例到项目 "{project.name}"',
+                    'message': message,
                     'adopted_count': adopted_count,
+                    'skipped_count': skipped_count,
+                    'total_adopted': TestCase.objects.filter(source_generation_task=task).count(),
                     'project_name': project.name
                 }, status=status.HTTP_200_OK)
 
@@ -2533,13 +2563,21 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                             )
 
                 adopted_count = 0
+                skipped_count = 0
+                existing_titles = set(
+                    TestCase.objects.filter(source_generation_task=task).values_list('title', flat=True)
+                )
                 for case_data in test_cases_data:
                     import json as _json
+                    case_title = clean_text(case_data.get('title', '测试用例'))
+                    if case_title in existing_titles:
+                        skipped_count += 1
+                        continue
                     parsed_steps = normalize_steps(case_data.get('steps', []))
                     TestCase.objects.create(
                         project=project,  # 使用统一的项目选择逻辑
                         author=task.created_by,
-                        title=clean_text(case_data.get('title', '测试用例')),
+                        title=case_title,
                         description=clean_text(case_data.get('description', '')),
                         preconditions=clean_text(case_data.get('preconditions', '')),
                         steps=_json.dumps(parsed_steps, ensure_ascii=False),
@@ -2547,12 +2585,23 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                         test_type=case_data.get('test_type', 'functional'),
                         status=case_data.get('status', 'draft'),
                         requirement=_ensure_task_requirement(task),
+                        source_generation_task=task,
                     )
+                    existing_titles.add(case_title)
                     adopted_count += 1
 
+                if adopted_count == 0:
+                    message = f'已采纳过 {skipped_count} 条测试用例，请勿重复操作'
+                elif skipped_count > 0:
+                    message = f'新增采纳 {adopted_count} 条（跳过已存在 {skipped_count} 条）到项目 "{project.name}"'
+                else:
+                    message = f'成功采纳 {adopted_count} 条测试用例到项目 "{project.name}"'
+
                 return Response({
-                    'message': f'成功采纳 {adopted_count} 条测试用例到项目 "{project.name}"',
+                    'message': message,
                     'adopted_count': adopted_count,
+                    'skipped_count': skipped_count,
+                    'total_adopted': TestCase.objects.filter(source_generation_task=task).count(),
                     'project_name': project.name
                 }, status=status.HTTP_200_OK)
 
@@ -2926,15 +2975,16 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                 completed=Count('id', filter=models.Q(status='completed')),
                 pending=Count('id', filter=models.Q(status='pending')),
                 generating=Count('id', filter=models.Q(status='generating')),
+                retrieving=Count('id', filter=models.Q(status='retrieving')),
                 reviewing=Count('id', filter=models.Q(status='reviewing')),
                 revising=Count('id', filter=models.Q(status='revising')),
                 failed=Count('id', filter=models.Q(status='failed')),
                 cancelled=Count('id', filter=models.Q(status='cancelled'))
             )
 
-            # 计算运行中的任务（pending + generating + reviewing + revising）
+            # 计算运行中的任务（pending + generating + retrieving + reviewing + revising）
             stats['running'] = (
-                    stats['pending'] + stats['generating'] +
+                    stats['pending'] + stats['generating'] + stats['retrieving'] +
                     stats['reviewing'] + stats['revising']
             )
 
@@ -2945,6 +2995,7 @@ class TestCaseGenerationTaskViewSet(viewsets.ModelViewSet):
                 'failed': stats['failed'],
                 'pending': stats['pending'],
                 'generating': stats['generating'],
+                'retrieving': stats['retrieving'],
                 'reviewing': stats['reviewing'],
                 'revising': stats['revising'],
                 'cancelled': stats['cancelled']
@@ -3347,7 +3398,8 @@ class RequirementViewSet(viewsets.ModelViewSet):
         failed_titles = []
 
         for requirement in requirements:
-            requirement_text = f"需求标题: {requirement.title}\n\n需求描述:\n{requirement.spec or ''}"
+            # 需求详情只保留描述内容（标题已单独存任务 title，不拼接前缀）
+            requirement_text = requirement.spec or ''
             # 每条需求只使用其自身对应的业务知识作为生成上下文
             requirement_knowledge = selected_knowledge_map.get(
                 str(requirement.id), selected_knowledge_map.get(requirement.id, [])
@@ -3435,6 +3487,31 @@ def zentao_product_stories(request, product_id):
             return JsonResponse({'stories': stories})
         except Exception as e:
             return JsonResponse({'error': f'获取需求列表失败: {str(e)}'}, status=400)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def zentao_testcase_search(request):
+    """按关键词搜索禅道测试用例（GET keyword 必填，product_id 可选）"""
+    if request.method == 'GET':
+        config = ZentaoConfig.get_active_config()
+        if not config:
+            return JsonResponse(
+                {'error': '请先在配置中心配置禅道连接信息'}, status=400
+            )
+        keyword = (request.GET.get('keyword') or '').strip()
+        if not keyword:
+            return JsonResponse({'error': '缺少搜索关键词 keyword'}, status=400)
+        product_id = request.GET.get('product_id')
+        try:
+            product_id = int(product_id) if product_id else None
+        except (TypeError, ValueError):
+            return JsonResponse({'error': 'product_id 不合法'}, status=400)
+        try:
+            cases = ZentaoService.search_testcases(config, keyword, product_id)
+            return JsonResponse({'cases': cases})
+        except Exception as e:
+            return JsonResponse({'error': f'搜索用例失败: {str(e)}'}, status=400)
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 

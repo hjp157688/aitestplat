@@ -7,7 +7,7 @@
       </template>
     </PageHeader>
 
-    <div class="form-container">
+    <div class="card-container">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
         <el-row :gutter="24">
           <el-col :span="12">

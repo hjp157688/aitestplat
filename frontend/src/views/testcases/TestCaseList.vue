@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('testcase.title')">
       <template #actions>
         <el-button
@@ -10,6 +10,41 @@
           <el-icon><Delete /></el-icon>
           {{ $t('testcase.batchDelete') }} ({{ selectedTestCases.length }})
         </el-button>
+
+        <el-button
+          v-if="selectedTestCases.length > 0"
+          type="warning"
+          @click="convertToAutomation"
+          :disabled="isConverting">
+          <el-icon><MagicStick /></el-icon>
+          {{ $t('automation.convertBtn') }} ({{ selectedTestCases.length }})
+        </el-button>
+
+        <el-tooltip :content="$t('testcase.aiModifySelectFirst')" :disabled="selectedTestCases.length > 0">
+          <span class="ai-btn-wrap">
+            <el-button
+              type="success"
+              plain
+              :disabled="selectedTestCases.length === 0 || isAiTaskRunning"
+              @click="openAiDialog('modify')">
+              <el-icon><MagicStick /></el-icon>
+              {{ $t('testcase.aiModify') }}
+            </el-button>
+          </span>
+        </el-tooltip>
+
+        <el-tooltip :content="$t('testcase.aiSupplementSelectRequirement')" :disabled="!!requirementFilter">
+          <span class="ai-btn-wrap">
+            <el-button
+              type="success"
+              plain
+              :disabled="!requirementFilter || isAiTaskRunning"
+              @click="openAiDialog('supplement')">
+              <el-icon><MagicStick /></el-icon>
+              {{ $t('testcase.aiSupplement') }}
+            </el-button>
+          </span>
+        </el-tooltip>
 
         <el-dropdown @command="handleImportCommand">
           <el-button>
@@ -67,7 +102,7 @@
     </PageHeader>
     
     <div class="card-container">
-      <div class="filter-bar">
+      <FilterBar>
         <el-row :gutter="20">
           <el-col :span="5">
             <el-input
@@ -117,12 +152,12 @@
             </el-select>
           </el-col>
         </el-row>
-      </div>
-      
+      </FilterBar>
+
       <div class="table-container">
-        <el-table 
-          :data="testcases" 
-          v-loading="loading" 
+        <el-table
+          :data="testcases"
+          v-loading="loading"
           style="width: 100%"
           height="100%"
           @selection-change="handleSelectionChange">
@@ -168,7 +203,7 @@
           </el-table-column>
           <el-table-column prop="priority" :label="$t('testcase.priority')" width="100">
             <template #default="{ row }">
-              <el-tag :class="`priority-tag ${row.priority}`">{{ getPriorityText(row.priority) }}</el-tag>
+              <el-tag size="small" :type="priorityType(row.priority)">{{ getPriorityText(row.priority) }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="test_type" :label="$t('testcase.testType')" width="120">
@@ -190,19 +225,19 @@
           </el-table-column>
         </el-table>
       </div>
-      
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[15, 25, 35, 50, 100]"
-          :total="total"
-          layout="total, sizes, prev, pager, next"
-          @current-change="handlePageChange"
-          @size-change="handleSizeChange"
-        />
+
+        <div class="pagination-container">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[15, 25, 35, 50, 100]"
+            :total="total"
+            layout="total, sizes, prev, pager, next"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+          />
+        </div>
       </div>
-    </div>
 
     <el-dialog
       v-model="importDialogVisible"
@@ -312,7 +347,8 @@
     <el-dialog
       v-model="zentaoImportVisible"
       :title="$t('testcase.importZentao')"
-      width="620px"
+      width="900px"
+      top="6vh"
       :close-on-click-modal="!zentaoImporting"
       :close-on-press-escape="!zentaoImporting"
     >
@@ -327,6 +363,7 @@
           <el-radio-group v-model="zentaoImportForm.scopeType">
             <el-radio value="product">{{ $t('testcase.byProduct') }}</el-radio>
             <el-radio value="project">{{ $t('testcase.byProject') }}</el-radio>
+            <el-radio value="search">{{ $t('testcase.byKeyword') }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="zentaoImportForm.scopeType === 'product'" :label="$t('testcase.zentaoProduct')" required>
@@ -335,13 +372,43 @@
             <el-option v-for="p in zentaoProducts" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
-        <el-form-item v-else :label="$t('testcase.zentaoProject')" required>
+        <el-form-item v-else-if="zentaoImportForm.scopeType === 'project'" :label="$t('testcase.zentaoProject')" required>
           <el-select v-model="zentaoImportForm.scopeId" filterable style="width: 100%"
             :placeholder="$t('testcase.selectZentaoProject')" @change="loadScopeStories">
             <el-option v-for="p in zentaoProjects" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('testcase.zentaoStory')">
+        <template v-else>
+          <el-form-item :label="$t('testcase.zentaoProduct')">
+            <el-select v-model="zentaoSearchForm.productId" filterable clearable style="width: 100%"
+              :placeholder="$t('testcase.allZentaoProducts')">
+              <el-option v-for="p in zentaoProducts" :key="p.id" :label="p.name" :value="p.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="$t('testcase.keyword')">
+            <div class="zentao-search-row">
+              <el-input v-model="zentaoSearchForm.keyword" clearable
+                :placeholder="$t('testcase.searchCasePlaceholder')" @keyup.enter="searchZentaoCasesAction" />
+              <el-button type="primary" :loading="zentaoSearching" @click="searchZentaoCasesAction">
+                {{ $t('testcase.search') }}
+              </el-button>
+            </div>
+          </el-form-item>
+          <el-form-item v-if="zentaoSearchResults.length" :label="$t('testcase.searchResult')">
+            <el-table :data="zentaoSearchResults" max-height="260" class="zentao-search-table"
+              @selection-change="onZentaoSearchSelectionChange">
+              <el-table-column type="selection" width="42" />
+              <el-table-column prop="id" :label="$t('testcase.excelNumber')" width="110" />
+              <el-table-column prop="title" :label="$t('testcase.excelTitle')" show-overflow-tooltip />
+              <el-table-column prop="product_name" :label="$t('testcase.zentaoProduct')" width="120" show-overflow-tooltip />
+              <el-table-column :label="$t('testcase.zentaoStory')" width="90">
+                <template #default="{ row }">{{ row.story || '-' }}</template>
+              </el-table-column>
+              <el-table-column prop="priority" :label="$t('testcase.priority')" width="80" />
+            </el-table>
+          </el-form-item>
+        </template>
+        <el-form-item v-if="zentaoImportForm.scopeType !== 'search'" :label="$t('testcase.zentaoStory')">
           <el-select v-model="zentaoImportForm.storyIds" multiple filterable style="width: 100%"
             :placeholder="$t('testcase.selectZentaoStory')">
             <el-option v-for="s in scopeStories" :key="s.id" :label="s.title" :value="s.id" />
@@ -361,6 +428,44 @@
         </el-button>
       </template>
     </el-dialog>
+    <!-- AI 修改/补充弹窗（共用，随模式切换） -->
+    <el-dialog
+      v-model="aiDialogVisible"
+      :title="aiMode === 'modify' ? $t('testcase.aiTaskDialogTitle') : $t('testcase.aiSupplementDialogTitle')"
+      width="640px"
+      @closed="resetAiDialog">
+      <el-alert
+        v-if="aiMode === 'modify'"
+        :title="$t('testcase.aiModifySelectedHint', { count: selectedTestCases.length })"
+        type="info"
+        :closable="false"
+        class="ai-dialog-hint" />
+      <el-form label-position="top">
+        <el-form-item v-if="aiMode === 'supplement'" :label="$t('testcase.aiRequirementContext')">
+          <el-input
+            v-model="aiForm.requirementText"
+            type="textarea"
+            :rows="5" />
+        </el-form-item>
+        <el-form-item :label="$t('testcase.aiModifyTitle')">
+          <el-input
+            v-model="aiForm.note"
+            type="textarea"
+            :rows="4"
+            :placeholder="$t('testcase.aiModifyNotePlaceholder')" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="aiDialogVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button
+          type="primary"
+          :loading="isAiSubmitting"
+          :disabled="!aiForm.note.trim()"
+          @click="submitAiTask">
+          {{ isAiSubmitting ? $t('testcase.aiSubmitting') : $t('testcase.aiSubmit') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -369,12 +474,14 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search, Download, Delete, Upload, Position, Connection, ArrowDown, Tickets } from '@element-plus/icons-vue'
+import { Plus, Search, Download, Delete, Upload, Position, Connection, ArrowDown, Tickets, MagicStick } from '@element-plus/icons-vue'
 import api from '@/utils/api'
-import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, exportCasesToZentao, importCasesFromZentao, getZentaoTask, getRequirements } from '@/api/requirement'
+import { getZentaoProducts, getZentaoProjects, getZentaoProductStories, getZentaoProjectStories, searchZentaoCases, exportCasesToZentao, importCasesFromZentao, getZentaoTask, getRequirements, aiModifyTestcases, aiSupplementTestcases, getTestCaseAiTask } from '@/api/requirement'
+import { batchConvertToAutomation } from '@/api/requirement-analysis'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 import PageHeader from '@/components/common/PageHeader.vue'
+import FilterBar from '@/components/common/FilterBar.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -417,6 +524,103 @@ const zentaoImportVisible = ref(false)
 const zentaoImporting = ref(false)
 const zentaoProjects = ref([])
 const scopeStories = ref([])
+const zentaoSearchForm = ref({ keyword: '', productId: '' })
+const zentaoSearching = ref(false)
+const zentaoSearchResults = ref([])
+const zentaoSearchSelection = ref([])
+
+// ==================== AI 修改/补充 ====================
+const aiDialogVisible = ref(false)
+const aiMode = ref('modify') // modify | supplement
+const aiForm = ref({ note: '', requirementText: '' })
+const isAiSubmitting = ref(false)
+const aiRunningTaskId = ref('')
+const aiTaskStatus = ref('')
+const aiPollTimer = ref(null)
+const isAiTaskRunning = computed(() => !!aiRunningTaskId.value)
+
+const openAiDialog = (mode) => {
+  aiMode.value = mode
+  aiForm.value = { note: '', requirementText: '' }
+  if (mode === 'supplement') {
+    // 预填所选需求的描述（可编辑，只影响本次补充）
+    const req = requirements.value.find(r => r.id === Number(requirementFilter.value))
+    aiForm.value.requirementText = req?.spec || ''
+  }
+  aiDialogVisible.value = true
+}
+
+const resetAiDialog = () => {
+  aiForm.value = { note: '', requirementText: '' }
+}
+
+const submitAiTask = async () => {
+  isAiSubmitting.value = true
+  try {
+    let res
+    if (aiMode.value === 'modify') {
+      res = await aiModifyTestcases({
+        case_ids: selectedTestCases.value.map(tc => tc.id),
+        note: aiForm.value.note.trim()
+      })
+    } else {
+      res = await aiSupplementTestcases({
+        requirement_id: Number(requirementFilter.value),
+        requirement_text: aiForm.value.requirementText.trim(),
+        note: aiForm.value.note.trim()
+      })
+    }
+    aiRunningTaskId.value = res.data.task_id
+    aiTaskStatus.value = res.data.status
+    aiDialogVisible.value = false
+    ElMessage.info(t('testcase.aiTaskRunning'))
+    startAiPolling()
+  } catch (error) {
+    ElMessage.error(error.response?.data?.error || t('testcase.aiTaskFailed'))
+  } finally {
+    isAiSubmitting.value = false
+  }
+}
+
+const startAiPolling = () => {
+  stopAiPolling()
+  aiPollTimer.value = setInterval(pollAiTask, 2000)
+}
+
+const stopAiPolling = () => {
+  if (aiPollTimer.value) {
+    clearInterval(aiPollTimer.value)
+    aiPollTimer.value = null
+  }
+}
+
+const pollAiTask = async () => {
+  if (!aiRunningTaskId.value) {
+    stopAiPolling()
+    return
+  }
+  try {
+    const res = await getTestCaseAiTask(aiRunningTaskId.value)
+    aiTaskStatus.value = res.data.status
+    if (res.data.status === 'succeeded') {
+      stopAiPolling()
+      if (aiMode.value === 'modify') {
+        ElMessage.success(t('testcase.aiTaskSucceededModify'))
+      } else {
+        ElMessage.success(t('testcase.aiTaskSucceededSupplement', { count: (res.data.created_cases || []).length }))
+      }
+      aiRunningTaskId.value = ''
+      fetchTestCases()
+    } else if (res.data.status === 'failed') {
+      stopAiPolling()
+      ElMessage.error(`${t('testcase.aiTaskFailed')}: ${res.data.error_message || ''}`)
+      aiRunningTaskId.value = ''
+    }
+  } catch (error) {
+    // 轮询失败不打断任务，下次重试
+    console.error(t('testcase.aiTaskPollError'), error)
+  }
+}
 const zentaoImportForm = ref({ scopeType: 'product', scopeId: '', storyIds: [], projectId: '' })
 const zentaoImportTimer = ref(null)
 const zentaoImportProgress = ref(0)
@@ -590,6 +794,9 @@ const submitZentaoExport = async () => {
 const openZentaoImportDialog = async () => {
   zentaoImportForm.value = { scopeType: 'product', scopeId: '', storyIds: [], projectId: '' }
   scopeStories.value = []
+  zentaoSearchForm.value = { keyword: '', productId: '' }
+  zentaoSearchResults.value = []
+  zentaoSearchSelection.value = []
   try {
     const [prodRes, projRes] = await Promise.all([getZentaoProducts(), getZentaoProjects()])
     zentaoProducts.value = prodRes.data.products || []
@@ -615,24 +822,73 @@ const loadScopeStories = async () => {
   }
 }
 
+const onZentaoSearchSelectionChange = (rows) => {
+  zentaoSearchSelection.value = rows
+}
+
+const searchZentaoCasesAction = async () => {
+  const kw = zentaoSearchForm.value.keyword.trim()
+  if (!kw) {
+    ElMessage.warning(t('testcase.inputKeyword'))
+    return
+  }
+  zentaoSearching.value = true
+  try {
+    const params = { keyword: kw }
+    if (zentaoSearchForm.value.productId) params.product_id = zentaoSearchForm.value.productId
+    const res = await searchZentaoCases(params)
+    zentaoSearchResults.value = res.data.cases || []
+    zentaoSearchSelection.value = []
+    if (!zentaoSearchResults.value.length) ElMessage.info(t('testcase.noSearchResult'))
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || t('testcase.importZentaoFailed'))
+  } finally {
+    zentaoSearching.value = false
+  }
+}
+
 const submitZentaoImport = async () => {
-  if (!zentaoImportForm.value.scopeId || !zentaoImportForm.value.storyIds.length) {
+  const form = zentaoImportForm.value
+  if (form.scopeType === 'search') {
+    if (!zentaoSearchSelection.value.length) {
+      ElMessage.warning(t('testcase.selectZentaoCase'))
+      return
+    }
+    if (!form.projectId) {
+      ElMessage.warning(t('testcase.selectLocalProject'))
+      return
+    }
+    zentaoImporting.value = true
+    try {
+      const res = await importCasesFromZentao({
+        scope_type: 'search',
+        case_ids: zentaoSearchSelection.value.map(c => c.id),
+        project_id: form.projectId
+      })
+      startZentaoImportPolling(res.data.task_id, zentaoSearchSelection.value.length)
+    } catch (e) {
+      ElMessage.error(e.response?.data?.error || t('testcase.importZentaoFailed'))
+      zentaoImporting.value = false
+    }
+    return
+  }
+  if (!form.scopeId || !form.storyIds.length) {
     ElMessage.warning(t('testcase.selectZentaoStory'))
     return
   }
-  if (!zentaoImportForm.value.projectId) {
+  if (!form.projectId) {
     ElMessage.warning(t('testcase.selectLocalProject'))
     return
   }
   zentaoImporting.value = true
   try {
     const res = await importCasesFromZentao({
-      scope_type: zentaoImportForm.value.scopeType,
-      scope_id: zentaoImportForm.value.scopeId,
-      story_ids: zentaoImportForm.value.storyIds,
-      project_id: zentaoImportForm.value.projectId
+      scope_type: form.scopeType,
+      scope_id: form.scopeId,
+      story_ids: form.storyIds,
+      project_id: form.projectId
     })
-    startZentaoImportPolling(res.data.task_id, zentaoImportForm.value.storyIds.length)
+    startZentaoImportPolling(res.data.task_id, form.storyIds.length)
   } catch (e) {
     ElMessage.error(e.response?.data?.error || t('testcase.importZentaoFailed'))
     zentaoImporting.value = false
@@ -781,6 +1037,41 @@ const batchDeleteTestCases = async () => {
   }
 }
 
+// 批量转为自动化用例
+const isConverting = ref(false)
+
+const convertToAutomation = async () => {
+  if (selectedTestCases.value.length === 0) return
+
+  try {
+    await ElMessageBox.confirm(
+      t('automation.convertConfirm', { count: selectedTestCases.value.length }),
+      t('common.warning'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }
+    )
+  } catch {
+    return
+  }
+
+  isConverting.value = true
+  try {
+    const { data } = await batchConvertToAutomation({
+      source_type: 'testcase',
+      ids: selectedTestCases.value.map(c => c.id)
+    })
+    ElMessage.success(t('automation.convertResult', { created: data.created_count, skipped: data.skipped_count }))
+  } catch (error) {
+    console.error('Convert to automation failed:', error)
+    ElMessage.error(t('common.error') + ': ' + (error.message || ''))
+  } finally {
+    isConverting.value = false
+  }
+}
+
 const getPriorityText = (priority) => {
   const textMap = {
     low: t('testcase.low'),
@@ -789,6 +1080,12 @@ const getPriorityText = (priority) => {
     critical: t('testcase.critical')
   }
   return textMap[priority] || priority
+}
+
+// 优先级 → el-tag type（低=成功色 / 中=警告色 / 高、紧急=危险色）
+const priorityType = (priority) => {
+  const map = { low: 'success', medium: 'warning', high: 'danger', critical: 'danger' }
+  return map[priority] || 'info'
 }
 
 const getTypeText = (type) => {
@@ -1079,6 +1376,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   stopZentaoExportPolling()
   stopZentaoImportPolling()
+  stopAiPolling()
 })
 </script>
 
@@ -1088,61 +1386,16 @@ onBeforeUnmount(() => {
 
   .zentao-progress-text {
     margin: 12px 0 0;
-    font-size: 13px;
-    color: #909399;
+    font-size: var(--aitest-font-size-base);
+    color: var(--aitest-text-3);
     text-align: center;
   }
 }
 
-.page-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.card-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.filter-bar {
-  padding: 20px;
-  border-bottom: 1px solid var(--aitest-border);
-  flex-shrink: 0;
-}
-
-.table-container {
-  flex: 1;
-  overflow: hidden;
-  padding: 0 20px;
-  
-  :deep(.el-table) {
-    height: 100% !important;
-  }
-  
-  :deep(.el-table__body-wrapper) {
-    overflow-y: auto !important;
-  }
-}
-
-.pagination-container {
-  padding: 20px;
-  border-top: 1px solid var(--aitest-border);
-  display: flex;
-  justify-content: center;
-  flex-shrink: 0;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
 .import-alert {
-  margin-bottom: 20px;
+  margin-bottom: var(--aitest-space-4);
 }
 
 .import-upload {
@@ -1152,13 +1405,6 @@ onBeforeUnmount(() => {
   :deep(.el-upload-dragger) {
     width: 100%;
   }
-}
-
-.priority-tag {
-  &.low { color: var(--el-color-success); }
-  &.medium { color: var(--el-color-warning); }
-  &.high { color: var(--el-color-danger); }
-  &.critical { color: var(--el-color-danger); font-weight: bold; }
 }
 
 .version-tags {
@@ -1172,39 +1418,9 @@ onBeforeUnmount(() => {
 }
 
 .no-version {
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  color: var(--aitest-text-3);
+  font-size: var(--aitest-font-size-sm);
   font-style: italic;
-}
-
-@media (max-width: 1200px) {
-  .page-container {
-    height: auto;
-    min-height: 100vh;
-    overflow-y: auto;
-  }
-  
-  .card-container {
-    min-height: 600px;
-  }
-  
-  .table-container {
-    min-height: 400px;
-  }
-}
-
-@media (max-width: 768px) {
-  .page-container {
-    padding: 10px;
-  }
-
-  .filter-bar {
-    padding: 15px;
-  }
-
-  .pagination-container {
-    padding: 15px;
-  }
 }
 
 .step-content {
@@ -1214,10 +1430,29 @@ onBeforeUnmount(() => {
 .preview-info {
   padding: 15px;
   background-color: var(--aitest-canvas);
-  border-radius: 4px;
+  border-radius: var(--aitest-radius);
 
   p {
     margin: 5px 0;
   }
+}
+
+.ai-btn-wrap {
+  display: inline-block;
+  margin-left: 12px;
+}
+
+.ai-dialog-hint {
+  margin-bottom: 16px;
+}
+
+.zentao-search-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.zentao-search-table {
+  width: 100%;
 }
 </style>

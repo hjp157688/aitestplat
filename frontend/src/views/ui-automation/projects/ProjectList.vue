@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('uiAutomation.project.title')">
       <template #actions>
         <el-button type="primary" @click="showCreateDialog = true">
@@ -34,7 +34,8 @@
         </el-row>
       </div>
       
-      <el-table :data="projects" v-loading="loading" style="width: 100%">
+      <div class="table-container">
+        <el-table :data="projects" v-loading="loading" style="width: 100%" height="100%">
         <el-table-column prop="name" :label="$t('uiAutomation.project.projectName')" min-width="200">
           <template #default="{ row }">
             <el-link @click="goToProjectDetail(row.id)" type="primary">
@@ -69,7 +70,8 @@
           </template>
         </el-table-column>
       </el-table>
-      
+      </div>
+
       <div class="pagination-container">
         <el-pagination
           v-model:current-page="pagination.currentPage"
@@ -111,7 +113,7 @@
               </el-select>
             </template>
           </el-input>
-          <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 4px;">
+          <div style="color: var(--el-text-color-secondary); font-size: var(--aitest-font-size-sm); margin-top: 4px;">
             提示：请输入完整的URL地址，包含协议（http:// 或 https://）
           </div>
         </el-form-item>
@@ -158,7 +160,7 @@
               </el-select>
             </template>
           </el-input>
-          <div style="color: var(--el-text-color-secondary); font-size: 12px; margin-top: 4px;">
+          <div style="color: var(--el-text-color-secondary); font-size: var(--aitest-font-size-sm); margin-top: 4px;">
             提示：请输入完整的URL地址，包含协议（http:// 或 https://）
           </div>
         </el-form-item>
@@ -522,26 +524,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page-container {
-  padding: var(--aitest-space-5);
-  height: 100%;
-  overflow-y: auto;
-}
-
-.card-container {
-  background-color: var(--aitest-surface);
-  border-radius: var(--aitest-radius-lg);
-  padding: var(--aitest-space-5);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.filter-bar {
-  margin-bottom: var(--aitest-space-5);
-}
-
-.pagination-container {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地无额外样式 */
 </style>

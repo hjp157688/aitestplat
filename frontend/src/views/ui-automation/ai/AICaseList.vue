@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('uiAutomation.ai.caseList.title')" />
 
     <div class="card-container">
@@ -17,7 +17,8 @@
         </el-input>
       </div>
 
-      <el-table :data="cases" v-loading="loading" style="width: 100%">
+      <div class="table-container">
+        <el-table :data="cases" v-loading="loading" style="width: 100%" height="100%">
         <el-table-column prop="name" :label="$t('uiAutomation.ai.caseList.caseName')" min-width="200" show-overflow-tooltip />
         <el-table-column prop="description" :label="$t('uiAutomation.common.description')" min-width="200" show-overflow-tooltip />
         <el-table-column prop="task_description" :label="$t('uiAutomation.ai.caseList.taskDescription')" min-width="300" show-overflow-tooltip />
@@ -39,6 +40,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <div class="pagination-container">
         <el-pagination
@@ -238,26 +240,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.page-container {
-  padding: var(--aitest-space-5);
-}
-
-.card-container {
-  background-color: var(--aitest-surface);
-  border-radius: var(--aitest-radius-sm);
-  padding: var(--aitest-space-5);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.filter-bar {
-  margin-bottom: var(--aitest-space-5);
-}
-
-.pagination-container {
-  margin-top: var(--aitest-space-5);
-  display: flex;
-  justify-content: flex-end;
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 
 /* 操作列三个按钮保持单行，防止换行挤成两行 */
 .operation-cell :deep(.cell) {

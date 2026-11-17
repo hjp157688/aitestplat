@@ -1,22 +1,23 @@
 <template>
-  <div class="ui-env-config">
-    <PageHeader :title="$t('configuration.uiEnv.title')" />
-
-    <div class="main-content">
-      <div class="check-section">
-        <el-button type="primary" size="large" @click="checkEnvironment" :loading="checking">
+  <div class="ui-env-config page-container">
+    <PageHeader :title="$t('configuration.uiEnv.title')" :desc="$t('configuration.uiEnv.description')">
+      <template #actions>
+        <el-button type="primary" @click="checkEnvironment" :loading="checking">
           <el-icon><Refresh /></el-icon>
           {{ $t('configuration.uiEnv.checkEnvironment') }}
         </el-button>
-        <div v-if="lastCheckTime" class="last-check">
-          {{ $t('configuration.uiEnv.lastCheckTime') }}: {{ lastCheckTime }}
-        </div>
+      </template>
+    </PageHeader>
+
+    <div class="card-container">
+      <div v-if="lastCheckTime" class="last-check">
+        {{ $t('configuration.uiEnv.lastCheckTime') }}: {{ lastCheckTime }}
       </div>
 
       <div v-if="environmentData" class="env-status-grid">
-        <div class="os-info-card">
-          <h3>{{ $t('configuration.uiEnv.operatingSystem') }}</h3>
-          <div class="os-name">{{ environmentData.os }}</div>
+        <div class="info-row">
+          <span class="info-label">{{ $t('configuration.uiEnv.operatingSystem') }}</span>
+          <span class="info-value">{{ environmentData.os }}</span>
         </div>
 
         <!-- 系统浏览器 (Selenium) -->
@@ -26,13 +27,11 @@
         <div class="browser-cards">
           <div v-for="browser in environmentData.system_browsers" :key="browser.name" class="browser-card">
               <div class="browser-content">
-                <div class="browser-icon">
-                  <img :src="getBrowserIcon(browser.name)" :alt="browser.name" />
-                </div>
+                <div class="browser-icon" v-html="getBrowserIcon(browser.name)"></div>
                 <div class="browser-info">
                   <h3>{{ formatBrowserName(browser.name) }}</h3>
                   <div class="status-row">
-                    <el-tag :type="browser.installed ? 'success' : 'info'" effect="dark">
+                    <el-tag :type="browser.installed ? 'success' : 'info'">
                       {{ browser.installed ? (browser.version || $t('configuration.uiEnv.installed')) : $t('configuration.uiEnv.notInstalled') }}
                     </el-tag>
                   </div>
@@ -48,13 +47,11 @@
         <div class="browser-cards">
           <div v-for="browser in environmentData.playwright_browsers" :key="browser.name" class="browser-card">
               <div class="browser-content">
-                <div class="browser-icon">
-                  <img :src="getBrowserIcon(browser.name)" :alt="browser.name" />
-                </div>
+                <div class="browser-icon" v-html="getBrowserIcon(browser.name)"></div>
                 <div class="browser-info">
                   <h3>{{ formatBrowserName(browser.name) }}</h3>
                   <div class="status-row">
-                    <el-tag :type="browser.installed ? 'success' : 'warning'" effect="dark">
+                    <el-tag :type="browser.installed ? 'success' : 'warning'">
                       {{ browser.installed ? (browser.version || $t('configuration.uiEnv.installed')) : $t('configuration.uiEnv.notInstalled') }}
                     </el-tag>
                   </div>
@@ -62,6 +59,10 @@
               </div>
           </div>
         </div>
+      </div>
+
+      <div v-else class="loading-container">
+        <el-skeleton :rows="4" animated />
       </div>
     </div>
   </div>
@@ -82,16 +83,43 @@ const installing = ref(null)
 const lastCheckTime = ref('')
 const environmentData = ref(null)
 
+// 内联 SVG 浏览器图标（离线可用；原远程 PNG 依赖 raw.githubusercontent.com，内网/受限网络下不显示）
+const browserIconSvgs = {
+  chrome: `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 24 L4.3 20.5 A20 20 0 0 1 36.9 8.7 Z" fill="#EA4335"/>
+    <path d="M24 24 L36.9 8.7 A20 20 0 0 1 30.8 42.8 Z" fill="#FBBC05"/>
+    <path d="M24 24 L30.8 42.8 A20 20 0 0 1 4.3 20.5 Z" fill="#34A853"/>
+    <circle cx="24" cy="24" r="8.5" fill="#fff"/>
+    <circle cx="24" cy="24" r="6.5" fill="#4285F4"/>
+  </svg>`,
+  firefox: `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="20" fill="#FF7139"/>
+    <path d="M12.5 26 A12 12 0 1 1 27 36.6" stroke="#FFF3E0" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </svg>`,
+  safari: `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="20" fill="#0FB5EE"/>
+    <circle cx="24" cy="24" r="15.5" fill="none" stroke="#FFFFFF" stroke-width="1.5" opacity="0.85"/>
+    <path d="M33 15 L22.3 22.3 L25.7 25.7 Z" fill="#FF3B30"/>
+    <path d="M15 33 L25.7 25.7 L22.3 22.3 Z" fill="#FFFFFF"/>
+  </svg>`,
+  edge: `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="20" fill="#0078D7"/>
+    <path d="M13 28.5 A12.5 12.5 0 1 1 35 32" stroke="#FFFFFF" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.95"/>
+  </svg>`,
+  chromium: `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="20" fill="#4285F4"/>
+    <circle cx="24" cy="24" r="8.5" fill="#FFFFFF"/>
+    <circle cx="24" cy="24" r="6.8" fill="#1A73E8"/>
+  </svg>`,
+  webkit: `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="20" fill="#7986CB"/>
+    <circle cx="28" cy="20" r="5" fill="#FFFFFF"/>
+    <path d="M25 23 L15 33" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  </svg>`
+}
+
 const getBrowserIcon = (name) => {
-  const iconMap = {
-    'chrome': 'https://raw.githubusercontent.com/alrra/browser-logos/main/src/chrome/chrome_48x48.png',
-    'firefox': 'https://raw.githubusercontent.com/alrra/browser-logos/main/src/firefox/firefox_48x48.png',
-    'safari': 'https://raw.githubusercontent.com/alrra/browser-logos/main/src/safari/safari_48x48.png',
-    'edge': 'https://raw.githubusercontent.com/alrra/browser-logos/main/src/edge/edge_48x48.png',
-    'chromium': 'https://raw.githubusercontent.com/alrra/browser-logos/main/src/chromium/chromium_48x48.png',
-    'webkit': 'https://raw.githubusercontent.com/alrra/browser-logos/main/src/webkit/webkit_48x48.png'
-  }
-  return iconMap[name] || ''
+  return browserIconSvgs[name] || ''
 }
 
 const formatBrowserName = (name) => {
@@ -134,75 +162,70 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.ui-env-config {
-  padding: var(--aitest-space-5);
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.check-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: var(--aitest-space-10);
-  gap: var(--aitest-space-3);
-}
+/* 页面骨架：page-container + PageHeader + card-container；留白由全局 .page-container 提供，根容器不私写 max-width */
 
 .last-check {
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-3);
+  margin-bottom: var(--aitest-space-4);
+}
+
+.loading-container {
+  padding: var(--aitest-space-6);
 }
 
 .env-status-grid {
   display: flex;
   flex-direction: column;
-  gap: var(--aitest-space-8);
+  gap: var(--aitest-space-5);
 }
 
-.os-info-card {
-  background: var(--aitest-surface);
-  padding: var(--aitest-space-5);
-  border-radius: 12px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  text-align: center;
+.info-row {
+  display: flex;
+  font-size: var(--aitest-font-size-base);
+  line-height: var(--aitest-line-height-normal);
+  padding-bottom: var(--aitest-space-3);
+  border-bottom: 1px solid var(--aitest-border);
 }
 
-.os-name {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--el-color-primary);
-  margin-top: var(--aitest-space-3);
+.info-label {
+  color: var(--aitest-text-3);
+  width: 88px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  color: var(--aitest-text-1);
+  font-weight: 500;
+  word-break: break-all;
+  min-width: 0;
 }
 
 .section-title {
-  margin: var(--aitest-space-5) 0 var(--aitest-space-3);
-  border-left: 4px solid var(--el-color-primary);
+  margin-top: var(--aitest-space-2);
+  border-left: 3px solid var(--aitest-primary);
   padding-left: var(--aitest-space-3);
 }
 
 .section-title h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: var(--aitest-font-size-md);
+  font-weight: 600;
   color: var(--aitest-text-1);
 }
 
 .browser-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--aitest-space-5);
+  gap: var(--aitest-space-4);
 }
 
 .browser-card {
-  background: var(--aitest-surface);
-  border-radius: 12px;
+  background: var(--aitest-surface-subtle);
+  border: 1px solid var(--aitest-card-border);
+  border-radius: var(--aitest-card-radius);
   padding: var(--aitest-space-5);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
   cursor: default;
-}
-
-.browser-card:hover {
-  transform: translateY(-5px);
 }
 
 .browser-content {
@@ -215,13 +238,13 @@ onMounted(() => {
 .browser-icon {
   width: 64px;
   height: 64px;
-  margin-bottom: var(--aitest-space-4);
+  margin-bottom: var(--aitest-space-3);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.browser-icon img {
+.browser-icon :deep(svg) {
   width: 48px;
   height: 48px;
   object-fit: contain;
@@ -230,24 +253,16 @@ onMounted(() => {
 .browser-info {
   width: 100%;
   text-align: center;
-  margin-bottom: var(--aitest-space-4);
 }
 
 .browser-info h3 {
   margin: 0 0 var(--aitest-space-3);
   color: var(--aitest-text-1);
-  font-size: 1.1rem;
+  font-size: var(--aitest-font-size-md);
+  font-weight: 600;
 }
 
 .status-row {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--aitest-space-1);
-}
-
-.browser-actions {
-  margin-top: var(--aitest-space-3);
-  width: 100%;
   display: flex;
   justify-content: center;
 }

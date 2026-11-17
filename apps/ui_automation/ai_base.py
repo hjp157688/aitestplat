@@ -11,6 +11,8 @@ import asyncio
 import functools
 import json
 import re
+import subprocess
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
@@ -983,6 +985,59 @@ try:
 except Exception as e:
     logger.error(f"❌ Failed to patch LocalBrowserWatchdog._find_free_port: {e}")
 
+# Patch Agent._prepare_context：agent._skip_step_screenshot=True 时跳过逐页截图。
+# browser-use 0.10.1 在 _prepare_context 里硬编码 include_screenshot=True（仅为
+# GIF/云同步服务，文本模式 use_vision=False 用不到），关闭后速度更快内存更省。
+try:
+    from browser_use.agent.service import Agent as _PatchAgent
+
+    _original_prepare_context = _PatchAgent._prepare_context
+
+    async def _patched_prepare_context(self, step_info):
+        if not getattr(self, '_skip_step_screenshot', False):
+            return await _original_prepare_context(self, step_info)
+        session = self.browser_session
+        if session is None:
+            return await _original_prepare_context(self, step_info)
+        original_get_state = session.get_browser_state_summary
+
+        async def _get_state_no_screenshot(**kwargs):
+            kwargs['include_screenshot'] = False
+            return await original_get_state(**kwargs)
+
+        # BrowserSession 是 pydantic 模型：普通实例赋值会触发 validate_assignment
+        # 报 no_such_attribute（三连失败直接终止任务），必须绕过校验
+        object.__setattr__(session, 'get_browser_state_summary', _get_state_no_screenshot)
+        try:
+            return await _original_prepare_context(self, step_info)
+        finally:
+            object.__setattr__(session, 'get_browser_state_summary', original_get_state)
+
+    _PatchAgent._prepare_context = _patched_prepare_context
+    logger.info("✅ Applied Agent._prepare_context screenshot skip patch")
+except Exception as e:
+    logger.error(f"❌ Failed to patch Agent._prepare_context: {e}")
+
+# Patch BrowserSession._cdp_set_cookies：原实现在 agent_focus_target_id 为空时
+# 静默 return，而 StorageStateWatchdog 恰在浏览器启动、还没有任何标签页时加载
+# 登录态 → cookie 被丢弃，用例浏览器裸开登录页被迫重新登录。改为直接经 root
+# CDP client 设置（browser 级作用域，对所有页面生效），不再依赖 focus。
+try:
+    from browser_use.browser.session import BrowserSession as _PatchSession
+
+    async def _patched_cdp_set_cookies(self, cookies):
+        if not cookies:
+            return
+        root = getattr(self, 'cdp_client', None) or getattr(self, '_cdp_client_root', None)
+        if root is None:
+            return
+        await root.send.Storage.setCookies(params={'cookies': list(cookies)})
+
+    _PatchSession._cdp_set_cookies = _patched_cdp_set_cookies
+    logger.info("✅ Applied BrowserSession._cdp_set_cookies focus-skip patch")
+except Exception as e:
+    logger.error(f"❌ Failed to patch BrowserSession._cdp_set_cookies: {e}")
+
 # ============================================================================
 # PART 2: Helper Classes
 # ============================================================================
@@ -1013,10 +1068,14 @@ from browser_use.browser.profile import BrowserProfile
 
 
 class BaseBrowserAgent:
-    def __init__(self, execution_mode='text', enable_gif=True, case_name=None):
+    def __init__(self, execution_mode='text', enable_gif=True, case_name=None, storage_state=None, keep_alive=False, cdp_url=None, enable_screenshot=True):
         self.execution_mode = 'text'
         self.enable_gif = enable_gif  # GIF录制开关
         self.case_name = case_name or "Adhoc Task"  # 用例名称
+        self.storage_state = storage_state  # 登录态注入（browser-use storage_state：dict/路径）
+        self.keep_alive = keep_alive  # 任务结束后保活浏览器会话（需要导出登录态时用）
+        self.cdp_url = cdp_url  # 远端浏览器 CDP 地址（如用户本地 Chrome 经隧道暴露的 http://127.0.0.1:9222）；设置后不再本机启动浏览器
+        self.enable_screenshot = enable_screenshot  # 逐页截图开关：False 时跳过截图且不生成 GIF（文本模式安全）
 
         # Load Config from DB（统一走 apps.ai.ConfigResolver，按 role='browser_use_text' 取活跃配置）
         from apps.ai.resolver import ConfigResolver
@@ -1474,6 +1533,98 @@ class BaseBrowserAgent:
         if cleaned_count > 0:
             logger.info(f"✅ Cleaned up {cleaned_count} zombie Chrome processes")
 
+    @staticmethod
+    def _find_chrome_executable():
+        """探测可用的 Chrome/Chromium 可执行文件，找不到返回 None。"""
+        import platform
+
+        system = platform.system()
+        if system == 'Darwin':
+            candidates = [
+                '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+                '/Applications/Chromium.app/Contents/MacOS/Chromium',
+            ]
+        elif system == 'Windows':
+            candidates = [
+                r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+                os.path.expanduser(r"~\AppData\Local\Google\Chrome\Application\chrome.exe"),
+            ]
+        else:
+            candidates = [
+                '/usr/bin/chromium-browser',
+                '/usr/bin/chromium',
+                '/usr/bin/google-chrome',
+                '/usr/bin/google-chrome-stable',
+                '/opt/google/chrome/chrome',
+                '/snap/bin/chromium',
+            ]
+        for p in candidates:
+            if os.path.exists(p) and os.access(p, os.X_OK):
+                return p
+        return None
+
+    @staticmethod
+    async def _probe_cdp(host, port):
+        """探测 CDP 端口 /json/version 是否就绪。"""
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=2.0, trust_env=False) as client:
+                resp = await client.get(f'http://{host}:{port}/json/version')
+                return resp.status_code == 200
+        except Exception:
+            return False
+
+    async def _ensure_remote_browser(self, emit_log=None):
+        """cdp_url 兜底：指向的本机（127.0.0.1/localhost）浏览器未启动时自动拉起调试 Chrome；
+        远端地址不可达则报清晰错误（服务器进程无法在用户机上启动程序，那是本地 agent 的职责）。
+
+        独立 user-data-dir（~/aitestplat-chrome）：Chrome 136+ 禁止对默认用户目录开调试端口，
+        且避免与用户日常 Chrome 实例冲突。
+        """
+        cdp_url = getattr(self, 'cdp_url', None)
+        if not cdp_url:
+            return
+        parsed = urlparse(cdp_url)
+        host = (parsed.hostname or '').lower()
+        port = parsed.port or 9222
+
+        if await self._probe_cdp(host, port):
+            return
+
+        if host not in ('127.0.0.1', 'localhost'):
+            raise RuntimeError(
+                f'CDP 地址 {cdp_url} 不可达：请确认用户机浏览器已带调试端口启动且隧道已建立'
+                f'（远端地址不会自动拉起浏览器）')
+
+        chrome_path = self._find_chrome_executable()
+        if not chrome_path:
+            raise RuntimeError('未找到本机 Chrome，无法自动启动；'
+                               '请手动启动带 --remote-debugging-port 的 Chrome')
+
+        user_data_dir = os.path.expanduser('~/aitestplat-chrome')
+        os.makedirs(user_data_dir, exist_ok=True)
+        subprocess.Popen(
+            [chrome_path, f'--remote-debugging-port={port}',
+             f'--user-data-dir={user_data_dir}',
+             '--no-first-run', '--no-default-browser-check'],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            start_new_session=True)
+        if emit_log:
+            msg = {'type': 'log',
+                   'content': f'\n[System]\nCDP 端口 {port} 未监听，已自动启动本机调试 Chrome（独立 profile）...\n'}
+            if asyncio.iscoroutinefunction(emit_log):
+                await emit_log(msg)
+            else:
+                emit_log(msg)
+
+        for _ in range(30):  # 最多等 15 秒
+            await asyncio.sleep(0.5)
+            if await self._probe_cdp(host, port):
+                logger.info(f'✅ 已自动启动本机调试 Chrome（port={port}, profile={user_data_dir}）')
+                return
+        raise RuntimeError(f'自动启动的 Chrome 调试端口 {port} 未就绪，请检查 Chrome 是否被安全软件拦截')
+
     def _create_browser_profile(self):
         # Default implementation, can be overridden
         chrome_path = None
@@ -1576,6 +1727,31 @@ class BaseBrowserAgent:
                 '--remote-debugging-port=9222',
             ])
 
+        profile_kwargs = {}
+        if getattr(self, 'cdp_url', None):
+            # 连接已存在的远端浏览器（用户本地 Chrome 经隧道暴露），browser-use 不再本机启动浏览器
+            profile_kwargs['cdp_url'] = self.cdp_url
+        if getattr(self, 'storage_state', None):
+            # browser-use 0.10.1 的 StorageStateWatchdog 只认文件路径（os.path.exists
+            # 检查），dict 会被静默跳过、登录态从不注入 → 用例浏览器裸开登录页被迫
+            # 重新登录。dict 必须落成临时 JSON 文件后传路径；路径原样透传。
+            state = self.storage_state
+            if isinstance(state, dict):
+                import tempfile
+                fd, tmp_path = tempfile.mkstemp(prefix='aitestplat-state-', suffix='.json')
+                try:
+                    with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                        json.dump(state, f, ensure_ascii=False)
+                except Exception:
+                    os.unlink(tmp_path)
+                    raise
+                self._storage_state_file = tmp_path
+                state = tmp_path
+            profile_kwargs['storage_state'] = state
+        if getattr(self, 'keep_alive', False):
+            # 任务结束后保活浏览器会话：登录场景必须先导出 storage_state 再关闭，
+            # 否则 agent 自动 reset 会话后导出会因 CDP 已销毁而失败
+            profile_kwargs['keep_alive'] = True
         return BrowserProfile(
             headless=(system == 'Linux'),  # Linux 使用无头模式，其他系统使用显示模式
             disable_security=True,
@@ -1584,14 +1760,37 @@ class BaseBrowserAgent:
             wait_for_network_idle_page_load_time=0.2,
             minimum_wait_page_load_time=0.05,
             wait_between_actions=0.1,
-            enable_default_extensions=False
+            enable_default_extensions=False,
+            **profile_kwargs
         )
 
+    async def export_storage_state(self):
+        """导出当前浏览器会话的登录态（cookies + localStorage），失败返回 None。"""
+        try:
+            session = getattr(self, 'browser_session', None)
+            if session is None:
+                return None
+            # browser-use 0.10.1 BrowserSession 的真实方法名是 export_storage_state（返回 dict）；
+            # get_storage_state 仅作别名兼容（旧版本/测试 fake）
+            exporter = getattr(session, 'export_storage_state', None) or getattr(session, 'get_storage_state', None)
+            if exporter is None:
+                return None
+            state = await exporter()
+            if isinstance(state, str):
+                state = json.loads(state)
+            return state
+        except Exception:
+            logger.warning('导出 storage_state 失败', exc_info=True)
+            return None
+
     async def run_task(self, task_description: str, planned_tasks=None, callback=None, should_stop=None):
+        # 每次执行先重置会话引用，避免上一次执行的旧会话被 export_storage_state 误读
+        self.browser_session = None
         await self._verify_execution_llm()
 
-        # Cleanup potential zombie processes before starting
-        self._cleanup_zombie_chrome()
+        # Cleanup potential zombie processes before starting（连接远端浏览器时无本机进程，跳过）
+        if not getattr(self, 'cdp_url', None):
+            self._cleanup_zombie_chrome()
 
         try:
             loop = asyncio.get_running_loop()
@@ -1601,6 +1800,7 @@ class BaseBrowserAgent:
         controller = Controller()
         _task_was_done = False
         active_task_statuses = {'pending', 'in_progress'}
+        self._observed_cdp_url = None  # run 期间从 browser_session 观测到的 CDP 端点（reset 后仍可用）
 
         async def emit_callback(payload):
             if not callback:
@@ -1646,7 +1846,17 @@ class BaseBrowserAgent:
         async def done(success: bool = True, text: str = ""):
             nonlocal _task_was_done
             _task_was_done = True
-            return f"Finished: {text}"
+            # 必须返回 is_done=True 的 ActionResult：此自定义 done 会顶替
+            # browser-use 内置 done（同名注册先删除旧动作），若返回普通字符串，
+            # Tools.act 会包装成 is_done=False 的 ActionResult，导致
+            # history.is_done()/is_successful() 恒为假，任务永远被判失败。
+            from browser_use.agent.views import ActionResult
+            return ActionResult(
+                is_done=True,
+                success=success,
+                extracted_content=f"Finished: {text}",
+                long_term_memory=f'Task completed: {success} - {text[:100]}',
+            )
 
         @controller.action('close_tab')
         async def close_tab(browser_session=None):
@@ -1798,8 +2008,10 @@ class BaseBrowserAgent:
         except:
             pass
 
-        browser_profile = self._create_browser_profile()
+        # cdp_url 兜底：本机调试浏览器未启动时自动拉起（远端地址不可达则报错）
+        await self._ensure_remote_browser(emit_callback)
 
+        browser_profile = self._create_browser_profile()
         agent = Agent(
             task=final_task,
             llm=self.llm,
@@ -1811,9 +2023,11 @@ class BaseBrowserAgent:
             max_failures=2,  # 减少最大失败次数，避免过长等待 (从默认3改为2)
             llm_timeout=60,  # 设置LLM调用超时为60秒（支持硅基流动等大模型API）
             step_timeout=90,  # 设置每步超时为90秒
-            generate_gif=self.enable_gif,  # 根据开关决定是否生成GIF
+            generate_gif=self.enable_gif and getattr(self, 'enable_screenshot', True),  # 截图关闭时 GIF 一并停用
         )
         agent._task_was_done = False
+        # 环境级截图开关：False 时经 _prepare_context 补丁跳过逐页截图
+        agent._skip_step_screenshot = not getattr(self, 'enable_screenshot', True)
         agent._pending_status_task_id = None
         agent._pending_status_task_description = None
         agent._auth_failure_task_id = None
@@ -1834,9 +2048,6 @@ class BaseBrowserAgent:
             if should_stop:
                 do_stop = await should_stop() if asyncio.iscoroutinefunction(should_stop) else should_stop()
                 if do_stop: raise KeyboardInterrupt("User requested stop")
-
-            if _task_was_done:
-                raise KeyboardInterrupt("Done")
 
             history = getattr(agent_instance, 'history', [])
             if hasattr(history, 'history'): history = history.history
@@ -1951,6 +2162,11 @@ class BaseBrowserAgent:
 
                         browser_session = getattr(agent_instance, 'browser_session', None)
                         if browser_session is not None:
+                            # 记录真实 CDP 端点：run 结束时 session reset 会清掉
+                            # cdp_url（本地浏览器），此后兜底导出登录态仍需要它
+                            observed_cdp = getattr(browser_session, 'cdp_url', None)
+                            if observed_cdp:
+                                self._observed_cdp_url = observed_cdp
                             try:
                                 tabs = await browser_session.get_tabs()
                                 current_tab_ids = {tab.target_id for tab in tabs}
@@ -2009,7 +2225,15 @@ class BaseBrowserAgent:
                         logger.warning(f"⚠️ Error in on_step_end processing: {e}")
                 last_processed_step = len(history)
 
+            # done 后再早退：放在日志处理之后，保证 done 步骤（含任务结果文本）
+            # 已回调给上层日志；否则登录失败时看不到 agent 报告的原因
+            if _task_was_done:
+                raise KeyboardInterrupt("Done")
+
         try:
+            # 交接：browser-use Agent 内部才持有真正的 BrowserSession（ai_base 不经 __init__ 创建），
+            # 挂到 self 供 export_storage_state 导出登录态；失败不影响后续执行
+            self.browser_session = getattr(agent, 'browser_session', None)
             # Try to pass callback
             import inspect
             sig = inspect.signature(agent.run)
@@ -2022,6 +2246,16 @@ class BaseBrowserAgent:
         except Exception as e:
             logger.error(f"Agent execution error: {e}")
             raise
+        finally:
+            # dict 登录态落的临时文件只在本 run 内使用（watchdog 读/写），用完即删
+            state_file = getattr(self, '_storage_state_file', None)
+            if state_file:
+                try:
+                    if os.path.exists(state_file):
+                        os.unlink(state_file)
+                except OSError:
+                    pass
+                self._storage_state_file = None
 
         # 在任务结束时检查不一致的任务状态
         history = getattr(agent, 'history', [])

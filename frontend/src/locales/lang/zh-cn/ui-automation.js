@@ -467,6 +467,8 @@ export default {
     on: '开启',
     off: '关闭',
     gifTip: '开启后将录制执行过程并生成GIF文件，保存到 ai_agent_history 目录',
+    cdpUrl: '浏览器 CDP 地址',
+    cdpUrlPlaceholder: '留空则在服务器上启动浏览器；填用户本地 Chrome 调试地址（经隧道映射），如 http://127.0.0.1:9222',
     startExecution: '开始执行',
     stopExecution: '停止执行',
     saveAsCase: '保存为用例',

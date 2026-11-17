@@ -119,4 +119,11 @@
   --aitest-method-head:     #0369A1;  --aitest-method-bg-head:     #E0F2FE;
   --aitest-method-options:  #475569;  --aitest-method-bg-options:  #F1F5F9; // connect 同用
   --aitest-method-trace:    #C2410C;  --aitest-method-bg-trace:    #FFEDD5;
+
+  // 厂商/角色徽章色对（语义色不够分时使用，如 AI 模型配置的厂商徽章）
+  --aitest-vendor-cyan:     #0891B2;  --aitest-vendor-cyan-bg:     #ECFEFF;
+  --aitest-vendor-blue:     #1D4ED8;  --aitest-vendor-blue-bg:     #DBEAFE;
+  --aitest-vendor-orange:   #EA580C;  --aitest-vendor-orange-bg:   #FFF7ED;
+  --aitest-vendor-sky:      #0284C7;  --aitest-vendor-sky-bg:      #F0F9FF;
+  --aitest-vendor-pink:     #DB2777;  --aitest-vendor-pink-bg:     #FCE7F3;
 }

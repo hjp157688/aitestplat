@@ -1,8 +1,9 @@
 <template>
-  <div class="notification-logs">
-    <!-- 搜索栏 -->
-    <div class="filters">
-      <el-row :gutter="20">
+  <div class="page-container page-container--full notification-logs">
+    <div class="card-container">
+      <!-- 搜索栏 -->
+      <div class="filter-bar">
+        <el-row :gutter="20">
         <el-col :span="6">
           <el-input v-model="searchForm.taskName" :placeholder="$t('appAutomation.notification.searchPlaceholder')" clearable @clear="handleSearch" @keyup.enter="handleSearch">
             <template #prefix><el-icon><Search /></el-icon></template>
@@ -24,10 +25,11 @@
           <el-button @click="handleReset">{{ $t('appAutomation.common.reset') }}</el-button>
         </el-col>
       </el-row>
-    </div>
+      </div>
 
-    <!-- 列表 -->
-    <el-table :data="logsData" v-loading="loading" border stripe @sort-change="handleSortChange">
+      <!-- 列表 -->
+      <div class="table-container">
+        <el-table :data="logsData" v-loading="loading" border stripe height="100%" @sort-change="handleSortChange">
       <el-table-column prop="task_name" :label="$t('appAutomation.notification.taskName')" min-width="150" sortable="custom" />
       <el-table-column :label="$t('appAutomation.notification.taskType')" width="110">
         <template #default="{ row }">
@@ -55,18 +57,20 @@
         </template>
       </el-table-column>
     </el-table>
+      </div>
 
-    <!-- 分页 -->
-    <div class="pagination">
-      <el-pagination
-        v-model:current-page="pagination.currentPage"
-        v-model:page-size="pagination.pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="pagination.total"
-        layout="total, sizes, prev, pager, next"
-        @size-change="fetchLogs"
-        @current-change="fetchLogs"
-      />
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="pagination.currentPage"
+          v-model:page-size="pagination.pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="pagination.total"
+          layout="total, sizes, prev, pager, next"
+          @size-change="fetchLogs"
+          @current-change="fetchLogs"
+        />
+      </div>
     </div>
 
     <!-- 详情弹窗 -->
@@ -211,9 +215,7 @@ const parsedContent = computed(() => {
 </script>
 
 <style scoped>
-.notification-logs { padding: var(--aitest-space-5); background: var(--aitest-surface); border-radius: var(--aitest-radius-lg); }
-.filters { margin-bottom: var(--aitest-space-5); padding: var(--aitest-space-5); background: var(--aitest-surface-subtle); border-radius: var(--aitest-radius); }
-.pagination { margin-top: var(--aitest-space-5); display: flex; justify-content: flex-end; }
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 .content-box { width: 100%; }
 .parsed-content { background: var(--aitest-surface); border-radius: var(--aitest-radius-lg); padding: var(--aitest-space-4); border: 1px solid var(--aitest-border); }
 .content-row { display: flex; padding: var(--aitest-space-3) 0; border-bottom: 1px solid var(--aitest-surface-subtle); }

@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container page-container--full">
     <PageHeader :title="$t('appAutomation.project.title')">
       <template #actions>
         <el-button type="primary" @click="openCreateDialog">
@@ -32,7 +32,8 @@
       </div>
 
       <!-- 项目列表 -->
-      <el-table :data="projects" v-loading="loading" border stripe>
+      <div class="table-container">
+        <el-table :data="projects" v-loading="loading" border stripe height="100%">
         <el-table-column prop="name" :label="$t('appAutomation.project.projectName')" min-width="160" show-overflow-tooltip />
         <el-table-column prop="description" :label="$t('appAutomation.common.description')" min-width="200" show-overflow-tooltip>
           <template #default="{ row }">{{ row.description || '-' }}</template>
@@ -71,6 +72,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <!-- 分页 -->
       <div class="pagination-container">
@@ -266,8 +268,5 @@ function formatDateTime(dt) {
 </script>
 
 <style scoped>
-.page-container { padding: var(--aitest-space-5); }
-.card-container { background: var(--aitest-surface); border-radius: var(--aitest-radius-lg); padding: var(--aitest-space-5); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.filter-bar { margin-bottom: var(--aitest-space-5); }
-.pagination-container { margin-top: var(--aitest-space-5); display: flex; justify-content: flex-end; }
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 </style>

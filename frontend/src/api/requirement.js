@@ -159,6 +159,17 @@ export function getZentaoProjectStories(projectId) {
 }
 
 /**
+ * 按关键词搜索禅道测试用例（keyword 必填，productId 可选）
+ */
+export function searchZentaoCases(params) {
+  return request({
+    url: '/requirement-analysis/zentao/testcases/search/',
+    method: 'get',
+    params
+  })
+}
+
+/**
  * 同步禅道需求到本地
  */
 export function syncZentaoRequirements(data) {
@@ -358,6 +369,71 @@ export function saveWeKnoraBinding(data) {
 export function deleteWeKnoraBinding(id) {
   return request({
     url: `/requirement-analysis/weknora-bindings/${id}/`,
+    method: 'delete'
+  })
+}
+
+// ==================== 用例 AI 修改/补充 + 用例版本历史 ====================
+
+/**
+ * AI 定向修改勾选用例（异步：返回 task_id，用 getTestCaseAiTask 轮询进度）
+ */
+export function aiModifyTestcases(data) {
+  return request({
+    url: '/testcases/ai-modify/',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * AI 补充需求下的测试用例（异步：返回 task_id）
+ */
+export function aiSupplementTestcases(data) {
+  return request({
+    url: '/testcases/ai-supplement/',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 查询用例 AI 任务进度（修改/补充通用）
+ */
+export function getTestCaseAiTask(taskId) {
+  return request({
+    url: `/testcases/ai-task/${taskId}/`,
+    method: 'get'
+  })
+}
+
+/**
+ * 用例版本历史时间线
+ */
+export function getTestCaseVersions(caseId) {
+  return request({
+    url: `/testcases/${caseId}/versions/`,
+    method: 'get'
+  })
+}
+
+/**
+ * 回退用例到指定历史版本
+ */
+export function restoreTestCaseVersion(caseId, version, note) {
+  return request({
+    url: `/testcases/${caseId}/versions/${version}/restore/`,
+    method: 'post',
+    data: { note }
+  })
+}
+
+/**
+ * 删除用例历史版本（最新版不可删，编号不重排）
+ */
+export function deleteTestCaseVersion(caseId, version) {
+  return request({
+    url: `/testcases/${caseId}/versions/${version}/`,
     method: 'delete'
   })
 }

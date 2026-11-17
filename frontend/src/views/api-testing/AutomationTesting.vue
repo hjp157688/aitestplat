@@ -1,5 +1,5 @@
 <template>
-  <div class="automation-testing">
+  <div class="page-container page-container--full automation-testing">
     <PageHeader :title="$t('apiTesting.automation.title')">
       <template #actions>
         <el-button type="primary" @click="showCreateSuiteDialog = true">
@@ -9,7 +9,8 @@
       </template>
     </PageHeader>
 
-    <div class="content-layout">
+    <div class="card-container">
+      <div class="content-layout">
       <!-- 左侧项目选择和测试套件列表 -->
       <div class="sidebar">
         <div class="project-selector">
@@ -36,7 +37,7 @@
             </el-button>
           </div>
           
-          <el-scrollbar height="400px">
+          <el-scrollbar>
             <div
               v-for="suite in testSuites"
               :key="suite.id"
@@ -187,16 +188,20 @@
                   {{ formatDate(scope.row.created_at) }}
                 </template>
               </el-table-column>
-              <el-table-column :label="$t('apiTesting.common.operation')" width="120">
+              <el-table-column :label="$t('apiTesting.common.operation')" width="150">
                 <template #default="scope">
                   <el-button link type="primary" @click="viewExecutionDetail(scope.row)" size="small">
                     {{ $t('apiTesting.automation.viewDetails') }}
+                  </el-button>
+                  <el-button link type="danger" @click="deleteExecution(scope.row)" size="small">
+                    {{ $t('apiTesting.common.delete') }}
                   </el-button>
                 </template>
               </el-table-column>
             </el-table>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -972,6 +977,26 @@ const viewExecutionDetail = (execution) => {
   showExecutionDialog.value = true
 }
 
+const deleteExecution = async (execution) => {
+  try {
+    await ElMessageBox.confirm(
+      t('apiTesting.automation.confirmDeleteExecution'),
+      t('apiTesting.common.delete'),
+      { type: 'warning' }
+    )
+  } catch {
+    return
+  }
+
+  try {
+    await api.delete(`/api-testing/test-executions/${execution.id}/`)
+    ElMessage.success(t('apiTesting.automation.deleteExecutionSuccess'))
+    loadExecutions()
+  } catch (error) {
+    ElMessage.error(t('apiTesting.automation.deleteExecutionFailed') + ': ' + (error.response?.data?.error || error.message))
+  }
+}
+
 const formatExecutionResults = (results) => {
   if (!results || !Array.isArray(results)) return []
   return results
@@ -990,25 +1015,24 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.automation-testing {
-  padding: var(--aitest-space-5);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
+/* 两栏内容层是 .card-container 的子元素（不能挂到 card-container 本身，
+   page-container--full 对其直接子级有强制 flex-direction: column 的全局规则） */
 .content-layout {
   display: flex;
   flex: 1;
-  gap: var(--aitest-space-5);
+  min-height: 0;
+  gap: var(--aitest-space-4);
+  padding: var(--aitest-card-padding);
   overflow: hidden;
 }
 
 .sidebar {
   width: 300px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: var(--aitest-space-4);
+  min-height: 0;
 }
 
 .project-selector {
@@ -1023,6 +1047,10 @@ onMounted(() => {
   border-radius: var(--aitest-radius);
   border: 1px solid var(--aitest-border);
   overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .list-header {
@@ -1033,6 +1061,12 @@ onMounted(() => {
   background: var(--aitest-canvas);
   border-bottom: 1px solid var(--aitest-border);
   font-weight: 500;
+  flex-shrink: 0;
+}
+
+.suite-list :deep(.el-scrollbar) {
+  flex: 1;
+  min-height: 0;
 }
 
 .suite-item {
@@ -1070,9 +1104,8 @@ onMounted(() => {
 
 .main-content {
   flex: 1;
-  background: var(--aitest-surface);
-  border-radius: var(--aitest-radius);
-  border: 1px solid var(--aitest-border);
+  min-width: 0;
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1087,7 +1120,6 @@ onMounted(() => {
 
 .suite-detail {
   flex: 1;
-  padding: var(--aitest-space-5);
   overflow: auto;
 }
 
@@ -1194,12 +1226,12 @@ onMounted(() => {
 .req-label {
   flex-shrink: 0;
   min-width: 64px;
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-2);
 }
 
 .req-value {
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-1);
   word-break: break-all;
 }
@@ -1218,7 +1250,7 @@ onMounted(() => {
   background: var(--aitest-surface-subtle);
   border: 1px solid var(--aitest-border);
   border-radius: var(--aitest-radius);
-  font-size: 12px;
+  font-size: var(--aitest-font-size-sm);
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-all;

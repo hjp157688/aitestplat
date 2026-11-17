@@ -1,0 +1,75 @@
+{
+    "cookies": [
+        {
+            "name": "JSESSIONID",
+            "value": "2D5FE1D019FBEF00F47E56EBB9F71939",
+            "domain": "192.168.177.51",
+            "path": "/",
+            "expires": -1,
+            "size": 42,
+            "httpOnly": true,
+            "secure": false,
+            "session": true,
+            "priority": "Medium",
+            "sourceScheme": "NonSecure",
+            "sourcePort": 9998
+        }
+    ],
+    "origins": [
+        {
+            "origin": "http://192.168.177.51:9998",
+            "localStorage": [
+                {
+                    "name": "language",
+                    "value": "zh-CN"
+                },
+                {
+                    "name": "isPkiLogin",
+                    "value": "0"
+                }
+            ],
+            "sessionStorage": [
+                {
+                    "name": "tokenType",
+                    "value": "bearer"
+                },
+                {
+                    "name": "isLdap",
+                    "value": "0"
+                },
+                {
+                    "name": "isPkiLogin",
+                    "value": "0"
+                },
+                {
+                    "name": "ajaxUrl",
+                    "value": ""
+                },
+                {
+                    "name": "meunList",
+                    "value": "[]"
+                },
+                {
+                    "name": "licenseStatus",
+                    "value": "1"
+                },
+                {
+                    "name": "sysmgr",
+                    "value": "{\"config\":{\"uapLdapEnable\":0,\"copyright\":\"copyright \u00a9\u9ad8\u65b0\u5174\u79d1\u6280\u96c6\u56e2\u80a1\u4efd\u6709\u9650\u516c\u53f8 \u7248\u6743\u6240\u6709\",\"geerPkiEnable\":\"0\",\"watermarkEnable\":1,\"userIndustryShow\":0,\"zhengDaPkiEnable\":\"1\",\"logoUrl\":\"/sysmgr/files/logo-gosun.png\",\"indexTitle\":\"\u9ad8\u4e91\u00b7\u89c6\u9891\u8054\u7f51\u7cfb\u7edf\",\"backToIndexUrl\":\"/index\",\"utcEnable\":0,\"adminAccount\":\"admin\",\"homeTitle\":\"\u8ba4\u8bc1\u9274\u6743\u4e2d\u5fc3\",\"userEnableShow\":1,\"defaultPassword\":\"\"},\"userId\":1456,\"userName\":\"\u81ea\u52a8\u5316\u7528\u62371022\",\"account\":\"auto_ui_1022\",\"roleCodes\":[\"\"],\"industryId\":\"\",\"isAdmin\":0,\"expires\":3598,\"ip\":\"10.1.6.188\",\"permissionList\":[],\"alarmPermissionList\":[],\"showPromptInfo\":1}"
+                },
+                {
+                    "name": "accessToken",
+                    "value": "eyJhbGciOiJIUzI1NiJ9.eyJnYkNvZGUiOiIiLCJpc1BraUxvZ2luIjowLCJzdWIiOiJjbGllbnRfaWQiLCJjb2RlIjowLCJpZENhcmQiOiIiLCJpcCI6IjEwLjEuNi4xODgiLCJpc3MiOiJodHRwOi8vMTkyLjE2OC4xNzcuNTE6MTAyNyIsInJvbGVDb2RlcyI6IiIsImxhbmd1YWdlIjoiemgtQ04iLCJpc0FkbWluIjowLCJ0b2tlbl90eXBlIjoiYmVhcmVyIiwidXNlcklkIjoxNDU2LCJhdWQiOiJ1dXV1YWFhYXBwcHB1dXV1YWFhYXBwcHB1dXV1YWFhYSIsImxpY2Vuc2UiOiJ1YXAiLCJpbmR1c3RyeUlkIjoiIiwidXNlckxldmVsIjoiIiwidGVuYW50RXhwaXJlVGltZSI6IiIsInRlbmFudElkIjowLCJleHAiOjE3OTI2Mzc0NTMsImlhdCI6MTc5MjYzMzg1MywianRpIjoiNDI3MzRkN2YtZTkzZi00MTE1LTk1ZGUtYjJjNmRjYTY0NjlkIiwiYWNjb3VudCI6ImF1dG9fdWlfMTAyMiIsInVzZXJuYW1lIjoi6Ieq5Yqo5YyW55So5oi3MTAyMiJ9.t0Kxv3qdM44sUpVO3gFz3JfyoRKoZ73YzGGUVKwYgLI"
+                },
+                {
+                    "name": "uap-tabs",
+                    "value": "[]"
+                },
+                {
+                    "name": "validate",
+                    "value": "{\"ENABLE_MOBILE_VERIFY_CODE_AUTH\":{\"itemName\":\"\u662f\u5426\u542f\u7528\u624b\u673a\u9a8c\u8bc1\u7801\u767b\u5f55\",\"enable\":0,\"valRegex\":null,\"value\":null},\"UPLOADFILE_LIMIT_SIZE\":{\"itemName\":\"\u4e0a\u4f20\u6587\u4ef6\u5927\u5c0f\u9650\u5236\",\"enable\":1,\"valRegex\":null,\"value\":\"100MB\"},\"INTEGRITY_DATA_ENCRYPT_MODE\":{\"itemName\":\"\u5b8c\u6574\u6027\u6570\u636e\u52a0\u5bc6\u6a21\u5f0f(0.\u54c8\u5e0c-SHA256 1.SM3(\u81ea\u5b9a\u4e49) 2.SM3_CCSP(\u4e09\u672a\u4fe1\u5b89))\",\"enable\":1,\"valRegex\":null,\"value\":\"0\"},\"LONG_TIME_NOT_USE\":{\"itemName\":\"\u8d26\u53f7\u957f\u65f6\u95f4\u672a\u4f7f\u7528 (\u5929)\",\"enable\":1,\"valRegex\":null,\"value\":\"60\"},\"HIGH_FREQUENCY_ACCESS\":{\"itemName\":\"\u9ad8\u9891\u8bbf\u95ee \u4e09\u5206\u949f\u5185\u8bbf\u95ee\u6b21\u6570\",\"enable\":1,\"valRegex\":null,\"value\":\"4\"},\"ENABLE_ADMIN_LOGIN\":{\"itemName\":\"\u662f\u5426\u542f\u7528admin\u767b\u5f55\",\"enable\":0,\"valRegex\":null,\"value\":null},\"ENABLE_FIRST_PASSWORD_TIP\":{\"itemName\":\"\u662f\u5426\u5f00\u542f\u7b2c\u4e00\u6b21\u767b\u5f55\u5bc6\u7801\u4fee\u6539\u63d0\u793a\",\"enable\":1,\"valRegex\":null,\"value\":null},\"ENABLE_DATA_INTEGRITY_CHECK\":{\"itemName\":\"\u662f\u5426\u542f\u7528\u6570\u636e\u5b8c\u6574\u6027\u6821\u9a8c\",\"enable\":0,\"valRegex\":null,\"value\":null},\"PASSWORD_EXPIRE_DAYS\":{\"itemName\":\"\u5bc6\u7801\u8fc7\u671f\u5929\u6570\",\"enable\":0,\"valRegex\":null,\"value\":\"30\"},\"ENABLE_ADMIN_LOGIN_PKI_AUTH\":{\"itemName\":\"\u662f\u5426\u542f\u7528pki\u8ba4\u8bc1(admin\u767b\u5f55\u9875)\",\"enable\":0,\"valRegex\":null,\"value\":null},\"ENABLE_PIC_CODE\":{\"itemName\":\"\u662f\u5426\u542f\u7528\u9a8c\u8bc1\u7801(1\uff1a\u5f00\u542f\uff0c0\uff1a\u4e0d\u5f00\u542f)\",\"enable\":0,\"valRegex\":null,\"value\":null},\"FORBIN_LOGIN_TIME\":{\"itemName\":\"\u7981\u6b62\u767b\u5f55\u65f6\u95f4\u957f\u5ea6(\u5355\u4f4d\uff1a\u5206\u949f)\",\"enable\":1,\"valRegex\":null,\"value\":\"3\"},\"ENABLE_PKI_AUTH\":{\"itemName\":\"\u662f\u5426\u542f\u7528pki\u8ba4\u8bc1\",\"enable\":0,\"valRegex\":null,\"value\":null},\"ACCOUNT\":{\"itemName\":\"\u8d26\u53f7\u9a8c\u8bc1(\u957f\u5ea64-16\u4f4d\u53ef\u4ee5\u5b57\u6bcd\uff0c\u6570\u5b57\uff0c\u4e0b\u5212\u7ebf\uff0c\u51cf\u53f7\u7ec4\u5408)\",\"enable\":1,\"valRegex\":\"(^[a-zA-Z0-9_-]{4,16}$)\",\"value\":null},\"MAX_LOGIN_ERROR_COUNT\":{\"itemName\":\"\u4e00\u5b9a\u65f6\u95f4\u6bb5\u5185\u6700\u5927\u767b\u5f55\u9519\u8bef\u6b21\u6570\uff08\u5355\u4f4d\uff1a\u6b21\uff09\",\"enable\":1,\"valRegex\":null,\"value\":\"3\"},\"ABNORMAL_LOGIN_TIME\":{\"itemName\":\"\u5f02\u5e38\u8bbf\u95ee\u65f6\u95f4(\u9ed8\u8ba4: 0:00-4:00)\",\"enable\":1,\"valRegex\":null,\"value\":\"0:00-4:00\"},\"MAX_LOGIN_ERROR_LOCK_IP_COUNT\":{\"itemName\":\"\u4e00\u5b9a\u65f6\u95f4\u6bb5\u5185\u767b\u5f55\u9519\u8bef\u9501\u5b9aip\u6700\u5927\u6b21\u6570(\u5355\u4f4d\uff1a\u6b21)\",\"enable\":1,\"valRegex\":null,\"value\":\"10\"},\"CODE_TIMEOUT\":{\"itemName\":\"\u9a8c\u8bc1\u7801\u8fc7\u671f\u65f6\u95f4(\u5355\u4f4d\uff1a\u5206\u949f\uff09\",\"enable\":0,\"valRegex\":null,\"value\":\"1\"},\"REGISTER\":{\"itemName\":\"\u662f\u5426\u542f\u7528\u6ce8\u518c\",\"enable\":0,\"valRegex\":null,\"value\":null},\"ONE_ONE_USER_ROLE\":{\"itemName\":\"\u4e00\u4e2a\u7528\u6237\u5bf9\u5e94\u4e00\u4e2a\u89d2\u8272\",\"enable\":0,\"valRegex\":null,\"value\":null},\"FORCE_UPD_PASSWORD\":{\"itemName\":\"\u5f3a\u5236\u4fee\u6539\u5bc6\u7801(\u7b2c\u4e00\u6b21\u767b\u5f55)\",\"enable\":0,\"valRegex\":null,\"value\":null},\"ENABLE_SENSITIVE_DATA_ENCRYPT\":{\"itemName\":\"\u662f\u5426\u542f\u7528\u654f\u611f\u6570\u636e\u52a0\u5bc6\u5b58\u50a8\",\"enable\":0,\"valRegex\":null,\"value\":null},\"DATA_ENCRYPT_MODE\":{\"itemName\":\"\u6570\u636e\u52a0\u5bc6\u6a21\u5f0f(0.AES_ECB 1.AES_CTR 2.SM4_ECB(\u81ea\u5b9a\u4e49) 3.SM2_CCSP(\u4e09\u672a\u4fe1\u5b89) 4.SM4_ECB_CCSP(\u4e09\u672a\u4fe1\u5b89) 5.SM2_JCE(\u4e09\u672a\u4fe1\u5b89) 6.SM4_ECB_JCE(\u4e09\u672a\u4fe1\u5b89))\",\"enable\":1,\"valRegex\":null,\"value\":\"0\"},\"LOGIN_ERROR_PERIOD\":{\"itemName\":\"\u7d2f\u8ba1\u767b\u5f55\u9519\u8bef\u65f6\u95f4\u6bb5(\u5355\u4f4d\uff1a\u5206\u949f)\",\"enable\":1,\"valRegex\":null,\"value\":\"3\"},\"PASSWORD\":{\"itemName\":\"\u5bc6\u7801\u9a8c\u8bc1(\u957f\u5ea66-10\u4f4d)\",\"enable\":0,\"valRegex\":\"(^.{6,10}$)\",\"value\":null},\"UPD_PASSWORD_CONSTRAINT\":{\"itemName\":\"\u4fee\u6539\u5bc6\u7801\u7ea6\u675f(\u4e0d\u80fd\u4f7f\u7528\u6700\u65b0\u76845\u6b21\u5bc6\u7801)\",\"enable\":0,\"valRegex\":null,\"value\":null},\"ACCOUNT_ENCRY\":{\"itemName\":\"\u7528\u6237\u540d\u52a0\u5bc6\u4f20\u8f93\",\"enable\":0,\"valRegex\":null,\"value\":null},\"REPEAT_LOGIN\":{\"itemName\":\"\u4e0d\u5141\u8bb8\u91cd\u590d\u767b\u5f55\",\"enable\":0,\"valRegex\":null,\"value\":null}}"
+                }
+            ]
+        }
+    ]
+}

@@ -3484,7 +3484,6 @@ const useLocalVariableCategories = () => {
   display: flex;
   flex-direction: column;
   background: var(--aitest-canvas);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .interface-layout {
@@ -3619,9 +3618,9 @@ const useLocalVariableCategories = () => {
 
 /* 方法标签样式 */
 .method-tag {
-  font-size: 10px;
+  font-size: var(--aitest-font-size-xs);
   padding: 2px var(--aitest-space-2);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-full);
   color: white;
   font-weight: bold;
   text-transform: uppercase;
@@ -3765,7 +3764,7 @@ const useLocalVariableCategories = () => {
   margin-bottom: 0;
   padding: var(--aitest-space-6);
   background: var(--aitest-surface);
-  border-radius: 12px;
+  border-radius: var(--aitest-radius-lg);
   border: 1px solid var(--aitest-border);
   box-shadow: var(--aitest-shadow-sm);
   transition: box-shadow 0.2s ease;
@@ -4059,7 +4058,7 @@ const useLocalVariableCategories = () => {
 .tab-content {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   padding: var(--aitest-space-6);
   margin-bottom: 0;
   box-shadow: var(--aitest-shadow-sm);
@@ -4069,7 +4068,7 @@ const useLocalVariableCategories = () => {
 .response-section {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-radius: 12px;
+  border-radius: var(--aitest-radius-lg);
   overflow: hidden;
   box-shadow: var(--aitest-shadow-sm);
   transition: box-shadow 0.2s ease;
@@ -4107,7 +4106,7 @@ const useLocalVariableCategories = () => {
   font-weight: 500;
   background: var(--aitest-surface-subtle);
   padding: var(--aitest-space-1) var(--aitest-space-3);
-  border-radius: 16px;
+  border-radius: var(--aitest-radius-full);
 }
 
 /* 响应体 */
@@ -4117,7 +4116,7 @@ const useLocalVariableCategories = () => {
   max-height: 600px;
   overflow: auto;
   background: var(--aitest-surface-subtle);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   margin: var(--aitest-space-5);
   border: 1px solid var(--aitest-border);
   box-shadow: var(--aitest-shadow-sm);
@@ -4165,7 +4164,7 @@ const useLocalVariableCategories = () => {
 .response-headers {
   padding: var(--aitest-space-6);
   background: var(--aitest-surface-subtle);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   margin: var(--aitest-space-5);
   border: 1px solid var(--aitest-border);
   max-height: 80vh;
@@ -4419,7 +4418,7 @@ const useLocalVariableCategories = () => {
 .assertions-editor {
   padding: var(--aitest-space-5);
   background: var(--aitest-surface-subtle);
-  border-radius: 12px;
+  border-radius: var(--aitest-radius-lg);
   border: 1px solid var(--aitest-border);
 }
 
@@ -4456,7 +4455,7 @@ const useLocalVariableCategories = () => {
 .assertion-item {
   background: var(--aitest-surface);
   border: 1px solid var(--aitest-border);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-lg);
   padding: var(--aitest-space-6);
   box-shadow: var(--aitest-shadow-xs);
   transition: all 0.2s ease;
@@ -4757,7 +4756,7 @@ const useLocalVariableCategories = () => {
 .status-badge {
   font-size: var(--aitest-font-size-sm);
   padding: var(--aitest-space-1) var(--aitest-space-3);
-  border-radius: 12px;
+  border-radius: var(--aitest-radius-full);
   font-weight: 500;
 }
 
@@ -4948,7 +4947,7 @@ const useLocalVariableCategories = () => {
 .message-type {
   font-weight: 500;
   padding: 2px var(--aitest-space-2);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-full);
 }
 
 .message-type.sent {
@@ -5099,9 +5098,9 @@ const useLocalVariableCategories = () => {
 
 /* 覆盖方法标签样式 */
 .method-tag {
-  font-size: 10px;
+  font-size: var(--aitest-font-size-xs);
   padding: 2px var(--aitest-space-2);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-full);
   color: white;
   font-weight: bold;
   text-transform: uppercase;
@@ -5226,13 +5225,13 @@ const useLocalVariableCategories = () => {
 .auth-label { font-weight: 500; min-width: 120px; }
 .auth-value-input { flex: 1; max-width: 400px; }
 .auth-source-icon { color: var(--aitest-text-3); cursor: help; }
-.auth-hint { color: var(--aitest-text-3); font-size: 12px; margin-top: 8px; }
+.auth-hint { color: var(--aitest-text-3); font-size: var(--aitest-font-size-sm); margin-top: 8px; }
 
 /* Schema tab styles */
 .schema-viewer { padding: 16px; }
 .schema-section { margin-bottom: 16px; }
-.schema-section h4 { margin: 0 0 8px; font-size: 14px; }
-.schema-status-group h5 { margin: 8px 0 4px; font-size: 13px; color: var(--aitest-primary); }
+.schema-section h4 { margin: 0 0 8px; font-size: var(--aitest-font-size-md); }
+.schema-status-group h5 { margin: 8px 0 4px; font-size: var(--aitest-font-size-base); color: var(--aitest-primary); }
 
 /* 响应示例查看器 */
 .response-example-header {
@@ -5257,11 +5256,11 @@ const useLocalVariableCategories = () => {
   word-break: break-all;
 }
 .schema-tree { margin-top: 8px; }
-.empty-tip { color: var(--aitest-text-3); font-size: 13px; padding: 16px 0; }
+.empty-tip { color: var(--aitest-text-3); font-size: var(--aitest-font-size-base); padding: 16px 0; }
 
 /* 用例变量 tab */
 .case-variables-tab { padding: 4px 0; }
-.variables-hint { margin: 8px 0 0; font-size: 12px; color: var(--el-text-color-secondary); }
+.variables-hint { margin: 8px 0 0; font-size: var(--aitest-font-size-sm); color: var(--el-text-color-secondary); }
 
 /* Deprecated tree node styles */
 .deprecated-node .node-label {

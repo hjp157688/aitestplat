@@ -1,5 +1,5 @@
 <template>
-  <div class="test-case-manager">
+  <div class="page-container page-container--full test-case-manager">
     <PageHeader :title="t('uiAutomation.testCase.title')">
       <template #actions>
         <el-select v-model="projectId" :placeholder="t('uiAutomation.project.selectProject')" style="width: 200px" @change="onProjectChange">
@@ -12,7 +12,8 @@
       </template>
     </PageHeader>
 
-    <div class="main-content">
+    <div class="card-container">
+      <div class="main-content">
       <!-- 左侧：测试用例列表 -->
       <div class="left-panel">
         <div class="panel-header">
@@ -395,6 +396,7 @@
         <div v-else class="no-selection">
           <el-empty :description="t('uiAutomation.testCase.selectTestCase')" />
         </div>
+      </div>
       </div>
     </div>
 
@@ -1210,21 +1212,11 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.test-case-manager {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.page-header {
-  padding: var(--aitest-space-5);
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  background: white;
-  margin-bottom: 0;
-}
+/* 页面骨架使用全局 .page-container--full 变体；主内容为左列表 + 右详情工作台，随卡片充满视口 */
 
 .main-content {
   flex: 1;
+  min-height: 0;
   display: flex;
   overflow: hidden;
 }
@@ -1266,7 +1258,7 @@ onMounted(async () => {
 
 .test-case-item:hover {
   border-color: var(--el-color-primary);
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .test-case-item.active {
@@ -1445,7 +1437,7 @@ onMounted(async () => {
   color: white;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: var(--aitest-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1752,7 +1744,7 @@ onMounted(async () => {
   max-width: 100%;
   height: auto;
   border-radius: var(--aitest-radius-sm);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--aitest-shadow-sm);
 }
 
 .errors-container {

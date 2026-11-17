@@ -406,6 +406,9 @@ export default {
       passed: 'Passed'
     },
     confirmDeleteSuite: 'Are you sure to delete test suite "{name}"?',
+    confirmDeleteExecution: 'Delete this execution record? This cannot be undone.',
+    deleteExecutionSuccess: 'Execution record deleted',
+    deleteExecutionFailed: 'Failed to delete execution record',
     confirmRemoveRequest: 'Are you sure to remove this request?',
     selectAtLeastOne: 'Please select at least one request',
     assertionDeveloping: 'Assertion editing feature is under development',

@@ -1,9 +1,11 @@
 <template>
-  <div class="requirement-management">
+  <div class="page-container page-container--full requirement-management">
     <PageHeader :title="$t('requirementManagement.title')" />
 
+    <!-- 需求列表（工具栏+表格+分页同卡片，与全站列表页一致） -->
+    <div class="card-container list-card">
     <!-- 操作栏 -->
-    <div class="toolbar">
+    <div class="filter-bar toolbar">
       <div class="toolbar-left">
         <el-input
           v-model="searchKeyword"
@@ -88,14 +90,14 @@
         </el-button>
       </div>
     </div>
-
-    <!-- 需求列表表格 -->
-    <el-table
-      :data="requirements"
-      v-loading="loading"
-      @selection-change="handleSelectionChange"
-      style="width: 100%"
-    >
+      <div class="table-container">
+      <el-table
+        :data="requirements"
+        v-loading="loading"
+        @selection-change="handleSelectionChange"
+        style="width: 100%"
+        height="100%"
+      >
       <el-table-column type="selection" width="45" />
       <el-table-column
         prop="zentao_id"
@@ -214,17 +216,19 @@
         </template>
       </el-table-column>
     </el-table>
+      </div>
 
-    <!-- 分页 -->
-    <div class="pagination-wrapper">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :total="total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @change="loadRequirements"
-      />
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @change="loadRequirements"
+        />
+      </div>
     </div>
 
     <!-- 手动创建/编辑弹窗 -->
@@ -1118,12 +1122,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.requirement-management {
-  padding: 28px var(--aitest-space-6);
-  max-width: 1400px;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-}
+/* 页面容器使用全局 .page-container（响应式内边距），不再私写 max-width */
 
 /* 需求标题列：el-link 默认 inline-flex，长标题被子盒截断为“硬截断”（无省略号）。
    改为 inline 让文本进入 .cell 的内联格式化上下文，由 .cell 的 text-overflow 绘制省略号；
@@ -1138,12 +1137,23 @@ onMounted(() => {
 }
 
 .toolbar {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--aitest-space-4);
-  flex-wrap: wrap;
-  gap: var(--aitest-space-3);
+  margin-bottom: 0;
+}
+
+/* 卡片承载 工具栏+表格+分页：取消默认内边距，由各区域自带
+   （几何与 TestCaseList 的 page-container--full 一致：工具栏顶带/表格通栏/分页底带） */
+.list-card {
+  padding: 0;
+}
+
+.list-card > .toolbar {
+  padding: var(--aitest-card-padding) var(--aitest-card-padding) var(--aitest-space-4);
+  border-bottom: 1px solid var(--aitest-border);
+}
+
+.list-card > .table-container {
+  padding: 0 var(--aitest-card-padding);
 }
 
 .toolbar-left {
@@ -1157,12 +1167,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: var(--aitest-space-2);
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--aitest-space-4);
 }
 
 .ai-upload-area {
@@ -1197,7 +1201,7 @@ onMounted(() => {
 .ai-gen-selected-label {
   font-weight: 600;
   color: var(--aitest-text-1);
-  font-size: 0.9rem;
+  font-size: var(--aitest-font-size-md);
   margin-bottom: var(--aitest-space-2);
 }
 
@@ -1215,7 +1219,7 @@ onMounted(() => {
 
 .ai-gen-hint {
   margin: var(--aitest-space-3) 0 0;
-  font-size: 0.8rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-3);
   line-height: 1.6;
 }
@@ -1238,13 +1242,13 @@ onMounted(() => {
 
 .selected-knowledge-count {
   color: var(--aitest-text-2);
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-base);
   font-weight: 500;
 }
 
 .knowledge-toolbar-hint {
   color: var(--aitest-text-3);
-  font-size: 0.78rem;
+  font-size: var(--aitest-font-size-xs);
   line-height: 1.5;
 }
 
@@ -1274,24 +1278,24 @@ onMounted(() => {
   flex: 1;
   font-weight: 600;
   color: var(--aitest-text-1);
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-base);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .req-knowledge-status {
-  font-size: 0.78rem;
+  font-size: var(--aitest-font-size-xs);
   color: var(--aitest-text-3);
 }
 
 .req-knowledge-count {
-  font-size: 0.78rem;
+  font-size: var(--aitest-font-size-xs);
   color: var(--aitest-primary);
   font-weight: 600;
   background: var(--aitest-primary-subtle);
   padding: 1px var(--aitest-space-2);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-full);
 }
 
 .selected-knowledge-tags {
@@ -1315,7 +1319,7 @@ onMounted(() => {
   padding: var(--aitest-space-2) var(--aitest-space-3);
   background: var(--aitest-canvas);
   border-bottom: 1px solid var(--aitest-border);
-  font-size: 0.82rem;
+  font-size: var(--aitest-font-size-sm);
   font-weight: 600;
   color: var(--aitest-text-2);
 }
@@ -1334,7 +1338,7 @@ onMounted(() => {
   padding: var(--aitest-space-6);
   text-align: center;
   color: var(--aitest-text-3);
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-base);
 }
 
 .knowledge-item {
@@ -1344,7 +1348,7 @@ onMounted(() => {
   padding: var(--aitest-space-2) var(--aitest-space-3);
   cursor: pointer;
   border-bottom: 1px solid var(--aitest-surface-subtle);
-  font-size: 0.85rem;
+  font-size: var(--aitest-font-size-base);
   transition: background 0.15s;
 }
 
@@ -1363,9 +1367,9 @@ onMounted(() => {
 
 .knowledge-item-type {
   flex-shrink: 0;
-  font-size: 0.72rem;
+  font-size: var(--aitest-font-size-xs);
   padding: 1px var(--aitest-space-2);
-  border-radius: 10px;
+  border-radius: var(--aitest-radius-full);
   background: var(--aitest-surface-subtle);
   color: var(--aitest-text-3);
   border: 1px solid var(--aitest-border);
@@ -1381,7 +1385,7 @@ onMounted(() => {
 
 .knowledge-item-score {
   flex-shrink: 0;
-  font-size: 0.75rem;
+  font-size: var(--aitest-font-size-xs);
   font-weight: 600;
   color: var(--aitest-text-3);
 }
@@ -1401,7 +1405,7 @@ onMounted(() => {
   padding: var(--aitest-space-2) var(--aitest-space-3);
   border-top: 1px solid var(--aitest-border);
   background: var(--aitest-canvas);
-  font-size: 0.82rem;
+  font-size: var(--aitest-font-size-sm);
   color: var(--aitest-text-2);
 }
 
@@ -1428,7 +1432,7 @@ onMounted(() => {
 
 .detail-title {
   margin: 0 0 var(--aitest-space-4) 0;
-  font-size: 1.15rem;
+  font-size: var(--aitest-font-size-lg);
   font-weight: 700;
   color: var(--aitest-text-1);
 }

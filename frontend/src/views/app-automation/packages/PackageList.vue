@@ -1,5 +1,5 @@
 <template>
-  <div class="app-package-list">
+  <div class="page-container page-container--full app-package-list">
     <PageHeader :title="$t('appAutomation.packages.title')">
       <template #actions>
         <el-button :icon="Refresh" :loading="loading" @click="loadPackages">
@@ -11,12 +11,15 @@
       </template>
     </PageHeader>
 
-    <el-table
-      v-loading="loading"
-      :data="packages"
-      style="width: 100%; margin-top: 16px"
-      :empty-text="$t('appAutomation.packages.noPackages')"
-    >
+    <div class="card-container">
+      <div class="table-container">
+        <el-table
+          v-loading="loading"
+          :data="packages"
+          style="width: 100%"
+          height="100%"
+          :empty-text="$t('appAutomation.packages.noPackages')"
+        >
       <el-table-column prop="name" :label="$t('appAutomation.packages.appName')" min-width="180" />
       <el-table-column prop="package_name" :label="$t('appAutomation.packages.packageName')" min-width="220" />
       <el-table-column prop="created_by_name" :label="$t('appAutomation.packages.creator')" width="120">
@@ -45,18 +48,20 @@
         </template>
       </el-table-column>
     </el-table>
+      </div>
 
-    <el-pagination
-      v-show="total > 0"
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :total="total"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper"
-      style="margin-top: 16px; text-align: right"
-      @size-change="loadPackages"
-      @current-change="loadPackages"
-    />
+      <div v-show="total > 0" class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="loadPackages"
+          @current-change="loadPackages"
+        />
+      </div>
+    </div>
 
     <el-dialog
       v-model="dialogVisible"
@@ -222,7 +227,5 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.app-package-list {
-  padding: var(--aitest-space-5);
-}
+/* 页面骨架使用全局 .page-container--full 变体（工具栏/分页固定、表体内部滚动），本地不覆盖 */
 </style>
